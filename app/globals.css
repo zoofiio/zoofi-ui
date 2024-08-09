@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  @font-face {
+    font-family: Poppins;
+    font-weight: 400;
+    src: url(../public/font/Poppins-Medium.ttf) format('truetype');
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-3 cursor-pointer w-full transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm leading-6 bg-indigo-500 text-white font-medium h-10 rounded-md enabled:hover:bg-indigo-600 disabled:bg-slate-500 disabled:cursor-not-allowed mt-6 dark:bg-s2 dark:text-black;
+  }
+
+  .btn-secondary {
+    @apply cursor-pointer text-sm w-full py-2 px-3 border hover:bg-slate-50 border-slate-200 rounded-md transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-slate-800 disabled:cursor-not-allowed;
+  }
+
+  .h3 {
+    @apply text-2xl leading-8 font-semibold text-slate-900;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200 p-4 shadow dark:border-zinc-600 dark:bg-slate-950;
+  }
+
+  .page-title {
+    @apply text-lg md:text-2xl font-semibold text-slate-900 dark:text-slate-50;
+  }
+  .page-sub {
+    @apply text-base font-bold text-slate-900 dark:text-slate-50;
+  }
+}
+
+.aarslider .recharts-tooltip-wrapper {
+  display: none;
+}
+
+/* html {
+  height: 100%;
+  width: 100%;
+  min-height: 100%;
+  overflow-y: auto;
+} */
+
+@layer utilities {
+  @variants responsive {
+    /* Hide scrollbar for Chrome, Safari, and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge, and Firefox */
+    .no-scrollbar {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+  }
+}
+
+.swiper {
+  width: 100%;
+  height: 100%;
+  /* overflow: visible !important; */
+}
+.dark .swiper-pagination-bullet:not(.swiper-pagination-bullet-active) {
+  background: rgb(206, 207, 255, 0.4);
+}
+.swiper-pagination-bullet {
+  width: 100px !important;
+  height: 8px !important;
+  border-radius: 20px !important;
+  opacity: 1;
+  background: rgba(100, 102, 241, 0.22);
+}
+
+
+.swiper-pagination-bullet-active {
+  background: rgba(100, 102, 241, 1);
+}
+
+.ReactCollapse--collapse {
+  transition: height 250ms;
+}

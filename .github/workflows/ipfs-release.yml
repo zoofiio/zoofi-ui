@@ -1,0 +1,66 @@
+name: IPFS Deploy
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  build:
+    if: github.repository == 'zoofiio/zoofi-ui'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+        
+      - name: Install dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+
+      - name: Build for production
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: build
+
+      - name: Pin to IPFS
+        id: upload
+        uses: crustio/ipfs-upload-action@v2.0.5
+        with:
+          path: './out'
+          seeds: ${{ secrets.CRUST_SEEDS }}
+          gateway: 'https://gw.crustfiles.net'
+          params: 'cid-version=1'
+
+      - name: Place storage order on Crust
+        uses: crustio/ipfs-crust-action@v2.0.6
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          cid: ${{ steps.upload.outputs.hash }}
+          seeds: ${{ secrets.CRUST_SEEDS }}
+
+      - name: Update DNS with new IPFS hash
+        env:
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: 'ipfs.wand.fi'
+          RECORD_NAME: '_dnslink'
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        uses: textileio/cloudflare-update-dnslink@master
+        with:
+          cid: ${{ steps.upload.outputs.hash }}
+
+      - name: Create a release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: |
+            IPFS CIDV1: ${{ steps.upload.outputs.hash }}
+  
+            IPFS gateways:
+              https://${{steps.upload.outputs.hash}}.ipfs.dweb.link/
+              https://${{steps.upload.outputs.hash}}.ipfs.cf-ipfs.com/
+              https://wand-fi.ipns.dweb.link/  
