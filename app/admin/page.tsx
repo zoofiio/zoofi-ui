@@ -37,7 +37,7 @@ const Params: { label: string; value: string; units?: number }[] = [
 function Expandable({ children, tit, disable }: { tit: string; children?: ReactNode; disable?: boolean }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className='flex flex-col w-full bg-white rounded-2xl overflow-hidden border border-solid border-blue-400'>
+    <div className='flex flex-col w-full bg-white dark:bg-transparent rounded-2xl overflow-hidden border border-solid border-blue-400'>
       <div className='px-5 py-2 flex justify-between items-center text-sm'>
         <div className='font-medium text-base'>{tit}</div>
         {disable ? (
@@ -52,7 +52,7 @@ function Expandable({ children, tit, disable }: { tit: string; children?: ReactN
           </div>
         )}
       </div>
-      <Collapse isOpened={open} theme={{ content: 'bg-gray-200 p-4 flex flex-col gap-2' }}>
+      <Collapse isOpened={open} theme={{ content: 'bg-gray-200 dark:bg-transparent p-4 flex flex-col gap-2' }}>
         {children}
       </Collapse>
     </div>
@@ -97,7 +97,7 @@ function UpdateVaultVaule({ vc }: { vc: VaultConfig }) {
         }}
         type='number'
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
         pattern='[0-9.]{36}'
@@ -136,7 +136,7 @@ function UpdateVaultPrice({ vc }: { vc: VaultConfig }) {
         value={feed}
         onChange={(e) => setState({ feed: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -193,7 +193,7 @@ function WandTxOwner() {
         value={owner}
         onChange={(e) => setState({ owner: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -221,7 +221,7 @@ function WandSetBlastAddress() {
         value={address}
         onChange={(e) => setState({ address: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -249,7 +249,7 @@ function WandSetBlastPointsAddress() {
         value={address}
         onChange={(e) => setState({ address: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -259,7 +259,7 @@ function WandSetBlastPointsAddress() {
         value={address2}
         onChange={(e) => setState({ address2: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -294,7 +294,7 @@ function ClaimYieldsForBuyPool({ vc }: { vc: VaultConfig }) {
         value={address}
         onChange={(e) => setState({ address: e.target.value })}
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
       />
@@ -351,7 +351,7 @@ function UpdatePlainVaultParam({ vc }: { vc: PlainVaultConfig }) {
         }}
         type='number'
         className={clsx(
-          'bg-white border-slate-400  focus:border-blue-400 ',
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
           'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
         )}
         pattern='[0-9.]{36}'
