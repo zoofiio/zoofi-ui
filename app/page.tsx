@@ -96,21 +96,21 @@ export default function Home() {
             <Image
               width={384}
               height={384}
-              src='/ETH.svg'
+              src='./ETH.svg'
               alt='ETH'
               className='relative left-1/4 grayscale mix-blend-luminosity opacity-20 col-span-2'
             />
             <Image
               width={384}
               height={384}
-              src='/WBTC.svg'
+              src='./WBTC.svg'
               alt='WBTC'
               className='mix-blend-luminosity opacity-20 grayscale'
             />
             <Image
               width={384}
               height={384}
-              src='/stETH.svg'
+              src='./stETH.svg'
               alt='WBTC'
               className='mix-blend-luminosity opacity-20 grayscale'
             />

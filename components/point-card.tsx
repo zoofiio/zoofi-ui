@@ -1,9 +1,8 @@
-import { fmtPercent, swapThrusterLink } from '@/lib/utils'
+import { fmtPercent } from '@/lib/utils'
 import { CoinIcon } from './coinicon'
 
-import { beraChains, isBerachain } from '@/config/network'
-import { ETHSymbol, NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VaultConfig, VAULTS_CONFIG } from '@/config/swap'
-import { getTokens } from '@/config/tokens'
+import { isBerachain } from '@/config/network'
+import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VaultConfig } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useElementSizeCheck } from '@/hooks/useElementSizeCheck'
 import { usePtypoolApy } from '@/hooks/usePtypoolApy'
@@ -15,8 +14,6 @@ import { useContext, useMemo } from 'react'
 import { GoArrowUpRight } from 'react-icons/go'
 import { Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Address } from 'viem'
-import { PointsIcons } from './points-icons'
 import { useThemeState } from './theme-mode'
 
 type PointItem = {

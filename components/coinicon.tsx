@@ -1,3 +1,4 @@
+import { BASE_PATH } from '@/config/env'
 import { CSSProperties, useState } from 'react'
 
 const TypeMap = {
@@ -19,6 +20,6 @@ export function CoinIcon({
   size?: number
 }) {
   const end = symbol in TypeMap ? TypeMap[symbol as TypeMapKeys] : 'svg'
-  const src = `/${symbol}.${end}`
+  const src = `${BASE_PATH}/${symbol}.${end}`
   return <img {...p} width={size} height={size} src={src} alt={symbol} />
 }

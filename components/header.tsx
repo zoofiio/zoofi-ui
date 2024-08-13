@@ -21,13 +21,14 @@ import { useAccount } from 'wagmi'
 import ConnectBtn from './connet-btn'
 import { ThemeMode } from './theme-mode'
 import { DomainRef } from '@/hooks/useConfigDomain'
+import { BASE_PATH } from '@/config/env'
 
 const NetName: { [k: number]: string } = {
   [berachainTestnet.id]: 'Berachain Bartio',
 }
 
 const NetIcon: { [k: number]: string } = {
-  [berachainTestnet.id]: '/berachain.png',
+  [berachainTestnet.id]: `${BASE_PATH}/berachain.png`,
 }
 
 export function useShowAdmin() {
@@ -94,7 +95,7 @@ export function Header() {
       <header className='h-[72px] w-full max-w-[1300px] inset-0 mx-auto flex items-center justify-between px-4   z-30 ml-[calc(100vw - 100%)] '>
         <div className='flex items-center'>
           <Link href={'/'} className='font-semibold flex pr-1 items-center text-base leading-7'>
-            <Image className='' src='/logo-alt.svg' height={52} width={52} alt='wand logo image only' />
+            <Image className='' src={`${BASE_PATH}/logo-alt.svg`} height={52} width={52} alt='wand logo image only' />
             <span className='font-poppins' style={{ display: hiddenTitle ? 'none' : 'inline-block' }}>
               ZooFi
             </span>

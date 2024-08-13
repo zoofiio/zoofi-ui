@@ -208,16 +208,7 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
   return (
     <div className=''>
       <div className='bg-indigo-50 dark:bg-s1 p-6 mt-[30px] rounded-3xl relative'>
-        {/* <h3 className='text-indigo-500 dark:text-slate-50 font-medium text-xl'>Discount Offer</h3> */}
         <p className='text-indigo-900 dark:text-slate-50/80 mt-4'>
-          {/* <Image
-            src='/discount.png'
-            style={{ shapeOutside: 'circle(39% at 64% -38%)' }}
-            width={300}
-            height={204}
-            className='float-right -mt-[130px] -mr-20'
-            alt=''
-          /> */}
           Due to fluctuations in the prices of collateral, when the AAR decreases, the protocol will offer users the
           opportunity to purchase xToken at a discount with ${USBSymbol}. This means that you can engage in arbitrage.
         </p>
