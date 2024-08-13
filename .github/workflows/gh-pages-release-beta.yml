@@ -23,7 +23,7 @@ jobs:
       - name: Build for production
         uses: borales/actions-yarn@v3.0.0
         env:
-          BASE_PATH: /zoofi-ui
+          NEXT_PUBLIC_BASE_PATH: /zoofi-ui
         with:
           cmd: build
 
