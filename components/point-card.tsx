@@ -30,17 +30,17 @@ type PointItem = {
 // background: linear-gradient(90deg, #C2B7FD 0%, #6366F1 100%);
 
 const bgMap: { [k: string]: string } = {
-  ZUSD: 'rgba(226, 254, 182, 1)',
-  ZUSD_dark: '#E2FEB6',
+  ZUSD: 'linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%)',
+  ZUSD_dark: 'linear-gradient(90deg, #C2B7FD 0%, #6366F1 100%)',
   xiBGT: 'rgba(238, 234, 254, 1)',
   xiBGT_dark: 'linear-gradient(90deg, #C2B7FD 0%, #746D97 100%)',
-  HONEY: 'linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%)',
-  xHONEY_dark: 'linear-gradient(90deg, #C2B7FD 0%, #6366F1 100%)',
+  HONEY: 'rgba(226, 254, 182, 1)',
+  xHONEY_dark: '#E2FEB6',
 }
 const titBgMap: { [k: string]: string } = {
-  USB: 'rgba(196, 241, 126, 1)',
-  ETHx: 'rgba(219, 210, 255, 1)',
-  USDBx: 'rgba(255, 255, 255, 1)',
+  ZUSD: 'rgba(255, 255, 255, 1)',
+  xiBGT: 'rgba(219, 210, 255, 1)',
+  xHONEY: 'rgba(196, 241, 126, 1)',
 }
 
 export function useVcPoints(vc: VaultConfig) {
@@ -85,8 +85,7 @@ export function useVcPoints(vc: VaultConfig) {
   return items
 }
 
-export function PointCard({ symbol, tit, sub, link }: PointItem) {
-  const chainId = useCurrentChainId()
+export function PointCard({ symbol, tit, sub, total, link }: PointItem) {
   const theme = useThemeState((s) => s.theme)
   return (
     <div
@@ -110,13 +109,9 @@ export function PointCard({ symbol, tit, sub, link }: PointItem) {
       </div>
       {/* <div className='flex-1' /> */}
       <div className='flex justify-between p-4 whitespace-nowrap text-sm items-center gap-2'>
-        {/* <div className='font-medium text-indigo-500 self-start text-xs items-center gap-1'>
-          <span className='font-semibold text-sm'>{point} Blast Points</span>
-          <div className='flex items-center gap-1'>
-            per {symbol == 'ETHx' ? 1 : 100} <CoinIcon symbol={symbol} size={14} /> /Week
-          </div>
-        </div> */}
-        <PointsIcons icons={['blast', 'gold', 'wand']} />
+        <div className='font-medium text-slate-500 dark:text-slate-50/60 self-start text-xs items-center gap-1'>
+          <span className='font-semibold text-sm'>{total}</span>
+        </div>
         {link && (
           <a
             className='underline text-slate-500 dark:text-slate-50 flex items-center gap-1'

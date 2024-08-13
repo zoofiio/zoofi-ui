@@ -35,7 +35,7 @@ export default function Vaults() {
       {/* <BlastPointCards /> */}
       {!currentVc ? (
         <>
-          <h2 className='page-title'>Vaults</h2>
+          <h2 className='page-title'>L-Vaults</h2>
           <div className='w-full mt-2 mb-3 md:mt-4 md:mb-6 flex text-[24px] md:text-[14px] text-[#64748B] dark:text-slate-50/60 font-medium leading-[24px] md:leading-[14px]'>
             <div className=''>
               <AiFillNotification size={20} />

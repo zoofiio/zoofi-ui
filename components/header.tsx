@@ -91,7 +91,7 @@ export function Header() {
   )
   return (
     <div className='h-[72px] fixed w-full flex bg-slate-50/30 backdrop-blur-lg dark:text-slate-50 dark:bg-slate-900/30 z-30'>
-      <header className='h-[72px] w-full max-w-[1440px] inset-0 mx-auto flex items-center justify-between px-4   z-30 ml-[calc(100vw - 100%)] '>
+      <header className='h-[72px] w-full max-w-[1300px] inset-0 mx-auto flex items-center justify-between px-4   z-30 ml-[calc(100vw - 100%)] '>
         <div className='flex items-center'>
           <Link href={'/'} className='font-semibold flex pr-1 items-center text-base leading-7'>
             <Image className='' src='/logo-alt.svg' height={52} width={52} alt='wand logo image only' />
