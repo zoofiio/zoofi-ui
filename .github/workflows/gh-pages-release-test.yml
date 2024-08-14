@@ -1,0 +1,36 @@
+name: Github Pages Beta Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test
+      
+jobs:
+  build:
+    if: github.repository == 'zoofiio/zoofi-ui'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+
+      - name: Install dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+
+      - name: Build for production
+        uses: borales/actions-yarn@v3.0.0
+        env:
+          NEXT_PUBLIC_BASE_PATH: /zoofi-ui/v-test
+        with:
+          cmd: build
+
+      - name: Deploy Gh-Pages 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          destination_dir: v-test
+          # cname: beta.zoofi.xyz
