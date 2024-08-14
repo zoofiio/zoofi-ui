@@ -51,7 +51,7 @@ export default function Home() {
         </svg>
       </h1>
 
-      <div className='relative flex-1 w-full md:bg-white mt-6 flex flex-col sm:flex-row gap-2 md:p-2 text-2xl rounded-2xl text-white'>
+      <div className='relative flex-1 w-full mt-6 flex flex-col sm:flex-row gap-2 text-2xl rounded-2xl text-white'>
         <img
           src={'./balance.png'}
           style={{ aspectRatio: '524/600' }}
@@ -75,7 +75,7 @@ export default function Home() {
           </div>
         </div>
         <div className='min-h-[480px] relative overflow-hidden bg-indigo-500 text-right justify-end items-end flex flex-col flex-1 p-4 md:pb-10 md:px-7 rounded-xl'>
-          <div className='p-2 bg-white rounded-2xl w-fit flex gap-1 z-50'>
+          {/* <div className='p-2 bg-white rounded-2xl w-fit flex gap-1 z-50'>
             <CoinIcon symbol={'USDBx'} size={48} />
           </div>
           <span className='font-bold text-lg mt-3 lg:text-2xl relative z-10'>$USDBx</span>
@@ -87,7 +87,7 @@ export default function Home() {
             <CoinIcon symbol={'ETHx'} size={48} />
           </div>
           <span className='font-bold text-lg mt-3 lg:text-2xl relative z-10'>$ETHx</span>
-          <div className='text-sm lg:text-lg'>Leveraged long on ETH</div>
+          <div className='text-sm lg:text-lg'>Leveraged long on ETH</div> */}
 
           <div
             className='grid grid-cols-2 gap-12 absolute -right-16 -top-48 rounded-full items-center justify-center'
