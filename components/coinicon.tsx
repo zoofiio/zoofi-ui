@@ -2,7 +2,7 @@ import { BASE_PATH } from '@/config/env'
 import { CSSProperties, useState } from 'react'
 
 const TypeMap = {
-  iBGT: 'png',
+  iBGT: 'webp',
   xiBGT: 'png',
   ZUSD: 'png',
 } as const
