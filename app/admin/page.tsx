@@ -349,8 +349,9 @@ function SetTester({ vc }: { vc: VaultConfig }) {
     <Expandable tit={'Set tester'}>
       <div>Owner: {owner}</div>
       <div>Tester Count: {testerCount.toString()}</div>
+      <div>Testers</div>
       {testersList.map((t) => (
-        <div>{t}</div>
+        <div key={t}>{t}</div>
       ))}
       <input
         type='text'
