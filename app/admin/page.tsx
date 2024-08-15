@@ -347,7 +347,7 @@ function SetTester({ vc }: { vc: VaultConfig }) {
   const [{ address }, setState] = useSetState({ address: '' })
   return (
     <Expandable tit={'Set tester'}>
-      <div>Owner: {owner}</div>
+      <div>Owner: {owner as string}</div>
       <div>Tester Count: {testerCount.toString()}</div>
       <div>Testers</div>
       {testersList.map((t) => (
