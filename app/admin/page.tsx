@@ -1,7 +1,15 @@
 'use client'
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
-import { abiPlainVault, abiProtocolSettings, abiPtyPool, abiVault, abiWandProtocol } from '@/config/abi'
+import {
+  abiMockPriceFeed,
+  abiPlainVault,
+  abiPriceFeed,
+  abiProtocolSettings,
+  abiPtyPool,
+  abiVault,
+  abiWandProtocol,
+} from '@/config/abi'
 import {
   PLAIN_VAULTS_CONFIG,
   PROTOCOL_SETTINGS_ADDRESS,
@@ -19,6 +27,7 @@ import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
 import Select from 'react-select'
 import { useSetState } from 'react-use'
 import { Address, formatEther, formatUnits, parseUnits, stringToHex } from 'viem'
+import { useAccount } from 'wagmi'
 
 const Params: { label: string; value: string; units?: number }[] = [
   { label: '资产利息率', value: 'Y' },
@@ -313,6 +322,61 @@ function ClaimYieldsForBuyPool({ vc }: { vc: VaultConfig }) {
   )
 }
 
+function SetTester({ vc }: { vc: VaultConfig }) {
+  const { data } = useWandContractRead({
+    abi: abiMockPriceFeed,
+    address: vc.assetTokenFeed,
+    functionName: 'getTestersCount',
+  })
+  const { data: owner } = useWandContractRead({
+    abi: abiMockPriceFeed,
+    address: vc.assetTokenFeed,
+    functionName: 'owner',
+  })
+
+  const testerCount = (data as bigint) || 0n
+  const { data: testers } = useWandContractReads({
+    contracts: Array.from(new Array(parseInt(testerCount.toString()))).map((_, i) => ({
+      abi: abiMockPriceFeed,
+      address: vc.assetTokenFeed,
+      functionName: 'getTester',
+      args: [BigInt(i)],
+    })) as any,
+  })
+  const testersList = testers?.map((t: any) => t['result'] as string) || []
+  const [{ address }, setState] = useSetState({ address: '' })
+  return (
+    <Expandable tit={'Set tester'}>
+      <div>Owner: {owner}</div>
+      <div>Tester Count: {testerCount.toString()}</div>
+      {testersList.map((t) => (
+        <div>{t}</div>
+      ))}
+      <input
+        type='text'
+        placeholder='recipient'
+        value={address}
+        onChange={(e) => setState({ address: e.target.value })}
+        className={clsx(
+          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
+          'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 text-slate-700 rounded-md outline-none',
+        )}
+      />
+      <ApproveAndTx
+        tx='Write'
+        disabled={!address}
+        config={{
+          abi: abiMockPriceFeed,
+          address: vc.assetTokenFeed as any,
+          functionName: 'setTester',
+          args: [address as any, true],
+        }}
+        className='!mt-0 btn-primary max-w-[100px] flex items-center justify-center gap-4'
+      />
+    </Expandable>
+  )
+}
+
 const PlainParams: { label: string; value: string; units?: number }[] = [{ label: '赎回手续费', value: 'C' }]
 function UpdatePlainVaultParam({ vc }: { vc: PlainVaultConfig }) {
   const params = useMemo(() => PlainParams.map((p) => ({ ...p, label: `${p.label}(${p.value})` })), [])
@@ -386,7 +450,7 @@ export default function AdminPage() {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId] || []
   const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
-
+  const { chain } = useAccount()
   const options: OptionsItem[] = useMemo(() => {
     const vcsOpt = vcs.map<OptionItem<VaultConfig, false>>((vc) => ({
       label: vc.assetTokenSymbol,
@@ -434,6 +498,7 @@ export default function AdminPage() {
             {/* <WandSetBlastAddress /> */}
             {/* <WandSetBlastPointsAddress /> */}
             <ClaimYieldsForBuyPool vc={current.data} />
+            {chain?.testnet && <SetTester vc={current.data} />}
           </>
         )}
       </div>

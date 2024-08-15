@@ -17,7 +17,7 @@ import {
 import { sepolia } from 'viem/chains'
 import { WagmiProvider, createConfig, createStorage } from 'wagmi'
 
-const walletConnectProjectId = 'b3ff10277f66a6ba31bbb88fb6ea4365'
+const walletConnectProjectId = 'abf1f323cd9ff9f6a27167188d993168'
 // const ankrKey = 'e1a06837672f1dd89a4c70522941d3beebad120eafad005d79d77c42856d9310'
 const ankrKey = '5da55021cad3ac57391c3292c373dec3a32bf9eaae63b74d4138d5d4a17dd554'
 
