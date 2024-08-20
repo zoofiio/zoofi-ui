@@ -40,7 +40,7 @@ const history = [
 function TokenValue({ symbol, value, decimals }: { symbol: string; value?: bigint; decimals?: number }) {
   return (
     <div className='flex items-center gap-1'>
-      <CoinIcon className='inline-block' size={16} symbol={symbol}/>
+      <CoinIcon className='inline-block' size={16} symbol={symbol} />
       {displayBalance(value, decimals)}
     </div>
   )
@@ -98,7 +98,9 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
       ? (vs.AART * vs.M_USB_ETH * DECIMAL - vs.M_ETH * targetPrice * AARDECIMALS) / (vs.AART - AARDECIMALS) / DECIMAL
       : (vs.M_ETH * targetPrice * AARDECIMALS - vs.AART * vs.M_USB_ETH * DECIMAL) / targetPriceAART
     staked = bnMin([staked, deltaStaked])
-    return fmtPercent((ptypoolForMatching * prices[matchAddress] * DECIMAL) / (staked * prices[stakeAddress]), 18, 3)
+    return staked * prices[stakeAddress] > 0n
+      ? fmtPercent((ptypoolForMatching * prices[matchAddress] * DECIMAL) / (staked * prices[stakeAddress]), 18, 3)
+      : '0.00%'
   }, [
     earn.totalStake,
     ptypoolForMatching,
@@ -161,7 +163,8 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
             label: 'Target Price',
             value: (
               <div>
-                {displayBalance(targetPrice)} (<FmtPercent value={change < 0n ? undefined : -change} decimals={10} plusI0={false} />)
+                {displayBalance(targetPrice)} (
+                <FmtPercent value={change < 0n ? undefined : -change} decimals={10} plusI0={false} />)
               </div>
             ),
             groupEnd: true,
@@ -172,7 +175,9 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
             value: fmtPercent(usbApr.apr + stakingApy, usbApr.aprDecimals, 2),
             detail: (
               <div className='pl-2'>
-                <div>~{USBSymbol} Interest: {fmtPercent(usbApr.apr, usbApr.aprDecimals, 2)}</div>
+                <div>
+                  ~{USBSymbol} Interest: {fmtPercent(usbApr.apr, usbApr.aprDecimals, 2)}
+                </div>
                 <div>
                   ~{STAKE_YIELD} Yield: {fmtPercent(stakingApy, usbApr.aprDecimals, 2)}
                 </div>
@@ -204,7 +209,8 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
             label: 'Target Price',
             value: (
               <div>
-                {displayBalance(targetPrice)} (<FmtPercent value={change < 0n ? undefined : change} decimals={10} plusI0={true} />)
+                {displayBalance(targetPrice)} (
+                <FmtPercent value={change < 0n ? undefined : change} decimals={10} plusI0={true} />)
               </div>
             ),
             groupEnd: true,
