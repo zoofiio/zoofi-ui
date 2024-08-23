@@ -15,7 +15,7 @@ export const getAvilableDomain = () => {
     domain = domains[0].replaceAll('-', '.')
   }
   if (supportDomain.includes(domain)) {
-    return location.hostname
+    return domain
   }
   return supportDomain[0]
 }
