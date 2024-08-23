@@ -13,6 +13,7 @@ import PandaLine from '@/components/icons/PandaLine'
 import VenomLine from '@/components/icons/VenomLine'
 import React from 'react'
 import { IconProps } from '@/components/icons/types'
+import { isBETA } from '@/constants'
 
 const cards: {
   icon: React.FunctionComponent<IconProps>
@@ -36,9 +37,7 @@ export default function Home() {
 
   return (
     <PageWrap>
-      <div
-        className='flex flex-col md:flex-row max-w-screen-xl mx-auto px-4 gap-10 md:gap-20 h-[calc(100vh-100px)] pt-[5vh] md:pt-[10vh] pb-8 md:justify-center'
-      >
+      <div className='flex flex-col md:flex-row max-w-screen-xl mx-auto px-4 gap-10 md:gap-20 h-[calc(100vh-100px)] pt-[5vh] md:pt-[10vh] pb-8 md:justify-center'>
         <div>
           <h1 className='flex md:mt-10 text-lg sm:text-xl md:text-2xl xl:text-4xl font-extrabold text-slate-700 dark:text-slate-50'>
             {/* <svg
@@ -84,7 +83,7 @@ export default function Home() {
         <div className='flex flex-col gap-6'>
           {cards.map((item) => (
             <div key={item.tit} className='card flex items-center gap-5'>
-              <item.icon className="text-[3.375rem] text-black dark:text-white"/>
+              <item.icon className='text-[3.375rem] text-black dark:text-white' />
               <div className='flex flex-col gap-3'>
                 <span className='font-semibold text-xl text-black dark:text-white'>{item.tit}</span>
                 <span className='font-medium text-xs opacity-50 dark:text-white'>{item.sub}</span>
@@ -95,6 +94,7 @@ export default function Home() {
         {/* <div className='w-full px-4 pb-8 md:pt-8 text-3xl font-extrabold text-slate-700 dark:text-slate-50'>
         <span className='text-lg whitespace-nowrap'>Total Value Locked:</span> ${displayBalance(tvl + tvlV1)}
       </div> */}
+        {isBETA && <div className='fixed right-0 top-0 z-50 p-2 rounded bg-red-600 text-white'>Beta</div>}
       </div>
     </PageWrap>
   )
