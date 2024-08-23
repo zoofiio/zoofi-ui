@@ -53,7 +53,7 @@ jobs:
           pnpm build
 
       - name: Deploy Gh-Pages 🚀
-        uses: peaceiris/actions-gh-pages@v3
+        uses: XueMoMo/actions-gh-pages@v4.0.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out
