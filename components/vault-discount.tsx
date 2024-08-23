@@ -18,10 +18,10 @@ import { useWandContractRead } from '@/hooks/useWand'
 import { aarToNumber, fmtAAR, fmtPercent, getBigint, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
 import { displayBalance } from '@/utils/display'
-import Image from 'next/image'
 import { useContext, useMemo, useState } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
 import { twMerge } from 'tailwind-merge'
+import { Noti } from './noti'
 
 const ValutArea = ({ asset }: { asset: string }) => {
   const { vaultsState, stableVaultsState, vaultsDiscount } = useContext(FetcherContext)
@@ -68,15 +68,15 @@ const ValutArea = ({ asset }: { asset: string }) => {
     : isTrigger
     ? fmtAAR(vs.AARS, vs.AARDecimals)
     : fmtAAR(vs.AART, vs.AARDecimals)
-
+  const aarClassname = 'px-2 py-1 bg-primary rounded font-medium text-black'
   const aarMark = (
     <div
       style={{ position: 'relative', left: left1, transform: 'translate(-50%,0)' }}
       className='flex flex-col items-center w-fit rounded-md'
     >
-      <div className='text-xs flex flex-col justify-center items-center p-1.5 px-4'>
+      <div className='text-xs flex flex-col gap-2 justify-center items-center'>
         <span className='text-neutral-400 whitespace-nowrap'>Current AAR</span>
-        <span className='font-medium dark:text-violet-300'>{currentAar}</span>
+        <span className={aarClassname}>{currentAar}</span>
       </div>
 
       <svg
@@ -84,7 +84,7 @@ const ValutArea = ({ asset }: { asset: string }) => {
         height='8'
         viewBox='0 0 10 8'
         xmlns='http://www.w3.org/2000/svg'
-        className='fill-slate-950 dark:fill-slate-50'
+        className='fill-primary'
         fill='currentColor'
       >
         <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' />
@@ -98,27 +98,28 @@ const ValutArea = ({ asset }: { asset: string }) => {
       className='flex flex-col items-center w-fit rounded-md'
     >
       <svg
-        className='rotate-180'
+        className='rotate-180 fill-primary'
         width='10'
         height='8'
         viewBox='0 0 10 8'
-        fill='none'
+        fill='currentColor'
         xmlns='http://www.w3.org/2000/svg'
       >
-        <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' fill={isTrigger ? '#E83B3B' : '#54E83B'} />
+        <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z'/>
+        {/* <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' fill={isTrigger ? '#E83B3B' : '#54E83B'} /> */}
       </svg>
 
-      <div className='text-xs flex flex-col justify-center items-center p-1.5 px-4'>
-        <span className='font-medium dark:text-violet-300'>AAR={triggerAar}</span>
+      <div className='text-xs flex flex-col gap-2 justify-center items-center'>
+        <span className={aarClassname}>AAR={triggerAar}</span>
         <span className='text-neutral-400 whitespace-nowrap'>{isTrigger ? 'Trigger discount' : 'Discount end'}</span>
       </div>
     </div>
   )
 
   return (
-    <div className='bg-white border border-neutral-200 rounded-3xl flex flex-col items-center mb-4 md:flex-row p-4 w-full md:mb-[30px] dark:bg-transparent dark:border-zinc-600'>
-      <div className='flex flex-col items-center h-fit gap-4'>
-        <div className='md:w-[180px] flex items-center'>
+    <div className='bg-white border border-neutral-200 rounded-3xl flex-1 flex flex-col gap-5 justify-center p-4 w-full md:mb-[30px] dark:bg-transparent dark:border-zinc-600'>
+      <div className='h-fit'>
+        <div className='flex items-center'>
           <CoinIcon symbol={vc.assetTokenSymbol} size={32} className='mr-[10px] md:hidden' />
           <CoinIcon symbol={vc.assetTokenSymbol} size={54} className='mr-[10px] hidden md:block' />
           <div>
@@ -135,21 +136,21 @@ const ValutArea = ({ asset }: { asset: string }) => {
                   {discountSate}
                 </div>
               )}
+              {discountEnable && (
+                <div className='text-sm flex items-center gap-2'>
+                  <div className={twMerge('w-3 h-3 shrink-0 rounded-full bg-red-500')} /> Discount Rate: {rate}
+                </div>
+              )}
             </div>
           </div>
         </div>
-        {discountEnable && (
-          <div className='text-sm flex items-center gap-2'>
-            <div className={twMerge('w-3 h-3 shrink-0 rounded-full bg-red-500')} /> Discount Rate: {rate}
-          </div>
-        )}
       </div>
-      <div className='w-full md:w-[calc(100%-170px)] p-4 rounded-lg flex flex-col gap-2'>
+      <div className='w-full p-4 rounded-lg flex flex-col gap-2'>
         {aarMark}
         <div className='flex items-center'>
-          <div className='rounded-full shrink-0 w-[3px] h-[3px] bg-[#64748B] dark:bg-violet-300' />
-          <div className="h-px flex-1 bg-[#64748B] dark:bg-violet-300 after:content-['AAR'] after:inline-block after:text-right after:w-full after:text-xs after:text-[#64748B] dark:after:text-slate-50" />
-          <div className='rounded-full shrink-0 w-[3px] h-[3px] bg-[#64748B] dark:bg-violet-300' />
+          <div className='rounded-full shrink-0 w-[3px] h-[3px] bg-[#64748B] dark:bg-primary' />
+          <div className="h-px flex-1 bg-[#64748B] dark:bg-primary after:content-['AAR'] after:inline-block after:text-right after:w-full after:text-xs after:text-[#64748B] dark:after:text-slate-50" />
+          <div className='rounded-full shrink-0 w-[3px] h-[3px] bg-[#64748B] dark:bg-primary' />
         </div>
         {triggerOrEndDiscount}
       </div>
@@ -207,20 +208,16 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
 
   return (
     <div className=''>
-      <div className='bg-indigo-50 dark:bg-s1 p-6 mt-[30px] rounded-3xl relative'>
-        <p className='text-indigo-900 dark:text-slate-50/80 mt-4'>
-          Due to fluctuations in the prices of collateral, when the AAR decreases, the protocol will offer users the
-          opportunity to purchase xToken at a discount with ${USBSymbol}. This means that you can engage in arbitrage.
-        </p>
-      </div>
-
-      <div className='grid grid-cols-1 mt-5 gap-2 md:grid-cols-2 md:gap-4 md:gap-8 md:mt-8'>
-        <div className='w-full'>
+      <Noti
+        data={`Due to fluctuations in the prices of collateral, when the AAR decreases, the protocol will offer users the opportunity to purchase xToken at a discount with ${USBSymbol}. This means that you can engage in arbitrage.`}
+      />
+      <div className='grid grid-cols-1 mt-5 gap-2 md:grid-cols-10 md:gap-8 md:mt-8'>
+        <div className='w-full min-h-full col-span-4 flex flex-col gap-4'>
           {vcs.map((vc) => (
             <ValutArea key={`vault_area_${vc.assetTokenSymbol}`} asset={vc.assetTokenSymbol} />
           ))}
         </div>
-        <div className='w-full bg-white border border-neutral-200 p-4 mb-4 md:p-[30px] md:pt-[60px] rounded-3xl md:mb-[30px] dark:bg-transparent dark:border-zinc-600'>
+        <div className='w-full col-span-6 bg-white border border-neutral-200 p-4 mb-4 md:p-[30px] md:pt-[60px] rounded-3xl md:mb-[30px] dark:bg-transparent dark:border-zinc-600'>
           <div className='flex flex-col items-center gap-2 w-full mx-auto'>
             <AssetInput
               asset={USBSymbol}
@@ -251,6 +248,7 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
           </div>
           <ApproveAndTx
             tx='Swap'
+            className='!w-full mt-6'
             disabled={!swapEnable}
             onTxSuccess={() => {
               setUsbAmount('')

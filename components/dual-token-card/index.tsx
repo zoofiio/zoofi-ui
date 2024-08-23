@@ -155,7 +155,7 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
       ? [
           {
             key: 'eth_price',
-            label: `ETH Price`,
+            label: `${vc.assetTokenSymbol} Price`,
             value: displayBalance(prices[vc.assetTokenAddress]),
           },
           {
@@ -201,7 +201,7 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
       : [
           {
             key: 'eth_price',
-            label: `ETH Price`,
+            label: `${vc.assetTokenSymbol} Price`,
             value: displayBalance(prices[vc.assetTokenAddress]),
           },
           {
@@ -321,10 +321,10 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
 
       <Divider className='my-4 h-[1px] dark:bg-zinc-600 ' />
 
-      <Grid numItemsSm={2} className='gap-x-2 flex-1'>
+      <Grid numItemsSm={2} className='flex-1'>
         <Grid
           numItemsSm={1}
-          className='gap-y-2 gap-x-7 md:border-r-[1px] border-[#E4E4E7] dark:border-zinc-600 mb-3 md:mb-0 '
+          className='gap-y-2 gap-x-7 sm:border-r-[1px] border-[#E4E4E7] dark:border-zinc-600 mb-3 md:mb-0 '
         >
           {data?.map((datum) => (
             <div key={datum.key} className={clsx('flex flex-col text-sm', { 'mb-4': datum.groupEnd })}>
@@ -339,10 +339,10 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
           ))}
         </Grid>
         {address && (
-          <Grid numItemsSm={1} className='gap-x-1'>
-            <div className='w-full border-t-[1px] border-[#E4E4E7] dark:border-zinc-600 md:border-0 md:px-[0px]'>
+          <Grid numItemsSm={1} className='gap-x-1 pl-2'>
+            <div className='w-full border-t-[1px] border-[#E4E4E7] dark:border-zinc-600 sm:border-0 sm:px-[0px]'>
               {addressData?.map((datum) => (
-                <div key={datum.key} className='flex items-center flex-wrap mt-[8px] md:mt-0 md:mb-2'>
+                <div key={datum.key} className='flex items-center flex-wrap mt-[8px] sm:mt-0 sm:mb-2'>
                   <div className='text-xs text-black dark:text-slate-50 whitespace-nowrap font-medium mr-[5px]'>
                     {datum.label} :
                   </div>
@@ -353,21 +353,23 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
             <div className='mt-auto h-fit'>
               <div className='w-full flex justify-center items-center'>
                 <button
-                  className='btn-primary px-4 h-7 flex items-center w-[60%] md:w-fit self-end justify-center gap-4 bg-[#64738B]'
+                  className='btn-primary flex items-center w-[60%] md:w-fit self-end justify-center gap-4 bg-[#64738B]'
                   disabled={claimAllDisabled || isClaimAllLoading}
                   onClick={() => claimAll()}
                 >
-                  {isClaimAllLoading && <Spinner />}
-                  Claim All
+                  <div className='flex px-10 py-2 gap-4 items-center whitespace-nowrap'>
+                    {isClaimAllLoading && <Spinner />}
+                    <span>Claim All</span>
+                  </div>
                 </button>
               </div>
-              <div className='relative flex flex-col gap-1 mt-4 md:mt-[28px] justify-center items-center text-[#64748B] text-sm font-medium p-3 rounded-md bg-slate-100 dark:bg-s1 dark:text-slate-50'>
+              <div className='relative flex flex-col gap-1 mt-4 md:mt-[28px] justify-center items-center text-[#64748B] text-sm font-medium p-3 rounded-md bg-slate-100 dark:bg-transparent dark:text-slate-50'>
                 <div className='flex items-center gap-1'>
                   Staked
                   <CoinIcon symbol={SELL} size={16} />
                   {displayBalance(earn.stake)}
                   <span
-                    className='text-indigo-500 dark:text-violet-300 ml-[5px] cursor-pointer'
+                    className='text-primary ml-[5px] cursor-pointer'
                     onClick={() => setAmount(formatEther(earn.stake))}
                   >
                     Max
@@ -405,12 +407,12 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
                 args: [amountBn],
                 value: SELL == ETHSymbol ? amountBn : 0n,
               }}
-              className='mt-2 w-[45%]'
+              className='mt-2 w-[calc(50%-10px)] !mx-0'
               approves={{ [stakeAddress]: amountBn }}
               spender={poolAddress}
             />
             <ApproveAndTx
-              className='mt-2 w-[45%]'
+              className='mt-2 w-[calc(50%-10px)] !mx-0'
               tx='Withdraw'
               disabled={amountBn <= 0n || amountBn > earn.stake}
               onTxSuccess={() => {

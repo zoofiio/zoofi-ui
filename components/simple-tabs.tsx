@@ -27,12 +27,12 @@ export function SimpleTabs({
         onTabChange?.(e)
       }}
     >
-      <Tabs.List className={cn('bg-slate-100 p-1 w-fit rounded-md dark:bg-transparent', listClassName)}>
+      <Tabs.List className={cn('p-1 w-fit rounded-md gap-5 flex bg-transparent', listClassName)}>
         {data.map((item) => (
           <Tabs.Trigger
             key={item.tab}
             className={cn(
-              'rounded-[3px] text-sm py-1.5 px-3 text-slate-500 font-medium data-[state="active"]:bg-white data-[state="active"]:text-slate-900 dark:bg-transparent dark:text-slate-50/60 dark:data-[state="active"]:text-slate-50',
+              'rounded-[3px] text-sm py-1.5 px-0 text-black/50 font-medium data-[state="active"]:bg-black data-[state="active"]:text-slate-900 !bg-transparent dark:text-white/50 dark:data-[state="active"]:text-white',
               triggerClassName,
             )}
             value={item.tab}

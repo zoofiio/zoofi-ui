@@ -66,7 +66,6 @@ export const useApproves = (
       toast.error(getErrorMsg(error))
       setLoading(false)
       setSuccess(false)
-      throw error
     }
   }
   return { approve, loading, shouldApprove: needApproves.length > 0, isSuccess }

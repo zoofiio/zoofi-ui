@@ -4,7 +4,6 @@ import { CSSProperties, useState } from 'react'
 const TypeMap = {
   iBGT: 'webp',
   xiBGT: 'png',
-  ZUSD: 'png',
 } as const
 
 type TypeMapKeys = keyof typeof TypeMap

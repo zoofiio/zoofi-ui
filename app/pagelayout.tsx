@@ -5,6 +5,7 @@ import { useConfigDomain } from '@/hooks/useConfigDomain'
 import { ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { Providers } from './providers'
+// background: linear-gradient(105.67deg, #02050E 14.41%, #1D2F23 98.84%);
 
 export default function PageLayout({ children }: { children: ReactNode }) {
   useConfigDomain()
@@ -12,7 +13,7 @@ export default function PageLayout({ children }: { children: ReactNode }) {
     <>
       <Providers>
         <Header />
-        <div className='min-h-[calc(100vh+1px)] h-auto pt-[80px] pb-6'>{children}</div>
+        {children}
       </Providers>
       <Toaster position='top-right' offset={70} />
     </>

@@ -17,11 +17,11 @@
 
 @layer components {
   .btn-primary {
-    @apply px-3 cursor-pointer w-full transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm leading-6 bg-indigo-500 text-white font-medium h-10 rounded-md enabled:hover:bg-indigo-600 disabled:bg-slate-500 disabled:cursor-not-allowed mt-6 dark:bg-s2 dark:text-black;
+    @apply px-3 cursor-pointer  w-full sm:w-2/3 transition-all leading-[2.375] ring-0 bg-btn text-base text-white font-medium h-10 rounded-lg enabled:hover:bg-primary disabled:bg-slate-500 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply cursor-pointer text-sm w-full py-2 px-3 border hover:bg-slate-50 border-slate-200 rounded-md transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-slate-800 disabled:cursor-not-allowed;
+    @apply cursor-pointer text-sm w-full py-2 px-3 border hover:bg-slate-50 border-slate-200 rounded-lg transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-slate-800 disabled:cursor-not-allowed;
   }
 
   .h3 {
@@ -29,7 +29,7 @@
   }
 
   .card {
-    @apply bg-white rounded-2xl border border-slate-200 p-4 shadow dark:border-zinc-600 dark:bg-slate-950;
+    @apply bg-white/5 rounded-2xl border border-slate-200 p-4 shadow dark:border-border dark:bg-white/5 sm:p-5 md:p-6;
   }
 
   .page-title {
@@ -40,6 +40,12 @@
   }
 }
 
+.btn-primary {
+  padding: 1px;
+  border: 1px solid transparent;
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+}
 .aarslider .recharts-tooltip-wrapper {
   display: none;
 }
@@ -81,7 +87,6 @@
   opacity: 1;
   background: rgba(100, 102, 241, 0.22);
 }
-
 
 .swiper-pagination-bullet-active {
   background: rgba(100, 102, 241, 1);

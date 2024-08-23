@@ -18,6 +18,7 @@ import { useThemeState } from './theme-mode'
 
 type PointItem = {
   symbol: string
+  iconSymbol: string
   tit: string
   sub: string
   total: string
@@ -27,16 +28,16 @@ type PointItem = {
 // background: linear-gradient(90deg, #C2B7FD 0%, #6366F1 100%);
 
 const bgMap: { [k: string]: string } = {
-  ZUSD: 'linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%)',
-  ZUSD_dark: 'linear-gradient(90deg, #C2B7FD 0%, #6366F1 100%)',
-  xiBGT: 'rgba(238, 234, 254, 1)',
-  xiBGT_dark: 'linear-gradient(90deg, #C2B7FD 0%, #746D97 100%)',
+  ZUSD: '#FFD3C2',
+  ZUSD_dark: '#FFD3C2',
+  xiBGT: '#AFD3FF',
+  xiBGT_dark: '#AFD3FF',
   HONEY: 'rgba(226, 254, 182, 1)',
   xHONEY_dark: '#E2FEB6',
 }
 const titBgMap: { [k: string]: string } = {
-  ZUSD: 'rgba(255, 255, 255, 1)',
-  xiBGT: 'rgba(219, 210, 255, 1)',
+  ZUSD: '#FFA973',
+  xiBGT: '#93B0FF',
   xHONEY: 'rgba(196, 241, 126, 1)',
 }
 
@@ -62,6 +63,7 @@ export function useVcPoints(vc: VaultConfig) {
     }
     points.push({
       symbol: USBSymbol,
+      iconSymbol: 'Bear',
       tit: `APY:${fmtPercent(tapys[USB_ADDRESS[chainId]], 10)} ~ ${fmtPercent(tapys['USB_END'], 10)}`,
       sub: '~ Interest + Earning',
       total: `Total Minted: ${displayBalance(musb, 0)}`,
@@ -73,6 +75,7 @@ export function useVcPoints(vc: VaultConfig) {
         : `~ ${levrages[vc.vault].toFixed(2)}x Leveraged long on ${vc.assetTokenSymbol}`
     points.push({
       symbol: vc.xTokenSymbol,
+      iconSymbol: 'Bull',
       tit,
       sub,
       total: `Total Minted: ${displayBalance(musb, 0)}`,
@@ -82,7 +85,7 @@ export function useVcPoints(vc: VaultConfig) {
   return items
 }
 
-export function PointCard({ symbol, tit, sub, total, link }: PointItem) {
+export function PointCard({ symbol, iconSymbol, tit, sub, total, link }: PointItem) {
   const theme = useThemeState((s) => s.theme)
   return (
     <div
@@ -95,7 +98,7 @@ export function PointCard({ symbol, tit, sub, total, link }: PointItem) {
         className='flex md:flex-wrap items-center p-4 gap-2 dark:text-black'
         style={{ background: bgMap[`${symbol}_${theme}`] || bgMap[symbol] }}
       >
-        <CoinIcon symbol={symbol} size={42} className='shrink-0' />
+        <CoinIcon symbol={iconSymbol} size={42} className='shrink-0' />
         <div className='font-semibold'>{symbol}</div>
         <div className='whitespace-nowrap text-center text-sm ml-auto flex flex-col items-center flex-1'>
           <div className='rounded-full px-2 py-[2px] w-fit' style={{ background: titBgMap[symbol] }}>

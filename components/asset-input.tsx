@@ -130,7 +130,7 @@ export function AssetInput({
             {
               'border-green-700 border-2': selected,
               'border-red-400 !border-2 focus:border-red-400': isError,
-              'border-slate-400  focus:border-blue-400': !isError && !selected,
+              'border-slate-400  focus:border-primary': !isError && !selected,
             },
             'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-2xl border focus:border-2 text-slate-700 rounded-md outline-none dark:text-slate-50',
           )}
@@ -150,7 +150,7 @@ export function AssetInput({
               {balanceTit}: {displayBalanceWithUnit(balance, 3, balanceDecimals)}
             </span>
             <button
-              className='text-indigo-500 dark:text-violet-300 ml-2'
+              className='text-primary ml-2'
               onClick={() => {
                 const fmtAmount = formatUnits(balance, balanceDecimals)
                 setAmount(fmtAmount)

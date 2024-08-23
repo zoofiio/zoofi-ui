@@ -28,7 +28,7 @@ const NetName: { [k: number]: string } = {
 }
 
 const NetIcon: { [k: number]: string } = {
-  [berachainTestnet.id]: `${BASE_PATH}/berachain.png`,
+  [berachainTestnet.id]: `${BASE_PATH}/berachain.svg`,
 }
 
 export function useShowAdmin() {
@@ -96,9 +96,9 @@ export function Header() {
         <div className='flex items-center'>
           <Link href={'/'} className='font-semibold flex pr-1 items-center text-base leading-7'>
             <Image className='' src={`${BASE_PATH}/logo-alt.svg`} height={52} width={52} alt='wand logo image only' />
-            <span className='font-poppins' style={{ display: hiddenTitle ? 'none' : 'inline-block' }}>
+            {/* <span className='font-poppins' style={{ display: hiddenTitle ? 'none' : 'inline-block' }}>
               ZooFi
-            </span>
+            </span> */}
           </Link>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
@@ -132,14 +132,14 @@ export function Header() {
 
         {/* Render App routes */}
         {pathname !== '/' ? (
-          <div className='hidden lg:flex flex-1 px-5 items-center justify-between'>
+          <div className='hidden lg:flex flex-1 px-5 items-center gap-10'>
             {links.map(({ href, label, icon }) => {
               const Icon = icon
 
               return (
                 <Link
                   className={clsx(
-                    'text-sm font-medium flex gap-1 mx-auto items-center transition-all active:translate-y-1',
+                    'text-sm font-medium flex gap-1 items-center transition-all active:translate-y-1',
                     pathname === href ? 'text-slate-700 dark:text-slate-50' : 'text-slate-500 dark:text-slate-50/50',
                   )}
                   key={href}
@@ -160,13 +160,13 @@ export function Header() {
             {social_networks.map(({ url, icon, name }) => {
               const Icon = icon
               return (
-                <Link key={name} href={url} className='text-slate-300 hover:text-indigo-500'>
+                <Link key={name} href={url} className='text-slate-300 hover:text-primary'>
                   <Icon />
                 </Link>
               )
             })}
           </div>
-          {showDefNet && (
+          {showDefNet && pathname !== '/' && (
             <div
               className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-50 font-medium rounded-full cursor-pointer'
               onClick={() => openChainModal && openChainModal()}
@@ -175,21 +175,7 @@ export function Header() {
               <div className='hidden sm:block'>{NetName[chainId]}</div>
             </div>
           )}
-
-          {/* Render action button */}
-
-          {pathname === '/' ? (
-            <Link
-              href={'/l-vaults'}
-              // href={'/'}
-              className='h-fit bg-indigo-500 text-white text-sm leading-6 font-medium px-4 py-2 rounded-full whitespace-nowrap'
-            >
-              Launch App
-              {/* Coming Soon */}
-            </Link>
-          ) : (
-            <ConnectBtn />
-          )}
+          {pathname !== '/' && <ConnectBtn />}
         </div>
       </header>
     </div>

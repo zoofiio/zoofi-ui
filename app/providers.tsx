@@ -105,7 +105,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <RainbowKitProvider
               locale='en-US'
               modalSize='compact'
-              theme={theme === 'dark' ? darkTheme() : lightTheme()}
+              theme={theme === 'dark' ? darkTheme({ accentColor: 'green' }) : lightTheme()}
             >
               <FetcherProvider>{children}</FetcherProvider>
             </RainbowKitProvider>
