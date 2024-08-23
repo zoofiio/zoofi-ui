@@ -15,7 +15,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useMemo } from 'react'
 import { LuBox, LuDollarSign, LuLineChart, LuPaperclip, LuSettings, LuSettings2, LuTag } from 'react-icons/lu'
-import { TbBook2, TbBrandDiscordFilled, TbBrandTwitterFilled, TbChevronDown } from 'react-icons/tb'
+import { TbBook2, TbBrandDiscordFilled, TbBrandX, TbChevronDown } from 'react-icons/tb'
 import { useWindowSize } from 'react-use'
 import { useAccount } from 'wagmi'
 import ConnectBtn from './connet-btn'
@@ -85,7 +85,7 @@ export function Header() {
   const social_networks = useMemo(
     () => [
       { name: 'doc', url: DOC_LINK(), icon: TbBook2 },
-      { name: 'Twitter', url: TWITTER_LINK, icon: TbBrandTwitterFilled },
+      { name: 'Twitter', url: TWITTER_LINK, icon: TbBrandX },
       { name: 'Discord', url: DISCORD_LINK, icon: TbBrandDiscordFilled },
     ],
     [DomainRef.value],
