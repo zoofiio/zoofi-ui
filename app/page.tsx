@@ -7,16 +7,22 @@ import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useTVL, useTVLV1 } from '@/hooks/useTVL'
 import { useTokenApys } from '@/hooks/useTokenApys'
 import { useRouter } from 'next/navigation'
+import BeraLine from '@/components/icons/BeraLine'
+import BullLine from '@/components/icons/BullLine'
+import PandaLine from '@/components/icons/PandaLine'
+import VenomLine from '@/components/icons/VenomLine'
+import React from 'react'
+import { IconProps } from '@/components/icons/types'
 
 const cards: {
-  icon: string
+  icon: React.FunctionComponent<IconProps>
   tit: string
   sub: string
 }[] = [
-  { icon: 'bera_line', tit: 'Interest Bera', sub: 'Stablecoin' },
-  { icon: 'bull_line', tit: 'Leverage Bull', sub: 'Margin Token' },
-  { icon: 'panda_line', tit: 'Principal Panda', sub: 'Principal Token' },
-  { icon: 'venom_line', tit: 'Boost Bribe Venom', sub: 'Yield Token' },
+  { icon: BeraLine, tit: 'Interest Bera', sub: 'Stablecoin' },
+  { icon: BullLine, tit: 'Leverage Bull', sub: 'Margin Token' },
+  { icon: PandaLine, tit: 'Principal Panda', sub: 'Principal Token' },
+  { icon: VenomLine, tit: 'Boost Bribe Venom', sub: 'Yield Token' },
 ]
 
 export default function Home() {
@@ -78,10 +84,10 @@ export default function Home() {
         <div className='flex flex-col gap-6'>
           {cards.map((item) => (
             <div key={item.tit} className='card flex items-center gap-5'>
-              <CoinIcon size={54} symbol={item.icon} />
+              <item.icon className="text-[3.375rem] text-black dark:text-white"/>
               <div className='flex flex-col gap-3'>
-                <span className='font-semibold text-xl text-white'>{item.tit}</span>
-                <span className='font-medium text-xs opacity-50 text-white'>{item.sub}</span>
+                <span className='font-semibold text-xl text-black dark:text-white'>{item.tit}</span>
+                <span className='font-medium text-xs opacity-50 dark:text-white'>{item.sub}</span>
               </div>
             </div>
           ))}

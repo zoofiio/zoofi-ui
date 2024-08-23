@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    if: github.repository == 'zoofiio/zoofi-ui' && startsWith(github.event.head_commit.message, '[release]') 
+    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[release]') 
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,7 +33,7 @@ jobs:
           keep_files: 'beta/*'
           cname: zoofi.io
   beta:
-    if: github.repository == 'zoofiio/zoofi-ui' && startsWith(github.event.head_commit.message, '[beta]') 
+    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[beta]') 
     runs-on: ubuntu-latest
     permissions: 
       contents: write

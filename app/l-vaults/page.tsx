@@ -54,7 +54,7 @@ export default function Vaults() {
           <>
             <SimpleTabs
               listClassName='flex-wrap mb-5'
-              triggerClassName='text-lg sm:text-xl md:text-2xl data-[state="active"]:border-b border-b-white leading-[0.8] rounded-none whitespace-nowrap'
+              triggerClassName='text-lg sm:text-xl md:text-2xl data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
               data={[
                 {
                   tab: 'Deposit',

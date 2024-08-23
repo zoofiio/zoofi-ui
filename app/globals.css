@@ -85,11 +85,11 @@
   height: 8px !important;
   border-radius: 20px !important;
   opacity: 1;
-  background: rgba(100, 102, 241, 0.22);
+  background: rgba(30, 202, 83, 0.22);
 }
 
 .swiper-pagination-bullet-active {
-  background: rgba(100, 102, 241, 1);
+  background: #1ECA53;
 }
 
 .ReactCollapse--collapse {
