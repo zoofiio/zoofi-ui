@@ -33,7 +33,8 @@ jobs:
           keep_files: 'beta/*'
           cname: zoofi.io
   beta:
-    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[beta]') 
+    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[beta]') && always()
+    needs: ['release']
     runs-on: ubuntu-latest
     permissions: 
       contents: write
