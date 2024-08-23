@@ -94,7 +94,7 @@ export default function Home() {
         {/* <div className='w-full px-4 pb-8 md:pt-8 text-3xl font-extrabold text-slate-700 dark:text-slate-50'>
         <span className='text-lg whitespace-nowrap'>Total Value Locked:</span> ${displayBalance(tvl + tvlV1)}
       </div> */}
-        {isBETA && <div className='fixed right-0 top-0 z-50 p-2 rounded bg-red-600 text-white'>Beta</div>}
+        {isBETA && <div className='fixed left-0 top-0 z-50 px-1 text-xs bg-red-600 text-white'>Beta</div>}
       </div>
     </PageWrap>
   )
