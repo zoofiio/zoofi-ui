@@ -63,7 +63,7 @@ export function useVcPoints(vc: VaultConfig) {
     }
     points.push({
       symbol: USBSymbol,
-      iconSymbol: 'Bear',
+      iconSymbol: 'Bera',
       tit: `APY:${fmtPercent(tapys[USB_ADDRESS[chainId]], 10)} ~ ${fmtPercent(tapys['USB_END'], 10)}`,
       sub: '~ Interest + Earning',
       total: `Total Minted: ${displayBalance(musb, 0)}`,

@@ -13,7 +13,7 @@ const cards: {
   tit: string
   sub: string
 }[] = [
-  { icon: 'bear_line', tit: 'Interest Bear', sub: 'Stablecoin' },
+  { icon: 'bera_line', tit: 'Interest Bera', sub: 'Stablecoin' },
   { icon: 'bull_line', tit: 'Leverage Bull', sub: 'Margin Token' },
   { icon: 'panda_line', tit: 'Principal Panda', sub: 'Principal Token' },
   { icon: 'venom_line', tit: 'Boost Bribe Venom', sub: 'Yield Token' },

@@ -436,10 +436,10 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
         </div>
         <div className='flex justify-between items-center gap-8'>
           <div className='flex gap-4 items-center'>
-            <CoinIcon symbol='Bear' size={36} />
+            <CoinIcon symbol='Bera' size={36} />
             <div className='flex flex-col items-start gap-2'>
               <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                Bear Interest
+                Bera Interest
               </div>
               <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>
                 {fmtPercent(tapys[USB_ADDRESS[chainId]], 10)}
