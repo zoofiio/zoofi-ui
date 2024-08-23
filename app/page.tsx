@@ -61,7 +61,9 @@ export default function Home() {
             <div key={item.tit} className={cn('card flex items-center gap-5 py-4', item.className)}>
               <item.icon className='text-[3.375rem] text-black dark:text-white' />
               <div className='flex flex-col gap-3'>
-                <span className='font-semibold text-xl text-[var(--primary-color)] text-black dark:text-white  dark:text-[var(--primary-color)]'>{item.tit}</span>
+                <span className='font-semibold text-xl text-black dark:text-white text-[var(--primary-color)] dark:text-[var(--primary-color)]'>
+                  {item.tit}
+                </span>
                 <span className='font-medium text-xs opacity-50 dark:text-white'>{item.sub}</span>
               </div>
             </div>
