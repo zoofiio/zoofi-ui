@@ -33,7 +33,7 @@ export default function Vaults() {
 
   return (
     <PageWrap>
-      <div className='w-full max-w-screen-xl px-4 mx-auto md:pb-8'>
+      <div className='w-full max-w-screen-[1160px] px-4 mx-auto md:pb-8'>
         <MigrationTip />
 
         {/* <BlastPointCards /> */}
@@ -53,7 +53,7 @@ export default function Vaults() {
         ) : (
           <>
             <SimpleTabs
-              listClassName='flex-wrap mb-5'
+              listClassName='flex-wrap mb-5 md:gap-14'
               triggerClassName='text-lg sm:text-xl md:text-2xl data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
               data={[
                 {

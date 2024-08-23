@@ -84,7 +84,7 @@ export default function Dashboard() {
   }, usbTotal + earnSellTotalStatedUSD + myTotalForPvc)
 
   return (
-    <div className='mx-auto max-w-screen-xl px-4'>
+    <div className='mx-auto max-w-screen-[1160px] px-4'>
       <div className='page-title mb-4'>Protocol Overview</div>
       <Grid numItemsSm={2} className={'gap-3'}>
         <div className='card'>

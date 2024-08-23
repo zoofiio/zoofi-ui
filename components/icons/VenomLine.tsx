@@ -3,9 +3,16 @@ import { IconProps } from './types'
 export default function Icon(p: IconProps) {
   return (
     <svg {...p} width='1em' height='1em' viewBox='0 0 54 54' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <defs>
+        <linearGradient id='paint0_linear_44_1614' x1='11' y1='12' x2='40' y2='46' gradientUnits='userSpaceOnUse'>
+          <stop stop-color='#EBC013' />
+          <stop offset='1' stop-color='#B4630C' />
+        </linearGradient>
+      </defs>
       <path
         d='M53.5 27C53.5 41.6355 41.6355 53.5 27 53.5C12.3645 53.5 0.5 41.6355 0.5 27C0.5 12.3645 12.3645 0.5 27 0.5C41.6355 0.5 53.5 12.3645 53.5 27Z'
         stroke='currentColor'
+        fill='var(--primary-bg)'
       />
       <path
         fillRule='evenodd'
