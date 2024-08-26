@@ -46,7 +46,7 @@ function TokenValue({ symbol, value, decimals }: { symbol: string; value?: bigin
   )
 }
 
-export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
+export function PoolCard({ type, vc }: DualInvestmentCardProps) {
   const isBuy = type == 'buy'
   const chainId = useCurrentChainId()
   const stakeAddress = isBuy ? USB_ADDRESS[chainId] : vc.assetTokenAddress
@@ -432,13 +432,13 @@ export function DualTokenCard({ type, vc }: DualInvestmentCardProps) {
   )
 }
 
-export function GroupDualTokenCard({ vcs, type }: { vcs: VaultConfig[]; type: DualInvestmentCardProps['type'] }) {
+export function GroupPoolCard({ vcs, type }: { vcs: VaultConfig[]; type: DualInvestmentCardProps['type'] }) {
   const [vc, setVC] = useState(vcs[vcs.length - 1])
   if (vcs.length == 0) return null
-  if (vcs.length == 1) return <DualTokenCard vc={vcs[0]} type={type} />
+  if (vcs.length == 1) return <PoolCard vc={vcs[0]} type={type} />
   return (
     <div className='relative'>
-      <DualTokenCard vc={vc} type={type} />
+      <PoolCard vc={vc} type={type} />
       <div className='absolute z-10 left-[86px] top-0 flex text-sm'>
         {vcs.map((item, index) => (
           <div

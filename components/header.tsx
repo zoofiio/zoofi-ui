@@ -100,7 +100,7 @@ export function Header() {
           </Link>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
-              className={clsx('flex text-slate-500 dark:text-slate-50 font-medium items-center capitalize text-sm', {
+              className={clsx('flex text-slate-500 dark:text-slate-50 font-medium items-center capitalize text-sm whitespace-nowrap', {
                 hidden: !hiddenTitle,
               })}
             >

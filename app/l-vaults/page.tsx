@@ -1,6 +1,6 @@
 'use client'
 
-import { DualTokenCard } from '@/components/dual-token-card'
+import { PoolCard } from '@/components/pools'
 import { MigrationTip } from '@/components/migrationv2'
 import { Noti } from '@/components/noti'
 import { SimpleTabs } from '@/components/simple-tabs'
@@ -39,7 +39,7 @@ export default function Vaults() {
         {/* <BlastPointCards /> */}
         {!currentVc ? (
           <>
-            <h2 className='page-title'>L-Vaults</h2>
+            <div className='page-title'>L-Vaults</div>
             <Noti data='Depositing assets into the Vaults' />
             <Grid numItems={1} numItemsMd={2} numItemsLg={3} className='gap-3 mt-4'>
               {vcs.map((item, index) => (
@@ -53,8 +53,8 @@ export default function Vaults() {
         ) : (
           <>
             <SimpleTabs
-              listClassName='flex-wrap mb-5 md:gap-14'
-              triggerClassName='text-lg sm:text-xl md:text-2xl data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
+              listClassName='flex-wrap p-0 mb-5 md:gap-14'
+              triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
               data={[
                 {
                   tab: 'Deposit',
@@ -64,8 +64,8 @@ export default function Vaults() {
                   tab: 'Price Trigger Yield',
                   content: (
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                      <DualTokenCard vc={currentVc} type='buy' />
-                      <DualTokenCard vc={currentVc} type='sell' />
+                      <PoolCard vc={currentVc} type='buy' />
+                      <PoolCard vc={currentVc} type='sell' />
                     </div>
                   ),
                 },
