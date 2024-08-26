@@ -89,28 +89,9 @@
 }
 
 .swiper-pagination-bullet-active {
-  background: #1ECA53;
+  background: #1eca53;
 }
 
 .ReactCollapse--collapse {
   transition: height 250ms;
-}
-
-/* cards for home */
-.card_beraline:hover {
-  --primary-color: #FF8080;
-  --primary-bg: url(#paint0_linear_44_1592);
-}
-.card_bullline:hover {
-  --primary-color: #53BAFF;
-  --primary-bg: url(#paint0_linear_44_1600);
-
-}
-.card_pandaline:hover {
-  --primary-color: #0ED19A;
-  --primary-bg: url(#paint0_linear_44_1607);
-}
-.card_venomline:hover {
-  --primary-color: #EBC013;
-  --primary-bg: url(#paint0_linear_44_1614);
 }

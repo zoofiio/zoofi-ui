@@ -12,7 +12,7 @@ export default function Icon(p: IconProps) {
       <path
         d='M53.5 27C53.5 41.6355 41.6355 53.5 27 53.5C12.3645 53.5 0.5 41.6355 0.5 27C0.5 12.3645 12.3645 0.5 27 0.5C41.6355 0.5 53.5 12.3645 53.5 27Z'
         stroke='currentColor'
-        fill='var(--primary-bg)'
+        fill={p.showBg ? 'url(#paint0_linear_44_1600)' : 'none'}
       />
       <path
         fillRule='evenodd'

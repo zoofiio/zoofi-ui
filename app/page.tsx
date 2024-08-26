@@ -15,19 +15,71 @@ import React from 'react'
 import { IconProps } from '@/components/icons/types'
 import { isBETA } from '@/constants'
 import { cn } from '@/lib/utils'
+import { useHover } from 'react-use'
 
-const cards: {
+/*
+.card_beraline:hover {
+  --primary-color: #ff8080;
+  --primary-bg: url(#paint0_linear_44_1592);
+}
+.card_bullline:hover {
+  --primary-color: #53baff;
+  --primary-bg: url(#paint0_linear_44_1600);
+}
+.card_pandaline:hover {
+  --primary-color: #0ed19a;
+  --primary-bg: url(#paint0_linear_44_1607);
+}
+.card_venomline:hover {
+  --primary-color: #ebc013;
+  --primary-bg: url(#paint0_linear_44_1614);
+}
+*/
+type CardItemType = {
   icon: React.FunctionComponent<IconProps>
   tit: string
   sub: string
   className?: string
-}[] = [
-  { icon: BeraLine, tit: 'Interest Bear', sub: 'Stablecoin', className: 'card_beraline' },
-  { icon: BullLine, tit: 'Leverage Bull', sub: 'Margin Token', className: 'card_bullline' },
-  { icon: PandaLine, tit: 'Principal Panda', sub: 'Principal Token', className: 'card_pandaline' },
-  { icon: VenomLine, tit: 'Boost Bribe Venom', sub: 'Yield Token', className: 'card_venomline' },
-]
+  hoverIconBg?: string
+  hoverTextColor?: string
+}
 
+const cards: CardItemType[] = [
+  { icon: BeraLine, tit: 'Interest Bear', sub: 'Stablecoin', hoverTextColor: '#ff8080' },
+  { icon: BullLine, tit: 'Leverage Bull', sub: 'Margin Token', hoverTextColor: '#53baff' },
+  {
+    icon: PandaLine,
+    tit: 'Principal Panda',
+    sub: 'Principal Token',
+    hoverTextColor: '#0ed19a',
+  },
+  {
+    icon: VenomLine,
+    tit: 'Boost Bribe Venom',
+    sub: 'Yield Token',
+    hoverTextColor: '#ebc013',
+  },
+]
+function CardItem(item: CardItemType) {
+  const [element] = useHover((isHover) => (
+    <div key={item.tit} className={cn('card flex items-center gap-5 py-4', item.className)}>
+      <item.icon
+        showBg={isHover}
+        className={cn('text-[3.375rem] ', isHover ? 'text-white' : 'text-black dark:text-white')}
+      />
+      <div className='flex flex-col gap-3'>
+        <span
+          style={{ color: isHover ? item.hoverTextColor : '' }}
+          className={cn('font-semibold text-xl', 'text-black dark:text-white')}
+        >
+          {item.tit}
+        </span>
+        <span className='font-medium text-xs opacity-50 dark:text-white'>{item.sub}</span>
+      </div>
+    </div>
+  ))
+  return element
+}
 export default function Home() {
   const chainId = useCurrentChainId()
   const { tvl } = useTVL()
@@ -58,15 +110,7 @@ export default function Home() {
 
         <div className='flex flex-col gap-6'>
           {cards.map((item) => (
-            <div key={item.tit} className={cn('card flex items-center gap-5 py-4', item.className)}>
-              <item.icon className='text-[3.375rem] text-black dark:text-white' />
-              <div className='flex flex-col gap-3'>
-                <span className='font-semibold text-xl text-black dark:text-white text-[var(--primary-color)] dark:text-[var(--primary-color)]'>
-                  {item.tit}
-                </span>
-                <span className='font-medium text-xs opacity-50 dark:text-white'>{item.sub}</span>
-              </div>
-            </div>
+            <CardItem key={item.tit} {...item} />
           ))}
         </div>
         {isBETA && <div className='fixed left-0 top-0 z-50 px-1 text-xs bg-red-600 text-white'>Beta</div>}
