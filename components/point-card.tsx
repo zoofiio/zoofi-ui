@@ -90,9 +90,9 @@ export function PointCard({ symbol, iconSymbol, tit, sub, total, link }: PointIt
   return (
     <div
       style={{
-        boxShadow: '0px 0px 12px 0px rgba(187, 215, 144, 0.4)',
+        // boxShadow: '0px 0px 12px 0px rgba(187, 215, 144, 0.4)',
       }}
-      className='rounded-2xl overflow-hidden bg-white text-base flex flex-col dark:bg-slate-950'
+      className='card overflow-hidden !p-0 text-base flex flex-col'
     >
       <div
         className='flex md:flex-wrap items-center p-4 gap-2 dark:text-black'
@@ -131,7 +131,7 @@ export function PointCards({ vc }: { vc: VaultConfig }) {
   const [ref, useSwiper] = useElementSizeCheck(({ width }) => width < 970)
   if (items.length == 0) return null
   return (
-    <div ref={ref as any} className='grid grid-cols-1 md:grid-cols-2 gap-5 md:pb-[60px]'>
+    <div ref={ref as any} className='grid grid-cols-1 md:grid-cols-2 gap-5'>
       {!useSwiper && items.map((item) => <PointCard key={item.symbol} {...item} />)}
       {useSwiper && (
         <Swiper

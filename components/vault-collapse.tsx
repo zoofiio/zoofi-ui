@@ -285,10 +285,10 @@ export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
   return (
     <>
       <PointCards vc={vc} />
-      <div className='w-full flex flex-col md:flex-row gap-4'>
+      <div className='w-full flex flex-col md:flex-row gap-5'>
         <div className='min-h-[108px] flex flex-col justify-center shrink-0'>
           {address && !vc.isStable && (
-            <div className='card h-[84px] w-full p-[20px] shrink-0 text-[#64748B] dark:text-slate-50/60 text-xs font-medium leading-[12px] rounded-2xl mb-[10px] whitespace-nowrap'>
+            <div className='card h-[84px] w-full p-[20px] shrink-0 text-[#64748B] dark:text-slate-50/60 text-xs font-medium leading-[12px] rounded-2xl mb-5 whitespace-nowrap'>
               <div className='flex items-center justify-between mb-[16px] gap-5'>
                 <div>Open Position</div>
                 <div className='flex items-center'>

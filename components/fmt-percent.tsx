@@ -18,7 +18,7 @@ export function FmtPercent({
   const _showDef = value == null || value == undefined || typeof value != 'bigint'
 
   return (
-    <span className={cn(className, showPlus ? 'text-green-600' : 'text-red-600')}>
+    <span className={cn(className, showPlus ? 'text-[#42FF37]' : 'text-[#F3474C]')}>
       {_showDef ? (
         '-%'
       ) : (

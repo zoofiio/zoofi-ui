@@ -311,7 +311,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
         <WrapDiv wrap={swapHead} className='flex flex-col-reverse gap-1 items-end'>
           {/* <PointsIcons icons={['blast', 'gold', 'wand']} /> */}
           <div>
-            <div className='text-xs text-black dark:text-slate-50 font-medium text-right'>Total {SELL} Staked</div>
+            <div className='text-xs text-black/60 dark:text-white/60 font-medium text-right'>Total {SELL} Staked</div>
             <div className='text-base text-black dark:text-slate-50 text-end font-semibold'>
               {displayBalance(earn.totalStake)}
             </div>
