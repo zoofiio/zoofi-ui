@@ -17,7 +17,7 @@
 
 @layer components {
   .btn-primary {
-    @apply px-3 cursor-pointer  w-full sm:w-2/3 transition-all leading-[2.375] ring-0 bg-btn text-base text-white font-medium h-10 rounded-lg enabled:hover:bg-primary disabled:bg-slate-500 disabled:cursor-not-allowed;
+    @apply px-3 cursor-pointer  w-full sm:w-2/3 transition-all leading-[2.375] ring-0 bg-btn dark:bg-btndark text-base text-black dark:text-white font-medium h-10 rounded-lg enabled:hover:bg-primary disabled:bg-slate-500 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
