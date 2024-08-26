@@ -11,7 +11,7 @@ export default function EarnPage() {
   const chainId = useCurrentChainId()
   const vcs = useMemo(() => VAULTS_CONFIG[chainId].filter((item) => !item.isStable), [chainId])
   return (
-    <div className='w-full h-full max-w-screen-[1160px] px-4 mx-auto'>
+    <div className='w-full h-full max-w-[1160px] px-4 mx-auto'>
       <MigrationTip />
       <h2 className='page-title'>Price Trigger Yield</h2>
       <Grid numItemsMd={2} className='gap-3 mt-4'>

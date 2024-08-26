@@ -19,7 +19,7 @@ export default function Vaults() {
   const groupsVcs = useMemo(() => Object.values(_.groupBy(vcs, 'assetTokenSymbol')), [vcs])
   return (
     <PageWrap>
-      <div className='w-full max-w-screen-[1160px] px-4 mx-auto md:pb-8'>
+      <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
         <MigrationTip />
         <h2 className='page-title'>B-Vaults</h2>
         <div className='w-full mt-2 mb-3 md:mt-4 md:mb-6 flex text-[24px] md:text-[14px] text-[#64748B] dark:text-slate-50/60 font-medium leading-[24px] md:leading-[14px]'>

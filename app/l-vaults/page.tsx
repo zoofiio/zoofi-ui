@@ -33,7 +33,7 @@ export default function Vaults() {
 
   return (
     <PageWrap>
-      <div className='w-full max-w-screen-[1160px] px-4 mx-auto md:pb-8'>
+      <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
         <MigrationTip />
 
         {/* <BlastPointCards /> */}
