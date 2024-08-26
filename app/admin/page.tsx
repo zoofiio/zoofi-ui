@@ -1,6 +1,7 @@
 'use client'
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
+import { PageWrap } from '@/components/page-wrap'
 import {
   abiMockPriceFeed,
   abiPlainVault,
@@ -471,38 +472,40 @@ export default function AdminPage() {
     current: options[0],
   })
   return (
-    <div className='w-full flex'>
-      <div className='flex flex-col gap-2 w-full max-w-[840px] mx-auto px-5'>
-        <Select defaultValue={options[0]} options={options} onChange={(e) => e && setState({ current: e })} />
-        {current.isPlain ? (
-          <>
-            <UpdatePlainVaultParam vc={current.data} />
-            {['configureBlastYieldsAndGas', 'configureBlastPoints'].map((action) => (
-              <ActionVault key={action} vc={current.data} functionName={action} abi={abiPlainVault} />
-            ))}
-          </>
-        ) : (
-          <>
-            <UpdateVaultVaule vc={current.data} />
-            <UpdateVaultPrice vc={current.data} />
-            {[
-              'pauseMint',
-              'unpauseMint',
-              'pauseRedeem',
-              'unpauseRedeem',
-              'pauseUsbToMarginTokens',
-              'unpauseUsbToMarginTokens',
-            ].map((action) => (
-              <ActionVault key={action} vc={current.data} functionName={action} />
-            ))}
-            <WandTxOwner />
-            {/* <WandSetBlastAddress /> */}
-            {/* <WandSetBlastPointsAddress /> */}
-            <ClaimYieldsForBuyPool vc={current.data} />
-            {chain?.testnet && <SetTester vc={current.data} />}
-          </>
-        )}
+    <PageWrap>
+      <div className='w-full flex'>
+        <div className='flex flex-col gap-2 w-full max-w-[840px] mx-auto px-5'>
+          <Select defaultValue={options[0]} options={options} onChange={(e) => e && setState({ current: e })} />
+          {current.isPlain ? (
+            <>
+              <UpdatePlainVaultParam vc={current.data} />
+              {['configureBlastYieldsAndGas', 'configureBlastPoints'].map((action) => (
+                <ActionVault key={action} vc={current.data} functionName={action} abi={abiPlainVault} />
+              ))}
+            </>
+          ) : (
+            <>
+              <UpdateVaultVaule vc={current.data} />
+              <UpdateVaultPrice vc={current.data} />
+              {[
+                'pauseMint',
+                'unpauseMint',
+                'pauseRedeem',
+                'unpauseRedeem',
+                'pauseUsbToMarginTokens',
+                'unpauseUsbToMarginTokens',
+              ].map((action) => (
+                <ActionVault key={action} vc={current.data} functionName={action} />
+              ))}
+              <WandTxOwner />
+              {/* <WandSetBlastAddress /> */}
+              {/* <WandSetBlastPointsAddress /> */}
+              <ClaimYieldsForBuyPool vc={current.data} />
+              {chain?.testnet && <SetTester vc={current.data} />}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </PageWrap>
   )
 }
