@@ -22,6 +22,8 @@ function TupleTxt(p: { tit: string; sub: string }) {
   )
 }
 
+const maxClassname = 'max-w-5xl mx-auto'
+
 function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
@@ -29,7 +31,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const [inputPToken, setInputPToken] = useState('')
   const inputPTokenBn = parseEthers(inputPToken)
   return (
-    <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
+    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
         <div className='flex p-5 bg-[#A3D395] gap-5'>
           <PandaLine className='text-[3.375rem]' showBg />
@@ -102,7 +104,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const [inputYToken, setInputYToken] = useState('')
   const inputYTokenBn = parseEthers(inputYToken)
   return (
-    <div className='grid grid-cols-1 md:grid-cols-3 gap-5 mt-5'>
+    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
         <div className='flex p-5 bg-[#F0D187] gap-5'>
           <VenomLine className='text-[3.375rem]' showBg />
@@ -180,7 +182,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const inputYTokenBn = parseEthers(inputYToken)
 
   return (
-    <div className='grid grid-cols-1 md:grid-cols-3 gap-5 mt-5'>
+    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div>
         <div ref={mesRef} className='flex items-center gap-8 text-xl font-semibold mb-6'>
           <span>My Pool Only</span>
