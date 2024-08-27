@@ -10,7 +10,7 @@ on:
 
 jobs:
   release:
-    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[release]') 
+    if: contains(github.event.head_commit.message, '[prod]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,7 +35,7 @@ jobs:
           publish_dir: ./out
           cname: zoofi.io
   test:
-    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[test]') 
+    if: contains(github.event.head_commit.message, '[test]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,7 +50,7 @@ jobs:
 
       - name: Install dependencies & build
         env:
-          NEXT_PUBLIC_ENV: 'test'  
+          NEXT_PUBLIC_ENV: 'test'
         run: |
           pnpm install --frozen-lockfile    
           pnpm build
@@ -61,11 +61,11 @@ jobs:
           deploy_key: ${{ secrets.DK_TEST }}
           publish_dir: ./out
           external_repository: zoofiio/zoofi-ui-site-test
-          cname: test.zoofi.io        
+          cname: test.zoofi.io
   beta:
-    if: github.repository == 'zoofiio/zoofi-ui' && contains(github.event.head_commit.message, '[beta]')
+    if: contains(github.event.head_commit.message, '[beta]') || contains(github.event.head_commit.message, '[all]')
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       contents: write
     steps:
       - name: Checkout
@@ -88,6 +88,4 @@ jobs:
           deploy_key: ${{ secrets.DK_BETA }}
           publish_dir: ./out
           external_repository: zoofiio/zoofi-ui-site-beta
-          cname: beta.zoofi.io   
-          
-          
+          cname: beta.zoofi.io

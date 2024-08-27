@@ -24,7 +24,8 @@ export const berachainTestnet = defineChain({
 
 export const beraChains = [berachainTestnet]
 export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter((item) =>
-  isPROD ? !item.testnet : true,
+  // isPROD ? !item.testnet : true,
+  true,
 ) as any
 
 export const refChainId: { id: number } = { id: berachainTestnet.id }

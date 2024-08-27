@@ -374,7 +374,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
       })}
       onClick={() => r.push(`/l-vaults?vault=${vc.vault}`)}
     >
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
         {/* <CoinIcon symbol={vc.assetTokenSymbol} size={32} /> */}
         <div className=' text-sm font-semibold whitespace-nowrap'>{vc.assetTokenSymbol}</div>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-medium'>
@@ -382,7 +382,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
         </div>
         {/* <PointsIcons icons={['blast', 'gold', 'wand']} className='ml-auto md:absolute top-10 left-0' /> */}
       </div>
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
           Total Deposit
         </div>
