@@ -132,7 +132,7 @@ export function AssetInput({
               'border-red-400 !border-2 focus:border-red-400': isError,
               'border-slate-400  focus:border-primary': !isError && !selected,
             },
-            'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-2xl border-[#4A5546] border focus:border-2 text-slate-700 rounded-md outline-none dark:text-slate-50',
+            'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-2xl border-[#4A5546] border focus:border-2 text-slate-700 rounded-lg outline-none dark:text-slate-50',
           )}
           placeholder='0.000'
           maxLength={36}

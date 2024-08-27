@@ -1,40 +1,21 @@
 'use client'
 
 import { CoinIcon } from '@/components/coinicon'
+import BeraLine from '@/components/icons/BeraLine'
+import BullLine from '@/components/icons/BullLine'
+import PandaLine from '@/components/icons/PandaLine'
+import VenomLine from '@/components/icons/VenomLine'
+import { IconProps } from '@/components/icons/types'
 import { PageWrap } from '@/components/page-wrap'
 import { VAULTS_CONFIG } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useTVL, useTVLV1 } from '@/hooks/useTVL'
 import { useTokenApys } from '@/hooks/useTokenApys'
-import { useRouter } from 'next/navigation'
-import BeraLine from '@/components/icons/BeraLine'
-import BullLine from '@/components/icons/BullLine'
-import PandaLine from '@/components/icons/PandaLine'
-import VenomLine from '@/components/icons/VenomLine'
-import React from 'react'
-import { IconProps } from '@/components/icons/types'
-import { isBETA } from '@/constants'
 import { cn } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import React from 'react'
 import { useHover } from 'react-use'
 
-/*
-.card_beraline:hover {
-  --primary-color: #ff8080;
-  --primary-bg: url(#paint0_linear_44_1592);
-}
-.card_bullline:hover {
-  --primary-color: #53baff;
-  --primary-bg: url(#paint0_linear_44_1600);
-}
-.card_pandaline:hover {
-  --primary-color: #0ed19a;
-  --primary-bg: url(#paint0_linear_44_1607);
-}
-.card_venomline:hover {
-  --primary-color: #ebc013;
-  --primary-bg: url(#paint0_linear_44_1614);
-}
-*/
 type CardItemType = {
   icon: React.FunctionComponent<IconProps>
   tit: string
@@ -65,6 +46,7 @@ function CardItem(item: CardItemType) {
     <div key={item.tit} className={cn('card flex items-center gap-5 py-4', item.className)}>
       <item.icon
         showBg={isHover}
+        showOutline
         className={cn('text-[3.375rem] ', isHover ? 'text-white' : 'text-black dark:text-white')}
       />
       <div className='flex flex-col gap-3'>
@@ -113,7 +95,6 @@ export default function Home() {
             <CardItem key={item.tit} {...item} />
           ))}
         </div>
-        {isBETA && <div className='fixed left-0 top-0 z-50 px-1 text-xs bg-red-600 text-white'>Beta</div>}
       </div>
     </PageWrap>
   )

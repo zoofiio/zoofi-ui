@@ -13,5 +13,6 @@ const ENV: '' | 'test' | 'beta' = (process.env.NEXT_PUBLIC_ENV as any) || ''
 
 const isTEST = ENV == 'test'
 const isBETA = ENV == 'beta'
+const isPROD = !ENV
 
-export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, Day1, ENV, isTEST, isBETA }
+export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, Day1, ENV, isTEST, isBETA, isPROD }

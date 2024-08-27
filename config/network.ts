@@ -1,6 +1,6 @@
+import { isPROD } from '@/constants'
 import { providers } from 'ethers'
 import { Chain, defineChain } from 'viem'
-import { env } from './env'
 
 export const berachainTestnet = defineChain({
   id: 80084,
@@ -23,8 +23,8 @@ export const berachainTestnet = defineChain({
 })
 
 export const beraChains = [berachainTestnet]
-export const SUPPORT_CHAINS: readonly [Chain,...Chain[]] = [...beraChains].filter((item) =>
-  env == 'prod' ? !item.testnet : true,
+export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter((item) =>
+  isPROD ? !item.testnet : true,
 ) as any
 
 export const refChainId: { id: number } = { id: berachainTestnet.id }

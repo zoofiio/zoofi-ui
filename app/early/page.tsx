@@ -1,10 +1,11 @@
 'use client'
 
 import ConnectBtn from '@/components/connet-btn'
-import STable from '@/components/simple-table'
 import { DataBase } from '@/components/icons/database'
 import { MigrationTip } from '@/components/migrationv2'
+import STable from '@/components/simple-table'
 import { Spinner } from '@/components/spinner'
+import { useThemeState } from '@/components/theme-mode'
 import { Tip } from '@/components/ui/tip'
 import {
   getBlastPoints,
@@ -15,7 +16,6 @@ import {
   refreshInviteCode,
   userLogin,
 } from '@/config/api'
-import { env } from '@/config/env'
 import { THUSTER_LP, USBSymbol } from '@/config/swap'
 import { DECIMAL } from '@/constants'
 import useCopy from '@/hooks/useCopy'
@@ -44,8 +44,6 @@ import { toast } from 'sonner'
 import { Address, formatEther } from 'viem'
 import { useAccount, useSignMessage } from 'wagmi'
 import { create } from 'zustand'
-import { useThemeState } from '@/components/theme-mode'
-import { DomainRef } from '@/hooks/useConfigDomain'
 
 const GalxeLink = 'https://app.galxe.com/quest/Wand/GC9T8t44ov'
 
@@ -626,13 +624,7 @@ function InvitePage() {
 
   // 得到邀请链接
   const inviteUrl = () => {
-    const domain =
-    env === 'develop'
-      ? 'http://127.0.0.1:3000/early'
-      : env === 'test'
-      ? `https://test.${DomainRef.value}/early`
-      : `https://${DomainRef.value}/early`
-      return domain + '?code=' + staticCode?.code
+    return ''
   }
   const [ref, { width }] = useMeasure()
 
