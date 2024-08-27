@@ -22,7 +22,7 @@ function TupleTxt(p: { tit: string; sub: string }) {
   )
 }
 
-const maxClassname = 'max-w-5xl mx-auto'
+const maxClassname = 'max-w-4xl mx-auto'
 
 function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
