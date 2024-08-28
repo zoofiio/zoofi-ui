@@ -8,26 +8,19 @@ import { SimpleDialog } from './simple-dialog'
 
 export type ThemeType = 'light' | 'dark'
 export type ThemeModeType = ThemeType | 'system'
+const defTheme: ThemeType = 'dark'
 
+const getSystemTheme = (): ThemeType => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
 const getThemeState = () => {
-  let themeMode: ThemeModeType = 'light'
-  let theme: ThemeType = 'light'
+  let themeMode: ThemeModeType = defTheme
+  let theme: ThemeType = defTheme
   if (typeof window === 'undefined') {
     return { themeMode, theme }
   }
-  if (
-    localStorage.theme === 'dark' ||
-    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  ) {
-    document.documentElement.classList.add('dark')
-    themeMode = 'dark'
-    theme = 'dark'
-  } else {
-    document.documentElement.classList.remove('dark')
-    themeMode = 'light'
-    theme = 'light'
-  }
-  if (!('theme' in localStorage)) themeMode = 'system'
+  themeMode = (localStorage.themeMode as any) || defTheme
+  theme = themeMode == 'system' ? getSystemTheme() : themeMode
+  document.documentElement.classList.remove(theme == 'dark' ? 'light' : 'dark')
+  document.documentElement.classList.add(theme)
   return { themeMode, theme }
 }
 
@@ -59,11 +52,7 @@ export function ThemeMode() {
     onChangeTheme()
   }, [])
   const onClick = (item: string) => {
-    if (item == 'System') {
-      localStorage.removeItem('theme')
-    } else {
-      localStorage.theme = item.toLocaleLowerCase()
-    }
+    localStorage.themeMode = item.toLocaleLowerCase()
     onChangeTheme()
   }
   return (
