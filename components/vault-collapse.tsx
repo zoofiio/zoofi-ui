@@ -423,7 +423,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
       </div>
       <div className={itemClassname}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          {USBSymbol} Debt
+          {USBSymbol} Debt<Tip>Interest Bearing Stablecoin</Tip>
         </div>
         <div className='flex items-center'>
           <CoinIcon className='mx-1' symbol={USBSymbol} size={14} />
@@ -439,7 +439,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
             <CoinIcon symbol='Bera' size={36} />
             <div className='flex flex-col items-start gap-2'>
               <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                Bear Interest
+                Interest Bear
               </div>
               <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>
                 {fmtPercent(tapys[USB_ADDRESS[chainId]], 10)}
@@ -455,6 +455,35 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
               <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{`${leverage.toFixed(2)}x`}</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function VaultCollapseComming({ symbol }: { symbol: string }) {
+  const itemClassname =
+    'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid even:border-l even:border-b odd:border-b last:!border-b-0 h-[5.3125rem]'
+  return (
+    <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden order-5', {})}>
+      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
+        {/* <CoinIcon symbol={vc.assetTokenSymbol} size={32} /> */}
+        <div className=' text-sm font-semibold whitespace-nowrap'>{symbol}</div>
+        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-medium'>-</div>
+        {/* <PointsIcons icons={['blast', 'gold', 'wand']} className='ml-auto md:absolute top-10 left-0' /> */}
+      </div>
+      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
+        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
+          Total Deposit
+        </div>
+        <div className='flex items-center'>
+          <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>-</span>
+        </div>
+      </div>
+
+      <div className={cn(itemClassname, 'col-span-2')}>
+        <div className='text-xs font-semibold leading-[12px] whitespace-nowrap'>
+          New Vault Comming Soon...
         </div>
       </div>
     </div>

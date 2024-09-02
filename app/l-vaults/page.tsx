@@ -11,7 +11,7 @@ import { Grid } from '@tremor/react'
 import { useSearchParams } from 'next/navigation'
 import { ReactNode } from 'react'
 import { AiFillNotification } from 'react-icons/ai'
-import { LVaultSimpleWrap, VaultCollapse } from '../../components/vault-collapse'
+import { LVaultSimpleWrap, VaultCollapse, VaultCollapseComming } from '../../components/vault-collapse'
 import { PageWrap } from '@/components/page-wrap'
 
 function StrongSpan({ children }: { children: ReactNode }) {
@@ -40,14 +40,12 @@ export default function Vaults() {
         {!currentVc ? (
           <>
             <div className='page-title'>L-Vaults</div>
-            <Noti data='Depositing assets into the Vaults' />
-            <Grid numItems={1} numItemsMd={2} numItemsLg={3} className='gap-3 mt-4'>
+            <Noti data='Deposit assets into the Vaults to pair-mint stablecoin and margin token' />
+            <Grid numItems={1} numItemsMd={2} numItemsLg={3} className='gap-5 mt-4'>
               {vcs.map((item, index) => (
                 <VaultCollapse key={`group_vault_item_${index}`} vc={item} />
               ))}
-              {/* {pvcs.map((item, index) => (
-          <PlainVault vc={item} key={`plain_vault_item_${index}`} />
-          ))} */}
+              <VaultCollapseComming symbol='iRED'/>
             </Grid>
           </>
         ) : (

@@ -101,7 +101,7 @@ export const FetcherContext = createContext<FetcherContextInterface>({
   vaultsDiscount: proxyGetDef({}, false),
   vaultsState: proxyGetDef({}, proxyGetDef({}, 0n)),
   stableVaultsState: proxyGetDef({}, proxyGetDef({}, 0n)),
-  earns: proxyGetDef({}, 0n),
+  earns: proxyGetDef({}, proxyGetDef({}, 0n)),
   usbApr: {
     apr: 0n,
     aprDecimals: 10,
@@ -197,7 +197,8 @@ function useReadEarns() {
     const earn = getBigint(reads, [index + pools.length * 2, 'result'])
     const earnForMatch = getBigint(reads, [index + pools.length * 3, 'result'])
     const totalStake = getBigint(totalStaking, [index, 'result'])
-    earns[poolAddress as any] = { stakeSymbol, matchSymbol, earnSymbol, stake, match, earn, earnForMatch, totalStake, balance: poolBalance[poolAddress as Address] }
+    const balance = getBigint(poolBalance, poolAddress!)
+    earns[poolAddress as any] = { stakeSymbol, matchSymbol, earnSymbol, stake, match, earn, earnForMatch, totalStake, balance }
   })
   return earns
 }

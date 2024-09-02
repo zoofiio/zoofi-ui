@@ -81,7 +81,8 @@ export function useTVL() {
       vcs
         .filter((vc) => !vc.isStable)
         .map((vc) => {
-          const amount = earns[vc.ptyPoolAboveAddress as any].totalStake + earns[vc.ptyPoolBelowAddress as any].balance
+          console.info('earns: ', earns[vc.ptyPoolAboveAddress!].totalStake, earns[vc.ptyPoolBelowAddress!].balance)
+          const amount = earns[vc.ptyPoolAboveAddress!].totalStake + earns[vc.ptyPoolBelowAddress!].balance
           const price = prices[vc.assetTokenAddress]
           const usdAmount = (price * amount) / DECIMAL
           return {

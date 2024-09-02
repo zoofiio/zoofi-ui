@@ -39,6 +39,17 @@ export type VaultConfig = {
 export const VAULTS_CONFIG: { [k: number]: VaultConfig[] } = {
   [berachainTestnet.id]: [
     {
+      vault: '0xBA7aab4bbb87c9499D062057937ab8797b8BfF4C',
+      assetTokenSymbol: 'BERA',
+      assetTokenAddress: NATIVE_TOKEN_ADDRESS,
+      assetTokenFeed: '0x9981fc983a63C8c43a78284a1dD9d2EfC5C6e52a',
+      xTokenSymbol: 'xBERA',
+      xTokenAddress: '0x94CB06fBd2c8Ae161d8b3871C090cb4bF0785492',
+      ptyPoolBelowAddress: '0x5841b2119fF4f30021a8A21cC1a826DEcf1ed953',
+      ptyPoolAboveAddress: '0xFaA58B694d3fDac5C210687eC994fd6eb3b8c179',
+      version: '',
+    },
+    {
       vault: '0x2c7556046e32F2EC1e3389Ae645E9257AcF39f99',
       assetTokenSymbol: 'iBGT',
       assetTokenAddress: '0x46eFC86F0D7455F135CC9df501673739d513E982',

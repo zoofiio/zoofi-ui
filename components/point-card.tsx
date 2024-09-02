@@ -32,13 +32,13 @@ const bgMap: { [k: string]: string } = {
   ZUSD_dark: '#FFD3C2',
   xiBGT: '#AFD3FF',
   xiBGT_dark: '#AFD3FF',
-  HONEY: 'rgba(226, 254, 182, 1)',
-  xHONEY_dark: '#E2FEB6',
+  xBERA: '#AFD3FF',
+  xBERA_dark: '#AFD3FF',
 }
 const titBgMap: { [k: string]: string } = {
   ZUSD: '#FFA973',
   xiBGT: '#93B0FF',
-  xHONEY: 'rgba(196, 241, 126, 1)',
+  xBERA: '#93B0FF',
 }
 
 export function useVcPoints(vc: VaultConfig) {
