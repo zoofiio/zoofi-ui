@@ -12,6 +12,11 @@ import { abiMulticall3 } from './Multicall3'
 import { abiPlainVault } from './PlainVault'
 import { abiRedstonePriceFeed } from './RedstonePriceFeed'
 
+import abiBVault from './BVault'
+import abiZooProtocol from './ZooProtocol'
+import abiRedeemPool from './RedeemPool'
+import abiBVaultQuery from './BVaultQuery'
+
 export {
   abiPriceFeed,
   abiPtyPool,
@@ -23,5 +28,9 @@ export {
   abiWandProtocol,
   abiMulticall3,
   abiPlainVault,
-  abiRedstonePriceFeed
+  abiRedstonePriceFeed,
+  abiBVault,
+  abiZooProtocol,
+  abiRedeemPool,
+  abiBVaultQuery,
 }

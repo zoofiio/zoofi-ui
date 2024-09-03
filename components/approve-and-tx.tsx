@@ -22,7 +22,9 @@ export function ApproveAndTx<
   accountOverride extends Account | Address | undefined = undefined,
 >({
   className,
+  txType = 'btn-primary',
   tx,
+  busyShowTxet = true,
   approves,
   spender,
   requestAmount,
@@ -33,7 +35,9 @@ export function ApproveAndTx<
   onApproveSuccess,
 }: {
   className?: string
+  txType?: 'btn-link' | 'btn-primary'
   tx: string
+  busyShowTxet?: boolean,
   approves?: { [k: Address]: bigint }
   spender?: Address
   requestAmount?: bigint
@@ -68,22 +72,22 @@ export function ApproveAndTx<
   if (shouldApprove)
     return (
       <button
-        className={twMerge('btn-primary flex items-center justify-center gap-4', className)}
+        className={twMerge(txType, 'flex items-center justify-center gap-4', className)}
         onClick={approve}
         disabled={approveDisabled}
       >
         {isApproveLoading && <Spinner />}
-        Approve
+        {'Approve'}
       </button>
     )
   return (
     <button
-      className={twMerge('btn-primary flex items-center justify-center gap-4', className)}
+      className={twMerge(txType, 'flex items-center justify-center gap-4', className)}
       onClick={() => doTx()}
       disabled={txDisabled}
     >
       {isTxLoading && <Spinner />}
-      {tx}
+      {(busyShowTxet || !isTxLoading) && tx}
     </button>
   )
 }

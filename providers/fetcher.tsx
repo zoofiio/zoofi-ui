@@ -1,7 +1,14 @@
 'use client'
 import { abiPriceFeed, abiPtyPool, abiVault, abiVaultQuery } from '@/config/abi'
 import { getPtypoolYields } from '@/config/api'
-import { ETHSymbol, NATIVE_TOKEN_ADDRESS, USBSymbol, USB_ADDRESS, VAULTS_CONFIG, VAULT_QUERY_ADDRESS } from '@/config/swap'
+import {
+  ETHSymbol,
+  NATIVE_TOKEN_ADDRESS,
+  USBSymbol,
+  USB_ADDRESS,
+  VAULTS_CONFIG,
+  VAULT_QUERY_ADDRESS,
+} from '@/config/swap'
 import { getTokens } from '@/config/tokens'
 import { DECIMAL, Day1 } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
@@ -16,8 +23,9 @@ import _ from 'lodash'
 import { ReactNode, createContext, useEffect, useMemo } from 'react'
 import { useAsyncRetry } from 'react-use'
 import { Address, erc20Abi, formatUnits, stringToHex } from 'viem'
-import { UseBalanceParameters, useAccount, useBalance, useClient, usePublicClient } from 'wagmi'
+import { UseBalanceParameters, useAccount, useBalance, usePublicClient } from 'wagmi'
 import { GetBalanceData } from 'wagmi/query'
+import { defBVaultsData, useBVaultsData } from './useBVaultsData'
 
 export interface FetcherContextInterface {
   balances: { [k: string]: bigint }
@@ -88,6 +96,8 @@ export interface FetcherContextInterface {
 
   ptypoolYields?: UnPromise<typeof getPtypoolYields>
   plainVaultsStat: ReturnType<typeof usePlainVualtsReads>
+
+  bVaultsData: ReturnType<typeof useBVaultsData>
 }
 
 export const FetcherContext = createContext<FetcherContextInterface>({
@@ -107,6 +117,7 @@ export const FetcherContext = createContext<FetcherContextInterface>({
     aprDecimals: 10,
   },
   plainVaultsStat: proxyGetDef({}, proxyGetDef({}, 0n)),
+  bVaultsData: defBVaultsData(),
 })
 
 function useReadEarns() {
@@ -198,7 +209,17 @@ function useReadEarns() {
     const earnForMatch = getBigint(reads, [index + pools.length * 3, 'result'])
     const totalStake = getBigint(totalStaking, [index, 'result'])
     const balance = getBigint(poolBalance, poolAddress!)
-    earns[poolAddress as any] = { stakeSymbol, matchSymbol, earnSymbol, stake, match, earn, earnForMatch, totalStake, balance }
+    earns[poolAddress as any] = {
+      stakeSymbol,
+      matchSymbol,
+      earnSymbol,
+      stake,
+      match,
+      earn,
+      earnForMatch,
+      totalStake,
+      balance,
+    }
   })
   return earns
 }
@@ -532,6 +553,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   const { value: ptypoolYields = {} } = useAsyncRetry(getPtypoolYields, [wand.time])
   useUpdatePtypoolApy(earns, prices, vaultsState)
   const plainVaultsStat = usePlainVualtsReads(prices)
+  const bVaultsData = useBVaultsData()
   return (
     <FetcherContext.Provider
       value={{
@@ -549,6 +571,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
         usbApr,
         ptypoolYields,
         plainVaultsStat,
+        bVaultsData
       }}
     >
       {children}

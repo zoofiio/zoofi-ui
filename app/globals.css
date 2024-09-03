@@ -24,6 +24,10 @@
     @apply cursor-pointer text-sm w-full py-2 px-3 border hover:bg-slate-50 border-slate-200 rounded-lg transition-all ring-0 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-slate-800 disabled:cursor-not-allowed;
   }
 
+  .btn-link {
+    @apply px-3 cursor-pointer font-medium underline disabled:cursor-not-allowed;
+  }
+
   .h3 {
     @apply text-2xl leading-8 font-semibold text-slate-900;
   }

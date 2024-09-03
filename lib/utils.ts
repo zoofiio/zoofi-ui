@@ -77,13 +77,13 @@ export function swapThrusterLink(token: Address, token2: Address) {
   return `https://app.thruster.finance/?token1=${token}&token2=${token2}`
 }
 
-export function proxyGetDef<T extends object>(obj: T, def: any) {
+export function proxyGetDef<T extends object>(obj: T, def: any | ((k: string) => any)) {
   const get = function (target: T, p: string) {
     const hasValue = p in target
     if (hasValue && (target as any)[p] !== null && (target as any)[p] !== undefined) {
       return (target as any)[p]
     }
-    return def
+    return typeof def == 'function' ? def(p) : def
   }
   return new Proxy(obj, { get }) as T
 }
