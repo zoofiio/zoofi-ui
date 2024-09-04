@@ -6,19 +6,19 @@ import { DECIMAL } from '@/constants'
 import { cn, fmtPercent, getBigint, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
 import { displayBalance } from '@/utils/display'
+import { useRouter } from 'next/navigation'
 import { useContext, useState } from 'react'
 import { useMeasure } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
-import { useAccount, useReadContract, useReadContracts } from 'wagmi'
+import { useReadContract } from 'wagmi'
 import { ApproveAndTx } from './approve-and-tx'
 import { AssetInput } from './asset-input'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 import STable from './simple-table'
 import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
-import { useRouter } from 'next/navigation'
-import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
 
 function TupleTxt(p: { tit: string; sub: string }) {
   return (
@@ -29,7 +29,7 @@ function TupleTxt(p: { tit: string; sub: string }) {
   )
 }
 
-const maxClassname = 'max-w-4xl mx-auto'
+const maxClassname = 'max-w-4xl mx-auto w-full'
 
 function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
@@ -100,6 +100,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                 <div className='flex flex-col gap-1'>
                   <AssetInput
                     asset={bvc.pTokenSymbol}
+                    assetIcon='Panda'
                     amount={inputPToken}
                     balance={pTokenBalance}
                     setAmount={setInputPToken}
@@ -190,7 +191,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
       <div className='md:col-span-2 card !p-4 flex flex-col gap-1'>
         <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
         <div className='text-base font-bold my-2'>Receive</div>
-        <AssetInput asset={bvc.yTokenSymbol} readonly disable amount={outputYTokenFmt} />
+        <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable amount={outputYTokenFmt} />
 
         <div className='text-xs font-medium  flex justify-between'>
           <span>{`Current Price: 1 ${bvc.assetSymbol}=${outputYTokenFmtFor1} ${bvc.yTokenSymbol}`}</span>
@@ -312,7 +313,13 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             ]}
           />
         </div>
-        <AssetInput asset={bvc.yTokenSymbol} amount={inputYToken} balance={0n} setAmount={setInputYToken} />
+        <AssetInput
+          asset={bvc.yTokenSymbol}
+          assetIcon='Venom'
+          amount={inputYToken}
+          balance={0n}
+          setAmount={setInputYToken}
+        />
         <span className='text-xs mx-auto'>You will receive 0.023% of total bribes</span>
         <ApproveAndTx
           className='mx-auto mt-4'
@@ -328,7 +335,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   )
 }
 
-export function BVault({ bvc }: { bvc: BVaultConfig }) {
+export function BVaultMint({ bvc }: { bvc: BVaultConfig }) {
   return (
     <>
       <BVaultP bvc={bvc} />
@@ -338,80 +345,32 @@ export function BVault({ bvc }: { bvc: BVaultConfig }) {
     </>
   )
 }
+export function BVaultHarvest({ bvc }: { bvc: BVaultConfig }) {
+  return (
+    <>
+      {/* <BVaultP bvc={bvc} />
+      <BVaultY bvc={bvc} /> */}
+      {/* <div className='page-title mt-8'>Bribes Pools</div> */}
+      <BVaultPools bvc={bvc} />
+    </>
+  )
+}
 
 export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const r = useRouter()
-  const itemClassname = 'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid'
-
   const [token1, token2] = vc.assetSymbol.split('-')
-  const renderToken = (symbol: string, amount: bigint, usd: bigint, borderL: boolean = false) => {
-    return (
-      <div className={cn(itemClassname, 'border-b', { 'border-l': borderL })}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap flex gap-2 items-center'>
-          <CoinIcon symbol={symbol} size={14} />
-          {token1}
-        </div>
-        <div className='flex flex-col pl-[1.375rem] gap-1 text-xs font-medium'>
-          <span className=''>{displayBalance(amount)}</span>
-          <span className=' text-[#64748B] dark:text-slate-50/60'>{`$${displayBalance(usd)}`}</span>
-        </div>
-      </div>
-    )
-  }
-  const renderStat = (tit: string, icon: string, sub: string, borderL: boolean = false) => (
-    <div className={cn(itemClassname, 'border-b', { 'border-l': borderL })}>
-      <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-        {tit}
-      </div>
-      <div className='flex items-center gap-1 text-sm font-medium'>
-        <CoinIcon symbol={icon} size={14} />
-        <span>{sub}</span>
-      </div>
-    </div>
-  )
-  const renderChoseSide = (
-    leftSymbol: string,
-    leftTitle: string,
-    leftSub: string,
-    rightSymbol: string,
-    rightTitle: string,
-    rightSub: string,
-  ) => {
-    return (
-      <div className={cn(itemClassname, 'col-span-2')}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          Choose your side
-        </div>
-        <div className='flex justify-between items-center gap-8'>
-          <div className='flex gap-4 items-center'>
-            <CoinIcon symbol={leftSymbol} size={36} />
-            <div className='flex flex-col items-start gap-2'>
-              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                {leftTitle}
-              </div>
-              <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{leftSub}</span>
-            </div>
-          </div>
-          <div className='flex flex-row-reverse gap-4 items-center'>
-            <CoinIcon symbol={rightSymbol} size={36} />
-            <div className='flex flex-col items-end gap-2'>
-              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                {rightTitle}
-              </div>
-              <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{rightSub}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+
   return (
     <div
       className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})}
       onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}
     >
       <div
-        className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row p-4 items-center')}
+        className={cn(
+          itemClassname,
+          'border-b',
+          'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center',
+        )}
       >
         <CoinIcon symbol={vc.assetSymbol} size={44} />
         <div>

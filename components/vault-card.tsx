@@ -18,7 +18,7 @@ import { formatEther } from 'viem'
 import { SimpleTabs } from './simple-tabs'
 import { Tip } from './ui/tip'
 
-export function VaultCard({ vc }: { vc: VaultConfig }) {
+export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
   const { balances, prices, vaultsMode } = useContext(FetcherContext)
   const chainId = useCurrentChainId()
   const vaultQueryAddress = VAULT_QUERY_ADDRESS[chainId]

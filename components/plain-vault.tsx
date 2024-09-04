@@ -15,7 +15,7 @@ import { Collapse } from 'react-collapse'
 import { useAccount } from 'wagmi'
 import ConnectBtn from './connet-btn'
 import { PointsIcons } from './points-icons'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 import { SimpleTabs } from './simple-tabs'
 
 const arrowDown = (

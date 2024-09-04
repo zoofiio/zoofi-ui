@@ -19,7 +19,7 @@ import { useToggle } from 'react-use'
 import { erc20Abi, parseEther } from 'viem'
 import { useAccount } from 'wagmi'
 import STable from './simple-table'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
 import { useQuery } from '@tanstack/react-query'
@@ -86,7 +86,7 @@ function useMigrationQuery(show: boolean) {
         {
           abi: abiVault,
           address: ethVC.vault,
-          functionName: 'usbTotalSupply',
+          functionName: 'usdTotalSupply',
         },
         // below earn,
         {

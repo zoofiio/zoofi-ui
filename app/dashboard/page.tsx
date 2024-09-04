@@ -1,8 +1,9 @@
 'use client'
 import ConnectBtn from '@/components/connet-btn'
-import { CoinIcon } from '@/components/coinicon'
+import { CoinIcon } from '@/components/icons/coinicon'
+import { PageWrap } from '@/components/page-wrap'
 import { Tip } from '@/components/ui/tip'
-import { NATIVE_TOKEN_ADDRESS, PLAIN_VAULTS_CONFIG, USB_ADDRESS, USBSymbol, VAULTS_CONFIG } from '@/config/swap'
+import { PLAIN_VAULTS_CONFIG, USB_ADDRESS, USBSymbol, VAULTS_CONFIG } from '@/config/swap'
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useTVL, useTVLV1 } from '@/hooks/useTVL'
@@ -10,6 +11,7 @@ import { fmtAAR, fmtPercent, getBigint } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
 import { displayBalance } from '@/utils/display'
 import {
+  TableCell as _TableCell,
   Divider,
   Grid,
   Table,
@@ -17,12 +19,10 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-  TableCell as _TableCell,
 } from '@tremor/react'
 import Image from 'next/image'
 import { Fragment, useContext } from 'react'
 import { useAccount } from 'wagmi'
-import { PageWrap } from '@/components/page-wrap'
 
 const TableCell = (p: React.TdHTMLAttributes<HTMLTableCellElement> & React.RefAttributes<HTMLTableCellElement>) => {
   return <_TableCell {...p} className={`!p-3 w-max ${p.className}`} />

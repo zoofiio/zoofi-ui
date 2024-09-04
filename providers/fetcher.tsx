@@ -390,7 +390,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
       ...vaultconfigs.map((vc) => ({
         abi: abiVault,
         address: vc.vault,
-        functionName: 'usbTotalSupply',
+        functionName: 'usdTotalSupply',
       })),
     ],
   })

@@ -3,7 +3,7 @@
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { AssetInput } from '@/components/asset-input'
 import { Tip } from '@/components/ui/tip'
-import { VaultCard } from '@/components/vault-card'
+import { LVaultAdvance } from '@/components/vault-card'
 import { abiStableVault, abiVault, abiVaultQuery } from '@/config/abi'
 import { isBerachain, SUPPORT_CHAINS } from '@/config/network'
 import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VAULT_QUERY_ADDRESS, VaultConfig } from '@/config/swap'
@@ -20,13 +20,14 @@ import { useRouter } from 'next/navigation'
 import { useContext, useMemo, useState } from 'react'
 import { MdSettings } from 'react-icons/md'
 import { useAccount, useWalletClient } from 'wagmi'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 import ConnectBtn from './connet-btn'
 import { PointCards } from './point-card'
 import { SimpleDialog } from './simple-dialog'
 import { SimpleTabs } from './simple-tabs'
-import { StableVaultCard } from './stable-vault-card'
+import { StableLVaultAdvance } from './stable-vault-card'
 import { useTokenApys } from '@/hooks/useTokenApys'
+import { renderChoseSide } from './vault-card-ui'
 
 const arrowDown = (
   <svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none'>
@@ -128,7 +129,7 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
           </div>
         }
       >
-        {vc.isStable ? <StableVaultCard vc={vc} /> : <VaultCard vc={vc} />}
+        {vc.isStable ? <StableLVaultAdvance vc={vc} /> : <LVaultAdvance vc={vc} />}
       </SimpleDialog>
       <SimpleTabs
         data={[
@@ -340,7 +341,7 @@ export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
   )
 }
 
-export function VaultCollapse({ vc }: { vc: VaultConfig }) {
+export function LVaultCard({ vc }: { vc: VaultConfig }) {
   const r = useRouter()
   const chainId = useCurrentChainId()
   const { prices, vaultsMode, vaultsState, stableVaultsState } = useContext(FetcherContext)
@@ -365,8 +366,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
   // console.log(vaultConfig)
   const x = vc.xTokenSymbol
 
-  const itemClassname =
-    'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid even:border-l even:border-b odd:border-b last:!border-b-0'
+  const itemClassname = 'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid'
   return (
     <div
       className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {
@@ -374,23 +374,26 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
       })}
       onClick={() => r.push(`/l-vaults?vault=${vc.vault}`)}
     >
-      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
-        {/* <CoinIcon symbol={vc.assetTokenSymbol} size={32} /> */}
-        <div className=' text-sm font-semibold whitespace-nowrap'>{vc.assetTokenSymbol}</div>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-medium'>
-          ${displayBalance(prices[vc.assetTokenAddress])}
+      <div
+        className={cn(
+          itemClassname,
+          'border-b',
+          'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center',
+        )}
+      >
+        <CoinIcon symbol={vc.assetTokenSymbol} size={44} />
+        <div>
+          <div className=' text-lg font-semibold whitespace-nowrap'>{vc.assetTokenSymbol}</div>
+          <div className=' text-sm font-medium'>${displayBalance(prices[vc.assetTokenAddress])}</div>
         </div>
-        {/* <PointsIcons icons={['blast', 'gold', 'wand']} className='ml-auto md:absolute top-10 left-0' /> */}
+        <div className='ml-auto'>
+          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>
+            {'Total Deposit'}
+          </div>
+          <div className='text-sm font-medium'>{total}</div>
+        </div>
       </div>
-      <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          Total Deposit
-        </div>
-        <div className='flex items-center'>
-          <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{total}</span>
-        </div>
-      </div>
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'border-b border-r')}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
           Status
         </div>
@@ -403,7 +406,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
           </span>
         </div>
       </div>
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'border-b')}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
           {x}
           <Tip>This is a margin token, representing open position in the vault.</Tip>
@@ -412,7 +415,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
           <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{xTotal}</span>
         </div>
       </div>
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'border-b border-r')}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
           AAR
           <Tip>Asset Adequacy Ratio</Tip>
@@ -421,7 +424,7 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
           <span className=' text-[14px] leading-[14px] font-medium'>{aar}</span>
         </div>
       </div>
-      <div className={itemClassname}>
+      <div className={cn(itemClassname, 'border-b')}>
         <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
           {USBSymbol} Debt<Tip>Interest Bearing Stablecoin</Tip>
         </div>
@@ -430,38 +433,19 @@ export function VaultCollapse({ vc }: { vc: VaultConfig }) {
           <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{usbDebt}</span>
         </div>
       </div>
-      <div className={cn(itemClassname, 'col-span-2')}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          Choose your side
-        </div>
-        <div className='flex justify-between items-center gap-8'>
-          <div className='flex gap-4 items-center'>
-            <CoinIcon symbol='Bera' size={36} />
-            <div className='flex flex-col items-start gap-2'>
-              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                Interest Bear
-              </div>
-              <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>
-                {fmtPercent(tapys[USB_ADDRESS[chainId]], 10)}
-              </span>
-            </div>
-          </div>
-          <div className='flex flex-row-reverse gap-4 items-center'>
-            <CoinIcon symbol='Bull' size={36} />
-            <div className='flex flex-col items-end gap-2'>
-              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-                Leverage Bull
-              </div>
-              <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{`${leverage.toFixed(2)}x`}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {renderChoseSide(
+        'Bera',
+        'Interest Bear',
+        fmtPercent(tapys[USB_ADDRESS[chainId]], 10),
+        'Bull',
+        'Leverage Bull',
+        `${leverage.toFixed(2)}x`,
+      )}
     </div>
   )
 }
 
-export function VaultCollapseComming({ symbol }: { symbol: string }) {
+export function LVaultComming({ symbol }: { symbol: string }) {
   const itemClassname =
     'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid even:border-l even:border-b odd:border-b last:!border-b-0 h-[5.3125rem]'
   return (
@@ -482,9 +466,7 @@ export function VaultCollapseComming({ symbol }: { symbol: string }) {
       </div>
 
       <div className={cn(itemClassname, 'col-span-2')}>
-        <div className='text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          New Vault Comming Soon...
-        </div>
+        <div className='text-xs font-semibold leading-[12px] whitespace-nowrap'>New Vault Comming Soon...</div>
       </div>
     </div>
   )
@@ -493,10 +475,10 @@ export function VaultCollapseComming({ symbol }: { symbol: string }) {
 export function GroupVaultCollapse({ vcs }: { vcs: VaultConfig[] }) {
   const [vc, setVC] = useState(vcs[vcs.length - 1])
   if (!vc) return null
-  if (vcs.length == 1) return <VaultCollapse vc={vcs[0]} />
+  if (vcs.length == 1) return <LVaultCard vc={vcs[0]} />
   return (
     <div className={cn('relative')}>
-      <VaultCollapse vc={vc} />
+      <LVaultCard vc={vc} />
       <div className='absolute z-10 right-[50px] top-0 flex text-sm'>
         {vcs.map((item, index) => (
           <div

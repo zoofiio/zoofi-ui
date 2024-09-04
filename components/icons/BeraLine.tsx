@@ -5,8 +5,8 @@ export default function Icon(p: IconProps) {
     <svg {...p} width='1em' height='1em' viewBox='0 0 54 54' fill='none' xmlns='http://www.w3.org/2000/svg'>
       <defs>
         <linearGradient id='paint0_linear_44_1592' x1='8.5' y1='11' x2='44.5' y2='47.5' gradientUnits='userSpaceOnUse'>
-          <stop stop-color='#FF8080' />
-          <stop offset='1' stop-color='#C62B23' />
+          <stop stopColor='#FF8080' />
+          <stop offset='1' stopColor='#C62B23' />
         </linearGradient>
       </defs>
       <path

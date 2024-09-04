@@ -6,11 +6,12 @@ import clsx from 'clsx'
 import { useRef } from 'react'
 import Select from 'react-select'
 import { formatUnits } from 'viem'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 import { useThemeState } from './theme-mode'
 
 export function AssetInput({
   asset = 'ETH',
+  assetIcon,
   checkBalance = true,
   balance,
   balanceTit = 'Balance',
@@ -31,6 +32,7 @@ export function AssetInput({
   disableNegative,
 }: {
   asset: string
+  assetIcon?: string
   checkBalance?: boolean
   balance?: bigint
   balanceTit?: string
@@ -70,11 +72,15 @@ export function AssetInput({
           className='absolute flex items-center h-fit gap-2 left-[48px] bottom-1 w-full  max-w-[calc(100%-56px)]'
           style={{ pointerEvents: 'none' }}
         >
-          {price && <div className='text-neutral-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>{price}</div>}
-          {exchange && <div className='text-slate-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>~${exchange}</div>}
+          {price && (
+            <div className='text-neutral-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>{price}</div>
+          )}
+          {exchange && (
+            <div className='text-slate-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>~${exchange}</div>
+          )}
         </div>
         <div className='absolute flex items-center gap-2 w-fit top-1/2 left-4 -translate-y-1/2'>
-          <CoinIcon size={24} symbol={asset} />
+          <CoinIcon size={24} symbol={assetIcon || asset} />
           <div className={clsx('relative', price || exchange ? '-top-[6px]' : '')}>
             {hasInput ? (
               <Select

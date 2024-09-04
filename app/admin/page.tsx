@@ -23,20 +23,23 @@ import {
 } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
-import clsx from 'clsx'
-import { ReactNode, useMemo, useState } from 'react'
+import { cn } from '@/lib/utils'
+import { LegacyRef, ReactNode, Ref, useMemo, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
 import Select from 'react-select'
-import { useSetState } from 'react-use'
+import { useMeasure, useRaf, useSetState } from 'react-use'
 import { Abi, AbiFunction, AbiParameter, Address, formatEther, formatUnits, parseUnits, stringToHex } from 'viem'
 import { useAccount } from 'wagmi'
 
 const selectClassNames: Parameters<Select>[0]['classNames'] = {
-  menu: () => 'bg-white dark:bg-black dark:border',
-  control: () => 'bg-white dark:bg-black',
+  menu: () => cn('bg-white dark:bg-black dark:border'),
+  option: (props) => cn({ '!bg-primary/50': props.isFocused, '!bg-primary': props.isSelected }),
+  control: () => 'bg-white dark:bg-black !min-h-[58px] !border-primary/70 !shadow-none',
   singleValue: () => 'dark:text-white',
 }
+const inputClassname =
+  'bg-white dark:bg-transparent border-primary/70 w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none '
 
 type ParamItem = { label: string; value: string; units?: number /** def 10 */ }
 
@@ -66,9 +69,10 @@ const BVaultParams: ParamItem[] = [
 ]
 function Expandable({ children, tit, disable }: { tit: string; children?: ReactNode; disable?: boolean }) {
   const [open, setOpen] = useState(false)
+
   return (
-    <div className='flex flex-col w-full bg-white dark:bg-transparent rounded-2xl overflow-hidden border border-solid border-blue-400'>
-      <div className='px-5 py-2 flex justify-between items-center text-sm'>
+    <div className='flex flex-col w-full bg-white dark:bg-transparent rounded-lg overflow-hidden border border-solid border-primary/40'>
+      <div className='px-5 py-2 min-h-[58px] flex justify-between items-center text-sm'>
         <div className='font-medium text-base'>{tit}</div>
         {disable ? (
           children
@@ -123,11 +127,13 @@ function UpdateVaultParams({
     [data],
   )
   const currentUnits = typeof param.units == 'number' ? param.units : 10
+  const [infoRef, infoMeasure] = useMeasure<HTMLDivElement>()
+
   return (
     <Expandable tit='Vault Param Vaule'>
       <Select
         classNames={selectClassNames}
-        maxMenuHeight={340}
+        maxMenuHeight={infoMeasure.height + 110}
         value={param}
         options={params}
         onChange={(e) => setState({ param: e as any })}
@@ -139,10 +145,7 @@ function UpdateVaultParams({
           setState({ value: numstr })
         }}
         type='number'
-        className={clsx(
-          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
-          'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2 rounded-md outline-none',
-        )}
+        className={cn(inputClassname)}
         pattern='[0-9.]{36}'
         step={1}
         placeholder='0'
@@ -158,9 +161,9 @@ function UpdateVaultParams({
         onTxSuccess={() => {
           setState({ value: '' })
         }}
-        className='btn-primary flex items-center justify-center gap-4'
+        className='btn-primary w-full flex items-center justify-center gap-4'
       />
-      <div className='text-sm flex flex-col items-start'>
+      <div className='text-sm flex flex-col items-start' ref={infoRef}>
         {infos.map((info, index) => (
           <div key={`info_${index}`}>{info}</div>
         ))}
@@ -178,10 +181,7 @@ function UpdateVaultPrice({ vc }: { vc: VaultConfig }) {
         placeholder='_assetTokenPriceFeed_'
         value={feed}
         onChange={(e) => setState({ feed: e.target.value })}
-        className={clsx(
-          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
-          'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none',
-        )}
+        className={cn(inputClassname)}
       />
       <ApproveAndTx
         tx='Write'
@@ -194,7 +194,7 @@ function UpdateVaultPrice({ vc }: { vc: VaultConfig }) {
         onTxSuccess={() => {
           setState({ feed: '' })
         }}
-        className='btn-primary flex items-center justify-center gap-4'
+        className='btn-primary w-full flex items-center justify-center gap-4'
       />
     </Expandable>
   )
@@ -223,8 +223,9 @@ function GeneralAction({
   const abiItem = abi.find((item) => item.type == 'function' && item.name == functionName) as AbiFunction
   const [{ args }, setState] = useSetState({ args: new Array(abiItem.inputs.length).fill('') })
   if (!abiItem) return
+  const disableExpand = !abiItem.inputs || abiItem.inputs.length == 0
   return (
-    <Expandable tit={tit || functionName} disable={!abiItem.inputs || abiItem.inputs.length == 0}>
+    <Expandable tit={tit || functionName} disable={disableExpand}>
       {abiItem.inputs?.map((item, index) => (
         <input
           key={`input_${index}`}
@@ -232,10 +233,7 @@ function GeneralAction({
           placeholder={item.name}
           value={args[index]}
           onChange={(e) => setState({ args: args.map((arg, argIndex) => (index == argIndex ? e.target.value : arg)) })}
-          className={clsx(
-            'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
-            'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none',
-          )}
+          className={cn(inputClassname)}
         />
       ))}
       <ApproveAndTx
@@ -248,7 +246,10 @@ function GeneralAction({
             args: convertArgs(args, abiItem.inputs),
           } as any
         }
-        className='!mt-0 btn-primary max-w-[100px] flex items-center justify-center gap-4'
+        className={cn(
+          '!mt-0 btn-primary flex items-center justify-center gap-4',
+          disableExpand ? 'max-w-[100px]' : 'w-full',
+        )}
       />
     </Expandable>
   )
@@ -270,10 +271,7 @@ function ClaimYieldsForBuyPool({ vc }: { vc: VaultConfig }) {
         placeholder='recipient'
         value={address}
         onChange={(e) => setState({ address: e.target.value })}
-        className={clsx(
-          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
-          'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none',
-        )}
+        className={cn(inputClassname)}
       />
       <ApproveAndTx
         tx='Write'
@@ -326,10 +324,7 @@ function SetTester({ vc }: { vc: VaultConfig }) {
         placeholder='recipient'
         value={address}
         onChange={(e) => setState({ address: e.target.value })}
-        className={clsx(
-          'bg-white dark:bg-transparent border-slate-400  focus:border-blue-400 ',
-          'w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none',
-        )}
+        className={cn(inputClassname)}
       />
       <ApproveAndTx
         tx='Write'
@@ -387,7 +382,7 @@ export default function AdminPage() {
   return (
     <PageWrap>
       <div className='w-full flex'>
-        <div className='flex flex-col gap-2 w-full max-w-[840px] mx-auto px-5'>
+        <div className='flex flex-col gap-4 w-full max-w-[840px] mx-auto px-5'>
           <Select
             classNames={selectClassNames}
             defaultValue={options[0]}
@@ -418,7 +413,6 @@ export default function AdminPage() {
                 />
               ))}
               <GeneralAction
-                tit='Owner transfer'
                 abi={abiWandProtocol}
                 functionName='transferOwnership'
                 address={WAND_PROTOCOL_ADDRESS[chainId]}

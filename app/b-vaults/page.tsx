@@ -1,9 +1,10 @@
 'use client'
 
-import { BVault, BVaultCard } from '@/components/b-vault'
+import { BVaultMint, BVaultCard, BVaultHarvest } from '@/components/b-vault'
 import { MigrationTip } from '@/components/migrationv2'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
+import { SimpleTabs } from '@/components/simple-tabs'
 import { BVAULTS_CONFIG } from '@/config/bvaults'
 import { isBETA } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
@@ -31,7 +32,7 @@ export default function Vaults() {
     <PageWrap>
       <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
         <MigrationTip />
-        {/* {!currentVc && (
+        {!currentVc ? (
           <>
             <div className='page-title'>B-Vaults</div>
             <Noti data='A pendle-like product with more innovation.' />
@@ -41,13 +42,22 @@ export default function Vaults() {
               ))}
             </Grid>
           </>
-        )} */}
-        {current && isBETA && (
-          <>
-            <div className='page-title'>B-Vaults</div>
-            <Noti data='A pendle-like product with more innovation.' />
-            <BVault bvc={current} />
-          </>
+        ) : (
+          <SimpleTabs
+            listClassName='flex-wrap p-0 mb-5 md:gap-14'
+            triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
+            contentClassName='gap-5'
+            data={[
+              {
+                tab: 'Mint',
+                content: <BVaultMint bvc={currentVc} />,
+              },
+              {
+                tab: 'Harvest',
+                content: <BVaultHarvest bvc={currentVc} />,
+              },
+            ]}
+          />
         )}
       </div>
     </PageWrap>

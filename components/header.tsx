@@ -22,7 +22,7 @@ import ConnectBtn from './connet-btn'
 import { ThemeMode } from './theme-mode'
 import { DomainRef } from '@/hooks/useConfigDomain'
 import { BASE_PATH } from '@/config/env'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 
 const NetName: { [k: number]: string } = {
   [berachainTestnet.id]: 'Berachain Bartio',

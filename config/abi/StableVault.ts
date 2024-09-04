@@ -370,7 +370,7 @@ export default [
   },
   {
     inputs: [],
-    name: 'usbTotalSupply',
+    name: 'usdTotalSupply',
     outputs: [
       {
         internalType: 'uint256',

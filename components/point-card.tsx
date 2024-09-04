@@ -1,5 +1,5 @@
 import { fmtPercent } from '@/lib/utils'
-import { CoinIcon } from './coinicon'
+import { CoinIcon } from './icons/coinicon'
 
 import { isBerachain } from '@/config/network'
 import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VaultConfig } from '@/config/swap'

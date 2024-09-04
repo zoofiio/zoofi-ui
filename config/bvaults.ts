@@ -7,7 +7,6 @@ export type BVaultConfig = {
   assetSymbol: string
   pToken: Address
   pTokenSymbol: string
-  yToken: Address
   yTokenSymbol: string
 
   protocolAddress: Address
@@ -23,11 +22,10 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
     {
       vault: '0x2e2DDCa8caA76Cc17f72275A7c61EAa3810CAA3c',
       asset: '0x28fb8512e1cac919e10694bD5CCa8d88f36Ab202',
-      assetSymbol: 'iRED',
+      assetSymbol: 'HONEY-USDC',
       pToken: '0x',
-      pTokenSymbol: 'piRED',
-      yToken: '0x',
-      yTokenSymbol: 'yiRED',
+      pTokenSymbol: 'pHONEY-USDC',
+      yTokenSymbol: 'yHONEY-USDC',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
       vaultQueryAddress: BVaultQueryAddress,

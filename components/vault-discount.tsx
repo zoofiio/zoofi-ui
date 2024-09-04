@@ -2,7 +2,6 @@
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { AssetInput } from '@/components/asset-input'
-import { CoinIcon } from '@/components/coinicon'
 import { abiVault, abiVaultQuery } from '@/config/abi'
 import {
   PROTOCOL_SETTINGS_ADDRESS,
@@ -22,6 +21,7 @@ import { useContext, useMemo, useState } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
 import { twMerge } from 'tailwind-merge'
 import { Noti } from './noti'
+import { CoinIcon } from './icons/coinicon'
 
 const ValutArea = ({ asset }: { asset: string }) => {
   const { vaultsState, stableVaultsState, vaultsDiscount } = useContext(FetcherContext)

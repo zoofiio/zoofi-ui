@@ -1,10 +1,11 @@
 'use client'
 
-import { CoinIcon } from '@/components/coinicon'
+
 import BeraLine from '@/components/icons/BeraLine'
 import BullLine from '@/components/icons/BullLine'
 import PandaLine from '@/components/icons/PandaLine'
 import VenomLine from '@/components/icons/VenomLine'
+import { CoinIcon } from '@/components/icons/coinicon'
 import { IconProps } from '@/components/icons/types'
 import { PageWrap } from '@/components/page-wrap'
 import { VAULTS_CONFIG } from '@/config/swap'
