@@ -86,7 +86,7 @@ export default function Home() {
             </button>
             <button className='text-sm h-10 rounded-lg bg-btndis w-[193px] flex justify-center items-center gap-2'>
               <CoinIcon size={24} symbol='berachain' />
-              Built on berachain
+              Built on Berachain
             </button>
           </div>
         </div>

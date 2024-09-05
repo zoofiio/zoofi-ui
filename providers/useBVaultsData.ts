@@ -5,6 +5,7 @@ import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
 import { useWandTimestamp } from '@/hooks/useWand'
 import { proxyGetDef } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import {
   Address,
   zeroAddress,
@@ -26,9 +27,9 @@ export type EpochType = {
   startTime: bigint
   duration: bigint
   redeemPool: Address
-  settled: boolean,
-  claimableAssetBalance: bigint,
-  redeemingBalance: bigint,
+  settled: boolean
+  claimableAssetBalance: bigint
+  redeemingBalance: bigint
   pTokenTotal: bigint
   yTokenTotal: bigint
 
@@ -185,4 +186,14 @@ export function useBVaultsData() {
     if (itemData) data[vc.vault] = itemData
   })
   return data
+}
+
+export function useCalcClaimable(bVaultData: BVaultDataType) {
+  return useMemo(() => {
+    const epoches = bVaultData.epoches.filter((item) => item.claimableAssetBalance && item.settled)
+    return {
+      ids: epoches.map((item) => item.epochId),
+      claimable: epoches.reduce((sum, item) => sum + item.claimableAssetBalance, 0n),
+    }
+  }, [bVaultData.epoches])
 }

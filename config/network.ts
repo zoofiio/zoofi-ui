@@ -1,6 +1,6 @@
 import { isPROD } from '@/constants'
 import { providers } from 'ethers'
-import { Chain, defineChain } from 'viem'
+import { Address, Chain, defineChain } from 'viem'
 
 export const berachainTestnet = defineChain({
   id: 80084,
@@ -23,9 +23,10 @@ export const berachainTestnet = defineChain({
 })
 
 export const beraChains = [berachainTestnet]
-export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter((item) =>
-  // isPROD ? !item.testnet : true,
-  true,
+export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter(
+  (item) =>
+    // isPROD ? !item.testnet : true,
+    true,
 ) as any
 
 export const refChainId: { id: number } = { id: berachainTestnet.id }
@@ -44,3 +45,8 @@ export function isBerachain() {
 export const refEthersProvider: {
   provider?: providers.FallbackProvider | providers.JsonRpcProvider
 } = {}
+
+export const BEX_URLS: { [k: number]: string } = {
+  [berachainTestnet.id]: 'https://bartio.bex.berachain.com',
+}
+export const getBexPoolURL = (pool: Address) => `${BEX_URLS[getCurrentChainId()]}/pool/${pool}`

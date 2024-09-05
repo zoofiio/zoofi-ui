@@ -15,7 +15,6 @@ import { abiRedstonePriceFeed } from './RedstonePriceFeed'
 import abiBVault from './BVault'
 import abiZooProtocol from './ZooProtocol'
 import abiRedeemPool from './RedeemPool'
-import abiBVaultQuery from './BVaultQuery'
 
 export {
   abiPriceFeed,
@@ -32,5 +31,4 @@ export {
   abiBVault,
   abiZooProtocol,
   abiRedeemPool,
-  abiBVaultQuery,
 }

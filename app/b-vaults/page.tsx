@@ -1,6 +1,6 @@
 'use client'
 
-import { BVaultMint, BVaultCard, BVaultHarvest } from '@/components/b-vault'
+import { BVaultMint, BVaultCard, BVaultHarvest, BVaultCardComming } from '@/components/b-vault'
 import { MigrationTip } from '@/components/migrationv2'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
@@ -37,9 +37,19 @@ export default function Vaults() {
             <div className='page-title'>B-Vaults</div>
             <Noti data='A pendle-like product with more innovation.' />
             <Grid numItems={1} numItemsMd={2} numItemsLg={3} className='gap-5 mt-4'>
-              {bvcs.map((item, index) => (
-                <BVaultCard key={`group_vault_item_${index}`} vc={item} />
-              ))}
+              {isBETA ? (
+                <>
+                  {bvcs.map((item, index) => (
+                    <BVaultCard key={`group_vault_item_${index}`} vc={item} />
+                  ))}
+                </>
+              ) : (
+                <>
+                  <BVaultCardComming symbol='HONEY-USDC' />
+                  <BVaultCardComming symbol='HONEY-WBTC' />
+                  <BVaultCardComming symbol='HONEY-WETH' />
+                </>
+              )}
             </Grid>
           </>
         ) : (
