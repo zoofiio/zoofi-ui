@@ -30,6 +30,7 @@ export type EpochType = {
   yTokenTotalSupplySynthetic: bigint
   bribes: BribeInfo[]
   userBalanceYToken: bigint
+  userBalanceYTokenSyntyetic: bigint
   vaultYTokenBalance: bigint
 }
 export type BVaultDataType = {
@@ -183,16 +184,25 @@ export function useBVaultsData() {
           pc.readContract({
             abi: abiBVault,
             address: vc.vault,
+            functionName: 'yTokenUserBalanceSynthetic',
+            args: [vc.epochCount - BigInt(i), address || zeroAddress],
+          }),
+          // balance yToken
+          pc.readContract({
+            abi: abiBVault,
+            address: vc.vault,
             functionName: 'yTokenUserBalance',
             args: [vc.epochCount - BigInt(i), vc.vault],
           }),
+
         ]).then(
-          ([epochInfo, yTokenTotal, yTokenTotalSupplySynthetic, bribes, userBalanceYToken, vaultYTokenBalance]) => ({
+          ([epochInfo, yTokenTotal, yTokenTotalSupplySynthetic, bribes, userBalanceYToken, userBalanceYTokenSyntyetic, vaultYTokenBalance]) => ({
             ...epochInfo,
             yTokenTotal, // includes last epoch
             yTokenTotalSupplySynthetic, // includes last epoch
             bribes: bribes.map((item) => ({ ...item })),
             userBalanceYToken,
+            userBalanceYTokenSyntyetic,
             vaultYTokenBalance, // includes last epoch
           }),
         )

@@ -11,7 +11,7 @@ import { EpochType, useBVaultApy, useBVaultBoost, useCalcClaimable } from '@/pro
 import { displayBalance } from '@/utils/display'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ReactNode, useContext, useEffect, useState } from 'react'
+import { ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import { useMeasure } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
@@ -345,10 +345,13 @@ function BribeTit(p: { name: string }) {
 }
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
-  const [onlyMy, setOnlyMy] = useState(false)
+  const [onlyMy, setOnlyMy] = useState(true)
   const { bVaultsData } = useContext(FetcherContext)
   const bvd = bVaultsData[bvc.vault]
-  const epoches = bvd.epoches
+  const epoches = useMemo(() => {
+    const myFilter = (item: EpochType) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
+    return onlyMy ? bvd.epoches.filter(myFilter) : bvd.epoches
+  }, [bvd.epoches, onlyMy])
   const viewMax = 6
   const itemHeight = 56
   const itemSpaceY = 20
@@ -358,7 +361,20 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const inputYTokenBn = parseEthers(inputYToken)
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
   const [current, setCurrent] = useState<EpochType | undefined | null>(epoches[0])
-  const onRowClick = (index: number) => {}
+  useEffect(() => {
+    setCurrent(epoches[0])
+  }, [epoches])
+  const userBalanceYToken = current?.userBalanceYToken || 0n
+  const onRowClick = (index: number) => {
+    setCurrent(epoches[index])
+  }
+
+  const bribes = current?.bribes || []
+  const myShare = useMemo(() => {
+    const fb = bribes.find((b) => b.bribeAmount > 0n)
+    if (!fb) return fmtPercent(0n, 0n)
+    return fmtPercent((fb.bribeAmount * DECIMAL) / fb.totalRewards, 18)
+  }, [bribes])
 
   function rowRender({ key, style, index }: ListRowProps) {
     return (
@@ -403,43 +419,47 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             rowClassName='text-center'
             header={['', '', 'Total', 'Mine', '']}
             span={{ 1: 2, 2: 1, 3: 1 }}
-            data={[
-              ...(current?.bribes || []).map((item) => [
-                '',
-                <BribeTit name={item.bribeSymbol} key={'1'} />,
-                displayBalance(item.totalRewards),
-                displayBalance(item.bribeAmount),
-                '',
-              ]),
-            ]}
+            data={bribes.map((item) => [
+              '',
+              <BribeTit name={item.bribeSymbol} key={'1'} />,
+              displayBalance(item.totalRewards),
+              displayBalance(item.bribeAmount),
+              '',
+            ])}
           />
         </div>
         <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>
           <div className='font-semibold text-xs'>
             <div>
-              My yToken: <span className={cn(valueClassname)}>{0}</span>
+              My yToken: <span className={cn(valueClassname)}>{displayBalance(userBalanceYToken)}</span>
             </div>
             <div>
-              Time Weighted Points: <span className={cn(valueClassname)}>{displayBalance(0n)}</span>
+              Time Weighted Points:{' '}
+              <span className={cn(valueClassname)}>{displayBalance(current?.userBalanceYTokenSyntyetic)}</span>
             </div>
           </div>
           <div>
-            My Share: <span className={cn(valueClassname, 'text-2xl')}>{fmtPercent(1220n, 3, 3)}</span>
+            My Share: <span className={cn(valueClassname, 'text-2xl')}>{myShare}</span>
           </div>
         </div>
         <AssetInput
           asset={bvc.yTokenSymbol}
           assetIcon='Venom'
           amount={inputYToken}
-          balance={0n}
+          balance={current?.userBalanceYToken || 0n}
           setAmount={setInputYToken}
         />
-        <span className='text-xs mx-auto'>You will receive 0.023% of total bribes</span>
+        <span className='text-xs mx-auto'>You will receive {myShare} of total bribes</span>
         <ApproveAndTx
           className='mx-auto mt-4'
           tx='Harvest'
-          disabled
-          config={{} as any}
+          disabled={inputYTokenBn <= 0n || inputYTokenBn > userBalanceYToken || !current?.settled}
+          config={{
+            abi: abiBVault,
+            address: bvc.vault,
+            functionName: 'claimBribes',
+            args: [inputYTokenBn],
+          }}
           onTxSuccess={() => {
             setInputYToken('')
           }}
