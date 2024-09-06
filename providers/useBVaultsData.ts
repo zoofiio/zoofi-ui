@@ -7,11 +7,13 @@ import { useWandTimestamp } from '@/hooks/useWand'
 import { divMultipOtherBn, fmtPercent, proxyGetDef } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Address, erc20Abi, stringToHex, zeroAddress } from 'viem'
 import { useAccount, usePublicClient } from 'wagmi'
 
 export type BribeInfo = {
+  totalRewards: bigint
+  bribeSymbol: string
   epochId: bigint
   bribeToken: Address
   bribeAmount: bigint
@@ -72,7 +74,7 @@ export function useBVaultsData() {
   const pc = usePublicClient({ chainId })
   const { address } = useAccount()
 
-  const { data: datas } = useQuery<BVaultDataType[]>({
+  const { data: datas, refetch } = useQuery<BVaultDataType[]>({
     queryFn: async () => {
       if (!pc) return []
       const bvcsi = await Promise.all(
@@ -111,6 +113,35 @@ export function useBVaultsData() {
           claimableAssetBalance,
           redeemingBalance,
         }))
+      // getBribes
+      const getBribes = (vc: (typeof bvcsi)[number], epochId: bigint) =>
+        pc
+          .readContract({
+            abi: abiBVault,
+            address: vc.vault,
+            functionName: 'calcBribes',
+            args: [epochId, address || zeroAddress],
+          })
+          .then((bribes) =>
+            Promise.all(
+              bribes.map((bribe) =>
+                Promise.all([
+                  pc.readContract({
+                    abi: abiBVault,
+                    address: vc.vault,
+                    functionName: 'bribeTotalAmount',
+                    args: [epochId, bribe.bribeToken],
+                  }),
+                  pc.readContract({
+                    abi: erc20Abi,
+                    address: bribe.bribeToken,
+                    functionName: 'symbol',
+                  }),
+                ]).then(([totalRewards, bribeSymbol]) => ({ ...bribe, totalRewards, bribeSymbol })),
+              ),
+            ),
+          )
+
       // 获取每个Epoch的数据
       const getEpochData = (vc: (typeof bvcsi)[number], i: number): Promise<EpochType> =>
         Promise.all([
@@ -140,14 +171,7 @@ export function useBVaultsData() {
             args: [vc.epochCount - BigInt(i)],
           }),
           // bribes
-          i > 0
-            ? pc.readContract({
-                abi: abiBVault,
-                address: vc.vault,
-                functionName: 'calcBribes',
-                args: [vc.epochCount - BigInt(i), address || zeroAddress],
-              })
-            : Promise.resolve([]),
+          getBribes(vc, vc.epochCount - BigInt(i)),
           // balance yToken
           pc.readContract({
             abi: abiBVault,
@@ -235,15 +259,18 @@ export function useBVaultsData() {
           Y,
           // asset amount
           assetAmountForSwapYT: divMultipOtherBn(pTokenTotal - (epoches[0]?.yTokenTotal || 0n), f2),
-          yTokenAmountForSwapYT: pTokenTotal - (epoches[0]?.yTokenTotal || 0n),
+          yTokenAmountForSwapYT: (epoches[0]?.yTokenTotal || 0n) - (epoches[0]?.vaultYTokenBalance || 0n),
         }))
       const res = await Promise.all(bvcsi.map(getVaultData))
       console.info('bVaultsData:', res)
       return res
     },
-    queryKey: [time, bvcs, chainId, address],
+    queryKey: ['getBVautsData'],
     retry: true,
   })
+  useEffect(() => {
+    refetch()
+  }, [time, bvcs, chainId, address])
   datas?.forEach((vc) => {
     if (!Object.hasOwn(data, vc.vault)) data[vc.vault] = defBVaultData(vc.vault)
     const itemData = datas?.find((item) => item.vault == vc.vault)

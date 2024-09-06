@@ -17,20 +17,20 @@ export const ZooProtocolSettingsAddress = '0x97d82C639835F4EfaCC366fdE78CA0c4EC2
 export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
   [berachainTestnet.id]: [
     // {
-    //   vault: '0xD0f50De901bd0445dC04cA861B9D3D2b20a0f8C2',
+    //   vault: '0x07e3583C65565469521501e94c93C05F41ADBB4c',
     //   asset: '0x614352b4028f429168D153bA18DC7FEd667E1B4f',
     //   assetSymbol: 'iRED',
-    //   pToken: '0xd10ceF701dCe7C60E009D193Cd7Cdbf4c415bCe6',
+    //   pToken: '0x3A217AA5e018bDfd7Cc09653FA3CBd7633EAD138',
     //   pTokenSymbol: 'piRED',
     //   yTokenSymbol: 'yiRED',
     //   protocolAddress: ZooProtocolAddress,
     //   protocolSettingsAddress: ZooProtocolSettingsAddress,
     // },
     {
-      vault: '0xc37dF6905923574AeFEb2aED3Ea3546b4112433a',
+      vault: '0x6a6B9817d221816187aD335030b0EF7c17051EfA',
       asset: '0xD69ADb6FB5fD6D06E6ceEc5405D95A37F96E3b96',
       assetSymbol: 'HONEY-USDC',
-      pToken: '0x9CdcCf7784689e1Fe8C2ADDbdEb3b8D34c4F221b',
+      pToken: '0xbB6A3a94cccAe455444e9a1E1CD478CAc278Be3E',
       pTokenSymbol: 'pHONEY-USDC',
       yTokenSymbol: 'yHONEY-USDC',
       protocolAddress: ZooProtocolAddress,

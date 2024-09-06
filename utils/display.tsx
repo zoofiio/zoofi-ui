@@ -23,21 +23,18 @@ export const displayBalance = (balance: bigint | undefined, toFixed: number = 3,
   const value = Number(formatUnits(balance, unit))
   const minFixed = Number((0.1 ** toFixed).toFixed(toFixed))
   if (value > 0 && value < minFixed) {
-    if (value < 0.001 && value > 0.000001) {
+    if (value < 0.001) {
       return fmtNumber(value * 1e6) + 'μ'
     }
-    if (value < 0.000001 && value > 0.000000001) {
-      return fmtNumber(value * 1e9) + 'n'
-    }
-    if (value < 0.000000001 && value > 0.000000000001) {
-      return fmtNumber(value * 1e12) + 'p'
-    }
+    // if (value < 0.000001 && value > 0.000000001) {
+    //   return fmtNumber(value * 1e9) + 'n'
+    // }
+    // if (value < 0.000000001 && value > 0.000000000001) {
+    //   return fmtNumber(value * 1e12) + 'p'
+    // }
     return '<' + minFixed
   }
   if (value < 0 && value > -minFixed) {
-    if (value > -0.001 && value < 0.000001) {
-      return fmtNumber(value * 1e6) + 'μ'
-    }
     return '≈0'
   }
   return fmtNumber(value)

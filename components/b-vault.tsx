@@ -7,7 +7,7 @@ import { DECIMAL, YEAR_SECONDS } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
 import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
-import { useBVaultApy, useBVaultBoost, useCalcClaimable } from '@/providers/useBVaultsData'
+import { EpochType, useBVaultApy, useBVaultBoost, useCalcClaimable } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -224,7 +224,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
     abi: abiBVault,
     address: bvc.vault,
     functionName: 'calcSwap',
-    args: [parseEthers('1', 'gwei')],
+    args: [inputAssetBn],
     query: {
       retry: true,
     },
@@ -234,11 +234,10 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
     reFetchCalcSwap()
   }, [wt.time])
   const vualtYTokenBalance = epoch?.vaultYTokenBalance || 0n
-  const outputYTokenFor1 = getBigint(result, '1') * parseEthers('1', 'gwei')
+  const outputYTokenForInput = getBigint(result, '1')
 
   const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
   const ytAssetPrice = displayBalance(ytAssetPriceBn)
-  const outputYTokenForInput = (inputAssetBn * outputYTokenFor1) / DECIMAL
   const afterYtAssetPrice =
     vualtYTokenBalance > outputYTokenForInput
       ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput)
@@ -358,10 +357,8 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [inputYToken, setInputYToken] = useState('')
   const inputYTokenBn = parseEthers(inputYToken)
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
-
-  const onRowClick = (index: number) => {
-    
-  }
+  const [current, setCurrent] = useState<EpochType | undefined | null>(epoches[0])
+  const onRowClick = (index: number) => {}
 
   function rowRender({ key, style, index }: ListRowProps) {
     return (
@@ -398,7 +395,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
       <div className='md:col-span-2 card !p-4 flex flex-col gap-2'>
         <div className='flex gap-6 items-end font-semibold'>
           <span className='text-xl '>Accumulated bribes</span>
-          <span className='text-xs dark:text-white/60'>Epoch10</span>
+          <span className='text-xs dark:text-white/60'>Epoch {(current?.epochId || 1n).toString()}</span>
         </div>
         <div className='flex-1 mt-3 rounded-lg border border-solid border-border p-4'>
           <STable
@@ -407,41 +404,20 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             header={['', '', 'Total', 'Mine', '']}
             span={{ 1: 2, 2: 1, 3: 1 }}
             data={[
-              [
+              ...(current?.bribes || []).map((item) => [
                 '',
-                <BribeTit name='Bera' key={'1'} />,
-                displayBalance(124123451241234512412323n),
-                displayBalance(124123451241234512412323n),
+                <BribeTit name={item.bribeSymbol} key={'1'} />,
+                displayBalance(item.totalRewards),
+                displayBalance(item.bribeAmount),
                 '',
-              ],
-              [
-                '',
-                <BribeTit name='RED' key={'1'} />,
-                displayBalance(124123451241234512412323n),
-                displayBalance(124123451241234512412323n),
-                '',
-              ],
-              [
-                '',
-                <BribeTit name='ZOO' key={'1'} />,
-                displayBalance(124123451241234512412323n),
-                displayBalance(124123451241234512412323n),
-                '',
-              ],
-              [
-                '',
-                <BribeTit name='iBGT' key={'1'} />,
-                displayBalance(124123451241234512412323n),
-                displayBalance(124123451241234512412323n),
-                '',
-              ],
+              ]),
             ]}
           />
         </div>
         <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>
           <div className='font-semibold text-xs'>
             <div>
-              My yToken: <span className={cn(valueClassname)}>{displayBalance(0n)}</span>
+              My yToken: <span className={cn(valueClassname)}>{0}</span>
             </div>
             <div>
               Time Weighted Points: <span className={cn(valueClassname)}>{displayBalance(0n)}</span>
