@@ -1,7 +1,7 @@
 'use client'
 
 import { parseEthers } from '@/lib/utils'
-import { displayBalanceWithUnit } from '@/utils/display'
+import { displayBalance } from '@/utils/display'
 import clsx from 'clsx'
 import { useRef } from 'react'
 import Select from 'react-select'
@@ -153,7 +153,7 @@ export function AssetInput({
         <div className='flex items-center justify-between mt-1 px-1 text-slate-400 dark:text-slate-50/70 text-sm'>
           <div className={balanceClassName}>
             <span>
-              {balanceTit}: {displayBalanceWithUnit(balance, 3, balanceDecimals)}
+              {balanceTit}: {displayBalance(balance, 3, balanceDecimals)}
             </span>
             <button
               className='text-primary ml-2'

@@ -6,7 +6,7 @@ import { abiMockPriceFeed, abiPriceFeed } from '@/config/abi'
 import { VAULTS_CONFIG } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead } from '@/hooks/useWand'
-import { displayBalanceWithUnit } from '@/utils/display'
+import { displayBalance } from '@/utils/display'
 import clsx from 'clsx'
 import { useMemo } from 'react'
 import Select from 'react-select'
@@ -50,7 +50,7 @@ export default function TesterPage() {
             step={1}
             placeholder='0'
           />
-          <div>Price: {displayBalanceWithUnit(priceBn, 2, 8)}</div>
+          <div>Price: {displayBalance(priceBn, 2, 8)}</div>
           <ApproveAndTx
             tx='Update'
             config={{

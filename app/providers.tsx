@@ -39,7 +39,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const batchConfig = { batchSize: 500, wait: 300 }
+const batchConfig = { batchSize: 50, wait: 1000 }
 
 const qClient = new QueryClient()
 

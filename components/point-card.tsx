@@ -9,7 +9,7 @@ import { usePtypoolApy } from '@/hooks/usePtypoolApy'
 import { useTokenApys } from '@/hooks/useTokenApys'
 import { useValutsLeverageRatio } from '@/hooks/useVaultLeverageRatio'
 import { FetcherContext } from '@/providers/fetcher'
-import { displayBalance, displayBalanceWithUnit } from '@/utils/display'
+import { displayBalance } from '@/utils/display'
 import { useContext, useMemo } from 'react'
 import { GoArrowUpRight } from 'react-icons/go'
 import { Pagination } from 'swiper/modules'
@@ -59,7 +59,7 @@ export function useVcPoints(vc: VaultConfig) {
     const calcPoint = (price: bigint, count: bigint = 100n) => {
       const weekBlocks = 302400n
       if (ethPrice == 0n) return '0'
-      return displayBalanceWithUnit((perBlockEth * weekBlocks * price * count) / ethPrice, 0, perDecimals)
+      return displayBalance((perBlockEth * weekBlocks * price * count) / ethPrice, 0, perDecimals)
     }
     points.push({
       symbol: USBSymbol,

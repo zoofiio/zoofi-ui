@@ -14,9 +14,9 @@ import {
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
-import { getBigint, parseEthers } from '@/lib/utils'
+import { fmtBn, getBigint, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
-import { displayBalance, displayBalanceWithoutFormat } from '@/utils/display'
+import { displayBalance } from '@/utils/display'
 import { useContext, useMemo, useState } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
 import { useSetState } from 'react-use'
@@ -230,7 +230,7 @@ export function StableLVaultAdvance({ vc }: { vc: VaultConfig }) {
 
                   <div className='flex flex-col gap-8'>
                     <AssetInput
-                      amount={displayBalanceWithoutFormat(finalUsbOut)}
+                      amount={fmtBn(finalUsbOut)}
                       onClick={() => {
                         setSelected(isAdjustment ? '' : selected == USBSymbol ? '' : USBSymbol)
                       }}
@@ -240,7 +240,7 @@ export function StableLVaultAdvance({ vc }: { vc: VaultConfig }) {
                       selected={selected === USBSymbol}
                     />
                     <AssetInput
-                      amount={displayBalanceWithoutFormat(finalXOut)}
+                      amount={fmtBn(finalXOut)}
                       onClick={() => {
                         setSelected(selected == vc.xTokenSymbol ? '' : vc.xTokenSymbol)
                       }}

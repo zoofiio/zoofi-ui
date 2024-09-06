@@ -60,10 +60,10 @@ const LVaultParams: ParamItem[] = [
 const BVaultParams: ParamItem[] = [
   { label: '产品周期', value: 'D', units: 0 },
   { label: '初始定价', value: 'APRi' },
-  { label: '保底定价', value: 'APRl' },
-  { label: '衰减时长', value: 'T', units: 0 },
-  { label: '价格变动系数', value: 'e1', units: 0 },
-  { label: '斜率变动系数', value: 'e2', units: 0 },
+  // { label: '保底定价', value: 'APRl' },
+  // { label: '衰减时长', value: 'T', units: 0 },
+  // { label: '价格变动系数', value: 'e1', units: 0 },
+  // { label: '斜率变动系数', value: 'e2', units: 0 },
   { label: '赎回手续费', value: 'f1' },
   { label: '利息佣金', value: 'f2' },
 ]
@@ -221,7 +221,7 @@ function GeneralAction({
   tit?: string
 }) {
   const abiItem = abi.find((item) => item.type == 'function' && item.name == functionName) as AbiFunction
-  const [{ args }, setState] = useSetState({ args: new Array(abiItem.inputs.length).fill('') })
+  const [{ args }, setState] = useSetState({ args: new Array(abiItem?.inputs?.length || 0).fill('') })
   if (!abiItem) return
   const disableExpand = !abiItem.inputs || abiItem.inputs.length == 0
   return (

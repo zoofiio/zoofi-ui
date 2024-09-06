@@ -4,6 +4,7 @@ const TWITTER_LINK = 'https://x.com/ZooFinanceIO'
 const DISCORD_LINK = 'https://t.co/RJwdwdawe5'
 
 const DECIMAL = BigInt(1e18)
+const YEAR_SECONDS = BigInt('31536000')
 
 const Day1 = 24 * 60 * 60 * 1000
 
@@ -15,4 +16,4 @@ const isTEST = ENV == 'test'
 const isBETA = ENV == 'beta'
 const isPROD = !ENV
 
-export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, Day1, ENV, isTEST, isBETA, isPROD }
+export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, Day1, ENV, isTEST, isBETA, isPROD, YEAR_SECONDS }

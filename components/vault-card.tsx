@@ -7,9 +7,9 @@ import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VAULT_QUERY_ADDRESS, Vaul
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
-import { getBigint, parseEthers } from '@/lib/utils'
+import { fmtBn, getBigint, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
-import { displayBalance, displayBalanceWithoutFormat } from '@/utils/display'
+import { displayBalance } from '@/utils/display'
 import { useContext, useMemo, useState } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
 import { useSetState } from 'react-use'
@@ -236,7 +236,7 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
 
                   <div className='flex flex-col gap-8'>
                     <AssetInput
-                      amount={displayBalanceWithoutFormat(finalUsbOut)}
+                      amount={fmtBn(finalUsbOut)}
                       onClick={() => {
                         // modeNumber == 2 && setSelected((last) => last == USBSymbol?'':USBSymbol)
                         setSelected(modeNumber == 3 ? USBSymbol : '')
@@ -248,7 +248,7 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                       selected={selected === USBSymbol}
                     />
                     <AssetInput
-                      amount={displayBalanceWithoutFormat(finalXOut)}
+                      amount={fmtBn(finalXOut)}
                       onClick={() => {
                         // modeNumber == 3 && setSelected((last) => (last == xTokenSymbol ? '' : xTokenSymbol))
                         setSelected(modeNumber == 2 ? vc.xTokenSymbol : '')

@@ -102,7 +102,66 @@ export const shortStr = (v?: string, count = 6, endCount = 5) => {
   return `${v.toString().substring(0, count)}...${v.toString().substring(v.length - endCount)}`
 }
 
-export const fmtTime = (time: number | string) => {
-  const date = new Date(typeof time == 'number' ? time : time + ' UTC')
-  return date.toLocaleDateString().replaceAll('/', '-') + ' ' + date.toLocaleTimeString()
+export const fmtTime = (
+  time: number | string | bigint,
+  type: 'date' | 'time' | 'all' = 'all',
+  locale: 'zh' | 'en' = 'en',
+  split: string = '/',
+) => {
+  const date = new Date(
+    typeof time == 'number' ? time : typeof time == 'bigint' ? parseInt(time.toString()) : time + ' UTC',
+  )
+  let res = ''
+  switch (type) {
+    case 'date':
+      res = date.toLocaleDateString(locale)
+      break
+    case 'time':
+      res = date.toLocaleTimeString(locale)
+      break
+    case 'all':
+      res = date.toLocaleString(locale)
+      break
+  }
+  if (split !== '/') {
+    res = res.replaceAll('/', split)
+  }
+  return res
+}
+
+export const fmtDuration = (duration: number | bigint, type: 's' | 'm' | 'h' | 'd' | 'w' | 'M' | 'y') => {
+  const durationBn = typeof duration == 'number' ? BigInt(duration) : duration
+  const divVauleMap: { [k in typeof type]: bigint } = {
+    s: 1000n,
+    m: 1000n * 60n,
+    h: 1000n * 60n * 60n,
+    d: 1000n * 60n * 60n * 24n,
+    w: 1000n * 60n * 60n * 24n * 7n,
+    M: 1000n * 60n * 60n * 24n * 7n * 30n,
+    y: 1000n * 60n * 60n * 24n * 365n,
+  }
+  return (durationBn / divVauleMap[type]).toString()
+}
+
+export const decimalBn = (decimals: bigint | number = 10n) => 10n ** BigInt(decimals || 10n)
+
+// src * multip
+export const multipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
+  (src * multip) / decimalBn(multipDecimal || 10n)
+// src * (1 - multip)
+export const multipOtherBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
+  decimalBn(multipDecimal || 10n) - multip > 0n
+    ? (src * (decimalBn(multipDecimal || 10n) - multip)) / decimalBn(multipDecimal || 10n)
+    : 0n
+// src / multip
+export const divMultipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
+  multip > 0n ? (src * decimalBn(multipDecimal || 10n)) / multip : 0n
+// src / (1 - multip)
+export const divMultipOtherBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
+  decimalBn(multipDecimal || 10n) - multip > 0n
+    ? (src * decimalBn(multipDecimal || 10n)) / (decimalBn(multipDecimal || 10n) - multip)
+    : 0n
+
+export const fmtBn = (bn: bigint, decimals: bigint | number = 18) => {
+  return formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
 }
