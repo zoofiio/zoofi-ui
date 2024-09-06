@@ -18,6 +18,7 @@ import { useThemeState } from './theme-mode'
 
 type PointItem = {
   symbol: string
+  symbolPrice?: string
   iconSymbol: string
   tit: string
   sub: string
@@ -63,6 +64,7 @@ export function useVcPoints(vc: VaultConfig) {
     }
     points.push({
       symbol: USBSymbol,
+      symbolPrice: `$${displayBalance(usbPrice)}`,
       iconSymbol: 'Bera',
       tit: `APY:${fmtPercent(tapys[USB_ADDRESS[chainId]], 10)} ~ ${fmtPercent(tapys['USB_END'], 10)}`,
       sub: '~ Interest + Earning',
@@ -75,6 +77,7 @@ export function useVcPoints(vc: VaultConfig) {
         : `~ ${levrages[vc.vault].toFixed(2)}x Leveraged long on ${vc.assetTokenSymbol}`
     points.push({
       symbol: vc.xTokenSymbol,
+      symbolPrice: `$${displayBalance(prices[vc.xTokenAddress])}`,
       iconSymbol: 'Bull',
       tit,
       sub,
@@ -85,13 +88,15 @@ export function useVcPoints(vc: VaultConfig) {
   return items
 }
 
-export function PointCard({ symbol, iconSymbol, tit, sub, total, link }: PointItem) {
+export function PointCard({ symbol,symbolPrice, iconSymbol, tit, sub, total, link }: PointItem) {
   const theme = useThemeState((s) => s.theme)
   return (
     <div
-      style={{
-        // boxShadow: '0px 0px 12px 0px rgba(187, 215, 144, 0.4)',
-      }}
+      style={
+        {
+          // boxShadow: '0px 0px 12px 0px rgba(187, 215, 144, 0.4)',
+        }
+      }
       className='card overflow-hidden !p-0 text-base flex flex-col'
     >
       <div
@@ -99,7 +104,10 @@ export function PointCard({ symbol, iconSymbol, tit, sub, total, link }: PointIt
         style={{ background: bgMap[`${symbol}_${theme}`] || bgMap[symbol] }}
       >
         <CoinIcon symbol={iconSymbol} size={42} className='shrink-0' />
-        <div className='font-semibold'>{symbol}</div>
+        <div>
+          <div className='font-semibold'>{symbol}</div>
+          <div className='font-medium text-xs'>{symbolPrice}</div>
+        </div>
         <div className='whitespace-nowrap text-center text-sm ml-auto flex flex-col items-center flex-1'>
           <div className='rounded-full px-2 py-[2px] w-fit' style={{ background: titBgMap[symbol] }}>
             {tit}
