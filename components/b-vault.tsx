@@ -184,7 +184,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                       abi: abiRedeemPool,
                       address: epoch?.redeemPool || zeroAddress,
                       functionName: 'redeem',
-                      args: [inputAssetBn],
+                      args: [inputPTokenBn],
                     }}
                     onTxSuccess={() => {
                       setInputPToken('')
