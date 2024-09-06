@@ -90,7 +90,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   }
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
-      <div className='card !p-0 overflow-hidden'>
+      <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
         <div className='flex p-5 bg-[#A3D395] gap-5'>
           <PandaLine className='text-[3.375rem]' showBg />
           <div className='flex flex-col gap-2'>
@@ -347,13 +347,22 @@ function BribeTit(p: { name: string }) {
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [onlyMy, setOnlyMy] = useState(false)
+  const { bVaultsData } = useContext(FetcherContext)
+  const bvd = bVaultsData[bvc.vault]
+  const epoches = bvd.epoches
   const viewMax = 6
   const itemHeight = 56
   const itemSpaceY = 20
-  const epoches = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
-  // const epoches = [3,2,1]
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
-  const onRowClick = (index: number) => {}
+
+  const [inputYToken, setInputYToken] = useState('')
+  const inputYTokenBn = parseEthers(inputYToken)
+  const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
+
+  const onRowClick = (index: number) => {
+    
+  }
+
   function rowRender({ key, style, index }: ListRowProps) {
     return (
       <div key={key} style={style} className='cursor-pointer' onClick={() => onRowClick(index)}>
@@ -363,16 +372,12 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             index < epoches.length - 1 ? 'mb-[20px]' : '',
           )}
         >
-          <div className='text-base'>Epoch {epoches[index]}</div>
+          <div className='text-base'>Epoch {epoches[index].epochId.toString()}</div>
           <div className='text-xs dark:text-white/60'>3/4/2024~4/4/2024</div>
         </div>
       </div>
     )
   }
-
-  const [inputYToken, setInputYToken] = useState('')
-  const inputYTokenBn = parseEthers(inputYToken)
-  const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div ref={mesRef}>
