@@ -194,9 +194,16 @@ export function useBVaultsData() {
             functionName: 'yTokenUserBalance',
             args: [vc.epochCount - BigInt(i), vc.vault],
           }),
-
         ]).then(
-          ([epochInfo, yTokenTotal, yTokenTotalSupplySynthetic, bribes, userBalanceYToken, userBalanceYTokenSyntyetic, vaultYTokenBalance]) => ({
+          ([
+            epochInfo,
+            yTokenTotal,
+            yTokenTotalSupplySynthetic,
+            bribes,
+            userBalanceYToken,
+            userBalanceYTokenSyntyetic,
+            vaultYTokenBalance,
+          ]) => ({
             ...epochInfo,
             yTokenTotal, // includes last epoch
             yTokenTotalSupplySynthetic, // includes last epoch
