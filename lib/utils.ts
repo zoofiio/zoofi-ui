@@ -128,19 +128,28 @@ export const fmtTime = (
   }
   return res
 }
-
-export const fmtDuration = (duration: number | bigint, type: 's' | 'm' | 'h' | 'd' | 'w' | 'M' | 'y') => {
+// 'seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'
+const FMT_DURATION_TYPES = ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] as const
+type FMT_DURATION_TYPE = (typeof FMT_DURATION_TYPES)[number]
+export const fmtDuration = (duration: number | bigint, type: FMT_DURATION_TYPE | 'auto' = 'auto') => {
   const durationBn = typeof duration == 'number' ? BigInt(duration) : duration
-  const divVauleMap: { [k in typeof type]: bigint } = {
-    s: 1000n,
-    m: 1000n * 60n,
-    h: 1000n * 60n * 60n,
-    d: 1000n * 60n * 60n * 24n,
-    w: 1000n * 60n * 60n * 24n * 7n,
-    M: 1000n * 60n * 60n * 24n * 7n * 30n,
-    y: 1000n * 60n * 60n * 24n * 365n,
+  const divVauleMap: { [k in FMT_DURATION_TYPE]: bigint } = {
+    seconds: 1000n,
+    minutes: 1000n * 60n,
+    hours: 1000n * 60n * 60n,
+    days: 1000n * 60n * 60n * 24n,
+    weeks: 1000n * 60n * 60n * 24n * 7n,
+    months: 1000n * 60n * 60n * 24n * 7n * 30n,
+    years: 1000n * 60n * 60n * 24n * 365n,
   }
-  return (durationBn / divVauleMap[type]).toString()
+  let fType: FMT_DURATION_TYPE
+  if (type == 'auto') {
+    const item = FMT_DURATION_TYPES.findLast((k) => divVauleMap[k] < durationBn)
+    fType = item || FMT_DURATION_TYPES[0]
+  } else {
+    fType = type
+  }
+  return `${(durationBn / divVauleMap[fType]).toString()} ${fType}`
 }
 
 export const decimalBn = (decimals: bigint | number = 10n) => 10n ** BigInt(decimals || 10n)

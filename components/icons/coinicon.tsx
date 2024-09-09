@@ -3,6 +3,7 @@ import { CSSProperties, useState } from 'react'
 
 const TypeMap = {
   iBGT: 'webp',
+  ['HONEY-WBERA']: 'webp'
 } as const
 
 type TypeMapKeys = keyof typeof TypeMap

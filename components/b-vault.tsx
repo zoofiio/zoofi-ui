@@ -289,8 +289,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
                     {fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
                   </span>
                   <span className='ml-auto'>
-                    ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()), 'd')} days
-                    remaining
+                    ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining
                   </span>
                 </>
               }
