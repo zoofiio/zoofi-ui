@@ -67,12 +67,32 @@ export function defBVaultsData() {
   return proxyGetDef({}, (k: string) => defBVaultData(k))
 }
 
+function useMPublicClient() {
+  const chainId = useCurrentChainId()
+  const pc = usePublicClient({ chainId })
+  return useMemo(() => {
+    if (pc) {
+      console.info('setReadContract')
+      const originRead = pc.readContract
+      pc.readContract = async (...args) => {
+        try {
+          return await originRead(...args)
+        } catch (error) {
+          console.error('readError', error, '\nArgs', [...args])
+          throw error
+        }
+      }
+    }
+    return pc
+  }, [pc])
+}
+
 export function useBVaultsData() {
   const chainId = useCurrentChainId()
   const time = useWandTimestamp((s) => s.time)
   const data = useMemoOfChainId<{ [k: Address]: BVaultDataType }>(defBVaultsData)
   const bvcs = BVAULTS_CONFIG[chainId]
-  const pc = usePublicClient({ chainId })
+  const pc = useMPublicClient()
   const { address } = useAccount()
 
   const { data: datas, refetch } = useQuery<BVaultDataType[]>({
@@ -259,11 +279,13 @@ export function useBVaultsData() {
           }),
           // Y  虚拟交易对的asset amount
           vc.epochCount
-            ? pc.readContract({
-                abi: abiBVault,
-                address: vc.vault,
-                functionName: 'Y',
-              })
+            ? pc
+                .readContract({
+                  abi: abiBVault,
+                  address: vc.vault,
+                  functionName: 'Y',
+                })
+                .catch((_error) => 0n)
             : Promise.resolve(0n),
         ]).then(([epoches, pTokenTotal, userBalanceAssset, userBalancePToken, lockedAssetTotal, f2, Y]) => ({
           epoches,
