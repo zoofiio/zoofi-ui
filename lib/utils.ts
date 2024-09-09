@@ -132,6 +132,7 @@ export const fmtTime = (
 const FMT_DURATION_TYPES = ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] as const
 type FMT_DURATION_TYPE = (typeof FMT_DURATION_TYPES)[number]
 export const fmtDuration = (duration: number | bigint, type: FMT_DURATION_TYPE | 'auto' = 'auto') => {
+  duration < 0 && (duration = 0)
   const durationBn = typeof duration == 'number' ? BigInt(duration) : duration
   const divVauleMap: { [k in FMT_DURATION_TYPE]: bigint } = {
     seconds: 1000n,
