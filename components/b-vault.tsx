@@ -104,7 +104,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
             tit='Total Minted'
             sub={
               <>
-                {displayBalance(bvd.pTokenTotal - bvd.yTokenAmountForSwapYT)}
+                {displayBalance(bvd.pTokenTotal)}
                 <button className='btn-link ml-auto text-black/60 dark:text-white/60 text-xs' onClick={onAddPToken}>
                   Add to wallet
                 </button>

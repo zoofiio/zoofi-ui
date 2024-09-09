@@ -39,7 +39,8 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const batchConfig = { batchSize: 50, wait: 1000 }
+const apiBatchConfig = { batchSize: 30, wait: 1000 }
+const multicallBatchConfig = { batchSize: 100, wait: 500 }
 
 const qClient = new QueryClient()
 
@@ -88,9 +89,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             chain,
             transport: http(
               ankrNetName[chain.id] ? `https://rpc.ankr.com/${ankrNetName[chain.id]}` : chain.rpcUrls.default.http[0],
-              { batch: batchConfig },
+              { batch: apiBatchConfig },
             ),
-            batch: { multicall: batchConfig },
+            batch: { multicall: multicallBatchConfig },
           }),
       }),
     )

@@ -20,6 +20,9 @@ export const berachainTestnet = defineChain({
     },
   },
   testnet: true,
+  fees: {
+    baseFeeMultiplier: 1.4
+  }
 })
 
 export const beraChains = [berachainTestnet]
