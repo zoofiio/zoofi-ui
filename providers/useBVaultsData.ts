@@ -86,7 +86,7 @@ function useMPublicClient() {
       const originRead = pc.readContract
       let time = new Date().getTime()
       let count = 0
-      let busy: { promise: Promise<void>; resolve: (v: void) => void, id: number } | undefined
+      let busy: { promise: Promise<void>; resolve: (v: void) => void; id: number } | undefined
       const getBusy = () => {
         count++
         if (count >= apiBatchConfig.batchSize) {
@@ -135,28 +135,33 @@ export function useBVaultsData() {
       // 获取RedeemPool的数据。
       const getRedeemPoolData = (redeemPool: Address) =>
         Promise.all([
-          pc.readContract({
-            abi: abiRedeemPool,
-            address: redeemPool,
-            functionName: 'settled',
-          }),
-          address
-            ? pc.readContract({
+          pc
+            .readContract({
+              abi: abiRedeemPool,
+              address: redeemPool,
+              functionName: 'settled',
+            })
+            .then((settled) => {
+              if (!settled && address)
+                return pc
+                  .readContract({
+                    abi: abiRedeemPool,
+                    address: redeemPool,
+                    functionName: 'userRedeemingBalance',
+                    args: [address],
+                  })
+                  .then((redeemingBalance) => ({ redeemingBalance, settled }))
+              return { redeemingBalance: 0n, settled }
+            }),
+          !address
+            ? Promise.resolve(0n)
+            : pc.readContract({
                 abi: abiRedeemPool,
                 address: redeemPool,
                 functionName: 'earnedAssetAmount',
                 args: [address],
-              })
-            : Promise.resolve(0n),
-          address
-            ? pc.readContract({
-                abi: abiRedeemPool,
-                address: redeemPool,
-                functionName: 'userRedeemingBalance',
-                args: [address],
-              }).catch(() => Promise.resolve(0n))
-            : Promise.resolve(0n),
-        ]).then(([settled, claimableAssetBalance, redeemingBalance]) => ({
+              }),
+        ]).then(([{ settled, redeemingBalance }, claimableAssetBalance]) => ({
           settled,
           claimableAssetBalance,
           redeemingBalance,
@@ -278,19 +283,23 @@ export function useBVaultsData() {
             functionName: 'totalSupply',
           }),
           // balance asset
-          pc.readContract({
-            abi: erc20Abi,
-            address: vc.asset,
-            functionName: 'balanceOf',
-            args: [address || zeroAddress],
-          }),
+          !address
+            ? Promise.resolve(0n)
+            : pc.readContract({
+                abi: erc20Abi,
+                address: vc.asset,
+                functionName: 'balanceOf',
+                args: [address],
+              }),
           // balance pToken
-          pc.readContract({
-            abi: erc20Abi,
-            address: vc.pToken,
-            functionName: 'balanceOf',
-            args: [address || zeroAddress],
-          }),
+          !address
+            ? Promise.resolve(0n)
+            : pc.readContract({
+                abi: erc20Abi,
+                address: vc.pToken,
+                functionName: 'balanceOf',
+                args: [address || zeroAddress],
+              }),
           // lockedAssetTotal,
           pc.readContract({
             abi: abiBVault,
@@ -305,7 +314,7 @@ export function useBVaultsData() {
             args: [stringToHex('f2', { size: 32 })],
           }),
           // Y  虚拟交易对的asset amount
-          vc.epochCount
+          vc.epochCount && vc.vault !== '0xF778D2B9E0238D385008e916D7245F51959Ba279'
             ? pc
                 .readContract({
                   abi: abiBVault,
