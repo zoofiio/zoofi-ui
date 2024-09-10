@@ -1,5 +1,6 @@
 import { abiBVault, abiRedeemPool } from '@/config/abi'
 import { BVAULTS_CONFIG } from '@/config/bvaults'
+import { apiBatchConfig } from '@/config/network'
 import { YEAR_SECONDS } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
@@ -7,6 +8,7 @@ import { useWandTimestamp } from '@/hooks/useWand'
 import { divMultipOtherBn, fmtPercent, proxyGetDef } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
 import { useQuery } from '@tanstack/react-query'
+import _ from 'lodash'
 import { useEffect, useMemo } from 'react'
 import { Address, erc20Abi, stringToHex, zeroAddress } from 'viem'
 import { useAccount, usePublicClient } from 'wagmi'
@@ -67,6 +69,14 @@ export function defBVaultsData() {
   return proxyGetDef({}, (k: string) => defBVaultData(k))
 }
 
+function genPromiseObj<T = void>() {
+  let resolve: (v: T) => void = () => {}
+  const promise = new Promise<T>((_resolve) => {
+    resolve = _resolve
+  })
+  return { promise, resolve, id: new Date().getTime() }
+}
+
 function useMPublicClient() {
   const chainId = useCurrentChainId()
   const pc = usePublicClient({ chainId })
@@ -74,9 +84,26 @@ function useMPublicClient() {
     if (pc) {
       console.info('setReadContract')
       const originRead = pc.readContract
+      let time = new Date().getTime()
+      let count = 0
+      let busy: { promise: Promise<void>; resolve: (v: void) => void, id: number } | undefined
+      const getBusy = () => {
+        count++
+        if (count >= apiBatchConfig.batchSize) {
+          count = 0
+          busy = genPromiseObj()
+        }
+        return busy
+      }
       pc.readContract = async (...args) => {
         try {
-          return await originRead(...args)
+          let po = getBusy()
+          const mCount = count
+          po && mCount > 0 && (await po.promise)
+          return await originRead(...args).finally(() => {
+            po && mCount == 0 && console.info('unlock:', mCount, po.id)
+            po && mCount == 0 && setTimeout(po.resolve, 1000)
+          })
         } catch (error) {
           console.error('readError', error, '\nArgs', [...args])
           throw error

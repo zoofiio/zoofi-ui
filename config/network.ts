@@ -24,6 +24,7 @@ export const berachainTestnet = defineChain({
     baseFeeMultiplier: 1.4
   }
 })
+export const apiBatchConfig = { batchSize: 30, wait: 1000 }
 
 export const beraChains = [berachainTestnet]
 export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter(
