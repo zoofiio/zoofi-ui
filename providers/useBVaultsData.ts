@@ -154,7 +154,7 @@ export function useBVaultsData() {
                 address: redeemPool,
                 functionName: 'userRedeemingBalance',
                 args: [address],
-              })
+              }).catch(() => Promise.resolve(0n))
             : Promise.resolve(0n),
         ]).then(([settled, claimableAssetBalance, redeemingBalance]) => ({
           settled,
