@@ -126,202 +126,77 @@ export function useBVaultsData() {
     queryFn: async () => {
       if (!pc) return []
       const bvcsi = await Promise.all(
-        bvcs.map((vc) =>
-          pc
-            .readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochIdCount' })
-            .then((idCount) => ({ ...vc, epochCount: idCount })),
-        ),
+        bvcs.map((vc) => pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochIdCount' }).then((idCount) => ({ ...vc, epochCount: idCount }))),
       )
       // 获取RedeemPool的数据。
-      const getRedeemPoolData = (redeemPool: Address) =>
-        Promise.all([
-          pc
-            .readContract({
-              abi: abiRedeemPool,
-              address: redeemPool,
-              functionName: 'settled',
-            })
-            .then((settled) => {
-              if (!settled && address)
-                return pc
-                  .readContract({
-                    abi: abiRedeemPool,
-                    address: redeemPool,
-                    functionName: 'userRedeemingBalance',
-                    args: [address],
-                  })
-                  .then((redeemingBalance) => ({ redeemingBalance, settled }))
-              return { redeemingBalance: 0n, settled }
-            }),
-          !address
-            ? Promise.resolve(0n)
-            : pc.readContract({
-                abi: abiRedeemPool,
-                address: redeemPool,
-                functionName: 'earnedAssetAmount',
-                args: [address],
-              }),
-        ]).then(([{ settled, redeemingBalance }, claimableAssetBalance]) => ({
-          settled,
-          claimableAssetBalance,
-          redeemingBalance,
-        }))
-      // getBribes
-      const getBribes = (vc: (typeof bvcsi)[number], epochId: bigint) =>
-        pc
-          .readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'calcBribes',
-            args: [epochId, address || zeroAddress],
-          })
-          .then((bribes) =>
-            Promise.all(
-              bribes.map((bribe) =>
-                Promise.all([
-                  pc.readContract({
-                    abi: abiBVault,
-                    address: vc.vault,
-                    functionName: 'bribeTotalAmount',
-                    args: [epochId, bribe.bribeToken],
-                  }),
-                  pc.readContract({
-                    abi: erc20Abi,
-                    address: bribe.bribeToken,
-                    functionName: 'symbol',
-                  }),
-                ]).then(([totalRewards, bribeSymbol]) => ({ ...bribe, totalRewards, bribeSymbol })),
-              ),
-            ),
-          )
+      const getRedeemPoolData = async (redeemPool: Address) => {
+        const settled = await pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'settled' })
+        const redeemingBalance =
+          !settled && address ? await pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [address] }) : 0n
+        const claimableAssetBalance = address ? await pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'earnedAssetAmount', args: [address] }) : 0n
+        return { settled, claimableAssetBalance, redeemingBalance }
+      }
 
+      const getBribe = async (vc: (typeof bvcsi)[number], epochId: bigint, bribe: Pick<BribeInfo, 'bribeAmount' | 'epochId' | 'bribeToken'>) => {
+        const totalRewards = await pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'bribeTotalAmount', args: [epochId, bribe.bribeToken] })
+        const bribeSymbol = await pc.readContract({ abi: erc20Abi, address: bribe.bribeToken, functionName: 'symbol' })
+        return { ...bribe, totalRewards, bribeSymbol }
+      }
+      // getBribes
+      const getBribes = async (vc: (typeof bvcsi)[number], epochId: bigint) => {
+        const bribes = address ? await pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'calcBribes', args: [epochId, address] }) : []
+        return Promise.all(bribes.map((bribe) => getBribe(vc, epochId, bribe)))
+      }
       // 获取每个Epoch的数据
       const getEpochData = (vc: (typeof bvcsi)[number], i: number): Promise<EpochType> =>
         Promise.all([
           // epoch info
           pc
-            .readContract({
-              abi: abiBVault,
-              address: vc.vault,
-              functionName: 'epochInfoById',
-              args: [vc.epochCount - BigInt(i)],
-            })
-            .then((epoch) =>
-              getRedeemPoolData(epoch.redeemPool).then((redeemPoolData) => ({ ...epoch, ...redeemPoolData })),
-            ),
+            .readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochInfoById', args: [vc.epochCount - BigInt(i)] })
+            .then((epoch) => getRedeemPoolData(epoch.redeemPool).then((redeemPoolData) => ({ ...epoch, ...redeemPoolData }))),
           // yTokenTotalSupply
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'yTokenTotalSupply',
-            args: [vc.epochCount - BigInt(i)],
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'yTokenTotalSupply', args: [vc.epochCount - BigInt(i)] }),
           // yTokenTotalSupplySynthetic
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'yTokenTotalSupplySynthetic',
-            args: [vc.epochCount - BigInt(i)],
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'yTokenTotalSupplySynthetic', args: [vc.epochCount - BigInt(i)] }),
           // bribes
           getBribes(vc, vc.epochCount - BigInt(i)),
           // balance yToken
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'yTokenUserBalance',
-            args: [vc.epochCount - BigInt(i), address || zeroAddress],
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'yTokenUserBalance', args: [vc.epochCount - BigInt(i), address || zeroAddress] }),
           // balance yToken
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'yTokenUserBalanceSynthetic',
-            args: [vc.epochCount - BigInt(i), address || zeroAddress],
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'yTokenUserBalanceSynthetic', args: [vc.epochCount - BigInt(i), address || zeroAddress] }),
           // balance yToken
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'yTokenUserBalance',
-            args: [vc.epochCount - BigInt(i), vc.vault],
-          }),
-        ]).then(
-          ([
-            epochInfo,
-            yTokenTotal,
-            yTokenTotalSupplySynthetic,
-            bribes,
-            userBalanceYToken,
-            userBalanceYTokenSyntyetic,
-            vaultYTokenBalance,
-          ]) => ({
-            ...epochInfo,
-            yTokenTotal, // includes last epoch
-            yTokenTotalSupplySynthetic, // includes last epoch
-            bribes: bribes.map((item) => ({ ...item })),
-            userBalanceYToken,
-            userBalanceYTokenSyntyetic,
-            vaultYTokenBalance, // includes last epoch
-          }),
-        )
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'yTokenUserBalance', args: [vc.epochCount - BigInt(i), vc.vault] }),
+        ]).then(([epochInfo, yTokenTotal, yTokenTotalSupplySynthetic, bribes, userBalanceYToken, userBalanceYTokenSyntyetic, vaultYTokenBalance]) => ({
+          ...epochInfo,
+          yTokenTotal, // includes last epoch
+          yTokenTotalSupplySynthetic, // includes last epoch
+          bribes: bribes.map((item) => ({ ...item })),
+          userBalanceYToken,
+          userBalanceYTokenSyntyetic,
+          vaultYTokenBalance, // includes last epoch
+        }))
       // 获取所有Epoches的数据
       const getEpoches = (vc: (typeof bvcsi)[number]) => {
         console.info('getEpoches:', vc.assetSymbol, vc.epochCount)
-        return vc.epochCount > 0n
-          ? Promise.all(new Array(parseInt(vc.epochCount.toString())).fill(0).map((_v, i) => getEpochData(vc, i)))
-          : Promise.resolve([])
+        return vc.epochCount > 0n ? Promise.all(new Array(parseInt(vc.epochCount.toString())).fill(0).map((_v, i) => getEpochData(vc, i))) : Promise.resolve([])
       }
       // 获取每个Vault的数据
       const getVaultData = (vc: (typeof bvcsi)[number]): Promise<BVaultDataType> =>
         Promise.all([
           getEpoches(vc),
           // pTokenTotal
-          pc.readContract({
-            abi: erc20Abi,
-            address: vc.pToken,
-            functionName: 'totalSupply',
-          }),
+          pc.readContract({ abi: erc20Abi, address: vc.pToken, functionName: 'totalSupply' }),
           // balance asset
-          !address
-            ? Promise.resolve(0n)
-            : pc.readContract({
-                abi: erc20Abi,
-                address: vc.asset,
-                functionName: 'balanceOf',
-                args: [address],
-              }),
+          !address ? Promise.resolve(0n) : pc.readContract({ abi: erc20Abi, address: vc.asset, functionName: 'balanceOf', args: [address] }),
           // balance pToken
-          !address
-            ? Promise.resolve(0n)
-            : pc.readContract({
-                abi: erc20Abi,
-                address: vc.pToken,
-                functionName: 'balanceOf',
-                args: [address || zeroAddress],
-              }),
+          !address ? Promise.resolve(0n) : pc.readContract({ abi: erc20Abi, address: vc.pToken, functionName: 'balanceOf', args: [address || zeroAddress] }),
           // lockedAssetTotal,
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'assetBalance',
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'assetBalance' }),
           // fees f2
-          pc.readContract({
-            abi: abiBVault,
-            address: vc.vault,
-            functionName: 'paramValue',
-            args: [stringToHex('f2', { size: 32 })],
-          }),
+          pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'paramValue', args: [stringToHex('f2', { size: 32 })] }),
           // Y  虚拟交易对的asset amount
           vc.epochCount && vc.vault !== '0xF778D2B9E0238D385008e916D7245F51959Ba279'
-            ? pc
-                .readContract({
-                  abi: abiBVault,
-                  address: vc.vault,
-                  functionName: 'Y',
-                })
-                .catch((_error) => 0n)
+            ? pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'Y' })
             : Promise.resolve(0n),
         ]).then(([epoches, pTokenTotal, userBalanceAssset, userBalancePToken, lockedAssetTotal, f2, Y]) => ({
           epoches,
@@ -372,9 +247,6 @@ export function useBVaultBoost(bvd: BVaultDataType): [string, bigint] {
 export function useBVaultApy(bvd: BVaultDataType): [string, bigint] {
   const epoch = bvd.epoches[0]
   const yTokenTotalSupplySynthetic = epoch?.yTokenTotalSupplySynthetic || 0n
-  const apy =
-    yTokenTotalSupplySynthetic > 0n
-      ? (bvd.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / yTokenTotalSupplySynthetic
-      : 0n
+  const apy = yTokenTotalSupplySynthetic > 0n ? (bvd.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / yTokenTotalSupplySynthetic : 0n
   return [fmtPercent(apy, 10), apy]
 }

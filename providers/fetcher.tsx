@@ -1,14 +1,7 @@
 'use client'
 import { abiPriceFeed, abiPtyPool, abiVault, abiVaultQuery } from '@/config/abi'
 import { getPtypoolYields } from '@/config/api'
-import {
-  ETHSymbol,
-  NATIVE_TOKEN_ADDRESS,
-  USBSymbol,
-  USB_ADDRESS,
-  VAULTS_CONFIG,
-  VAULT_QUERY_ADDRESS,
-} from '@/config/swap'
+import { ETHSymbol, NATIVE_TOKEN_ADDRESS, USBSymbol, USB_ADDRESS, VAULTS_CONFIG, VAULT_QUERY_ADDRESS } from '@/config/swap'
 import { getTokens } from '@/config/tokens'
 import { DECIMAL, Day1 } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
@@ -149,41 +142,15 @@ function useReadEarns() {
   const { data: reads } = useWandContractReads({
     query: { enabled: !!address },
     contracts: [
-      ...pools.map(({ poolAddress }) => ({
-        abi: abiPtyPool,
-        address: poolAddress,
-        functionName: 'userStakingBalance',
-        args: [address as any],
-      })),
-      ...pools.map(({ poolAddress }) => ({
-        abi: abiPtyPool,
-        address: poolAddress,
-        functionName: 'earnedMatchedToken',
-        args: [address as any],
-      })),
-      ...pools.map(({ poolAddress }) => ({
-        abi: abiPtyPool,
-        address: poolAddress,
-        functionName: 'earnedStakingYields',
-        args: [address as any],
-      })),
-      ...pools.map(({ poolAddress }) => ({
-        abi: abiPtyPool,
-        address: poolAddress,
-        functionName: 'earnedMatchingYields',
-        args: [address as any],
-      })),
+      ...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'userStakingBalance', args: [address as any] })),
+      ...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'earnedMatchedToken', args: [address as any] })),
+      ...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'earnedStakingYields', args: [address as any] })),
+      ...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'earnedMatchingYields', args: [address as any] })),
     ],
   })
 
   const { data: totalStaking } = useWandContractReads({
-    contracts: [
-      ...pools.map(({ poolAddress }) => ({
-        abi: abiPtyPool,
-        address: poolAddress,
-        functionName: 'totalStakingBalance',
-      })),
-    ],
+    contracts: [...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'totalStakingBalance' }))],
   })
   const pc = usePublicClient()
   const { data: poolBalance } = useQuery({
@@ -228,24 +195,11 @@ function useAssetPrice() {
   const chainId = useCurrentChainId()
   const configs = VAULTS_CONFIG[chainId]
   const { data: assetTokenPrice } = useWandContractReads({
-    contracts: [
-      ...configs.map((vc) => ({
-        vc,
-        abi: abiPriceFeed,
-        address: vc.assetTokenFeed,
-        functionName: 'latestPrice',
-      })),
-    ],
+    contracts: [...configs.map((vc) => ({ vc, abi: abiPriceFeed, address: vc.assetTokenFeed, functionName: 'latestPrice' }))],
   })
   const { data: assetTokenDecimals } = useWandContractReads({
     query: { gcTime: Day1 },
-    contracts: [
-      ...configs.map((vc) => ({
-        abi: abiPriceFeed,
-        address: vc.assetTokenFeed,
-        functionName: 'decimals',
-      })),
-    ],
+    contracts: [...configs.map((vc) => ({ abi: abiPriceFeed, address: vc.assetTokenFeed, functionName: 'decimals' }))],
   })
 
   return useMemo(() => {
@@ -286,21 +240,14 @@ function useVaultsDiscount(
       const modeNumber = vaultsMode[vc?.vault || 'null']
       const belowBreakerTime = getBigint(vs, 'AARBelowCircuitBreakerLineTime')
       const discountEnable =
-        modeNumber == 2 &&
-        vs &&
-        (getBigint(vs, 'aar') >= getBigint(vs, 'AARC') ||
-          BigInt(Math.floor(new Date().getTime() / 1000)) - belowBreakerTime >= breakPeriod)
-
+        modeNumber == 2 && vs && (getBigint(vs, 'aar') >= getBigint(vs, 'AARC') || BigInt(Math.floor(new Date().getTime() / 1000)) - belowBreakerTime >= breakPeriod)
       vaultsDiscount[vc.vault] = discountEnable
     }
   })
   return vaultsDiscount
 }
 
-function useUSBApr(
-  vaultsState: FetcherContextInterface['vaultsState'],
-  stableVaultsState: FetcherContextInterface['stableVaultsState'],
-) {
+function useUSBApr(vaultsState: FetcherContextInterface['vaultsState'], stableVaultsState: FetcherContextInterface['stableVaultsState']) {
   const chainId = useCurrentChainId()
   let enableCount = 0
   let multiTotal = 0n
@@ -339,26 +286,11 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   } as UseBalanceParameters<any, GetBalanceData>)
   const tokens = useMemo(() => getTokens(chainId), [chainId])
   const { data: dataBalance } = useWandContractReads({
-    contracts: [
-      ...tokens.map((token: any) => ({
-        address: token.address,
-        abi: erc20Abi,
-        functionName: 'balanceOf',
-        args: [address as Address],
-        chainId: chainId,
-      })),
-    ],
+    contracts: [...tokens.map((token: any) => ({ address: token.address, abi: erc20Abi, functionName: 'balanceOf', args: [address as Address], chainId: chainId }))],
     query: { enabled: !!address },
   })
   const { data: dataTotalSupply } = useWandContractReads({
-    contracts: [
-      ...tokens.map((token: any) => ({
-        address: token.address,
-        abi: erc20Abi,
-        functionName: 'totalSupply',
-        chainId: chainId,
-      })),
-    ],
+    contracts: [...tokens.map((token: any) => ({ address: token.address, abi: erc20Abi, functionName: 'totalSupply', chainId: chainId }))],
   })
 
   const balances: FetcherContextInterface['balances'] = useMemoOfChainId(() => proxyGetDef({}, 0n))
@@ -375,54 +307,21 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   const assetTokenPrice = useAssetPrice()
 
   const { data: assetTotalAmount } = useWandContractReads({
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        vc,
-        abi: abiVault,
-        address: vc.vault,
-        functionName: 'assetBalance',
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ vc, abi: abiVault, address: vc.vault, functionName: 'assetBalance' }))],
   })
 
   const { data: usbTotalSupply } = useWandContractReads({
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        abi: abiVault,
-        address: vc.vault,
-        functionName: 'usdTotalSupply',
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ abi: abiVault, address: vc.vault, functionName: 'usdTotalSupply' }))],
   })
   const { data: aarData } = useWandContractReads({
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        vc,
-        abi: abiVaultQuery,
-        address: VAULT_QUERY_ADDRESS[chainId],
-        functionName: 'AAR',
-        args: [vc.vault],
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ vc, abi: abiVaultQuery, address: VAULT_QUERY_ADDRESS[chainId], functionName: 'AAR', args: [vc.vault] }))],
   })
   const { data: aarDecimalsData } = useWandContractReads({
     query: { gcTime: Day1 },
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        abi: abiVault,
-        address: vc.vault,
-        functionName: 'AARDecimals',
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ abi: abiVault, address: vc.vault, functionName: 'AARDecimals' }))],
   })
   const { data: vaultsModeData } = useWandContractReads({
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        abi: abiVault,
-        address: vc.vault,
-        functionName: 'vaultMode',
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ abi: abiVault, address: vc.vault, functionName: 'vaultMode' }))],
   })
   const { data: vaultsStateData } = useWandContractReads({
     contracts: [
@@ -437,30 +336,16 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   })
   const { data: vaultsYData } = useWandContractReads({
     query: { gcTime: Day1 },
-    contracts: [
-      ...vaultconfigs.map((vc) => ({
-        vc,
-        abi: abiVault,
-        address: vc.vault,
-        functionName: 'paramValue',
-        args: [stringToHex('Y', { size: 32 })],
-      })),
-    ],
+    contracts: [...vaultconfigs.map((vc) => ({ vc, abi: abiVault, address: vc.vault, functionName: 'paramValue', args: [stringToHex('Y', { size: 32 })] }))],
   })
 
-  const prices: FetcherContextInterface['prices'] = useMemoOfChainId(() =>
-    proxyGetDef({ [USB_ADDRESS[chainId]]: DECIMAL }, 0n),
-  )
+  const prices: FetcherContextInterface['prices'] = useMemoOfChainId(() => proxyGetDef({ [USB_ADDRESS[chainId]]: DECIMAL }, 0n))
   const assetLocked: FetcherContextInterface['assetLocked'] = useMemoOfChainId(() => proxyGetDef({}, 0n))
   const aar: FetcherContextInterface['aar'] = useMemoOfChainId(() => proxyGetDef({}, 0n))
   const vaultUSBTotal: FetcherContextInterface['vaultUSBTotal'] = useMemoOfChainId(() => proxyGetDef({}, 0n))
   const vaultsMode: FetcherContextInterface['vaultsMode'] = useMemoOfChainId(() => proxyGetDef({}, 0))
-  const vaultsState: FetcherContextInterface['vaultsState'] = useMemoOfChainId(() =>
-    proxyGetDef({}, proxyGetDef({}, 0n)),
-  )
-  const stableVaultsState: FetcherContextInterface['stableVaultsState'] = useMemoOfChainId(() =>
-    proxyGetDef({}, proxyGetDef({}, 0n)),
-  )
+  const vaultsState: FetcherContextInterface['vaultsState'] = useMemoOfChainId(() => proxyGetDef({}, proxyGetDef({}, 0n)))
+  const stableVaultsState: FetcherContextInterface['stableVaultsState'] = useMemoOfChainId(() => proxyGetDef({}, proxyGetDef({}, 0n)))
   const vaultsDiscount = useVaultsDiscount(vaultsState, stableVaultsState, vaultsMode)
   vaultconfigs.forEach((vc, index) => {
     const _assetTotal = getBigint(assetTotalAmount, [index, 'result'])
@@ -476,21 +361,11 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
 
     const xTotalSupply = totalSupplies[vc.xTokenAddress]
     let xPrice =
-      xTotalSupply > 0n &&
-      _assetTotal > 0n &&
-      assetPrice > 0n &&
-      _usbTotalSupply > 0n &&
-      _assetTotal * assetPrice > _usbTotalSupply * DECIMAL
+      xTotalSupply > 0n && _assetTotal > 0n && assetPrice > 0n && _usbTotalSupply > 0n && _assetTotal * assetPrice > _usbTotalSupply * DECIMAL
         ? (_assetTotal * assetPrice - _usbTotalSupply * DECIMAL) / xTotalSupply
         : 0n
     // aar < 100%
-    if (
-      xTotalSupply > 0n &&
-      _assetTotal > 0n &&
-      assetPrice > 0n &&
-      _usbTotalSupply > 0n &&
-      _assetTotal * assetPrice < _usbTotalSupply * DECIMAL
-    ) {
+    if (xTotalSupply > 0n && _assetTotal > 0n && assetPrice > 0n && _usbTotalSupply > 0n && _assetTotal * assetPrice < _usbTotalSupply * DECIMAL) {
       // xPrice = (101n * _usbTotalSupply * DECIMAL) / 100n / xTotalSupply
       prices[USB_ADDRESS[chainId]] = (_assetTotal * assetPrice) / _usbTotalSupply
     }
@@ -502,40 +377,18 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
     assetLocked[vc.assetTokenAddress] = _assetTotal
 
     // AAR
-    const aarStr = formatUnits(
-      getBigint(aarData, [index, 'result']),
-      parseInt(getBigint(aarDecimalsData, [index, 'result']).toString()),
-    )
+    const aarStr = formatUnits(getBigint(aarData, [index, 'result']), parseInt(getBigint(aarDecimalsData, [index, 'result']).toString()))
     aar[vc.vault] = parseFloat(aarStr)
 
     // VaultsState
     if (vc.isStable) {
-      stableVaultsState[vc.vault] = proxyGetDef(
-        {
-          settingsDecimals: 10n,
-          ...(vaultsStateData?.[index]?.result as any),
-          Y: getBigint(vaultsYData, [index, 'result']),
-        },
-        0n,
-      )
+      stableVaultsState[vc.vault] = proxyGetDef({ ettingsDecimals: 10n, ...(vaultsStateData?.[index]?.result as any), Y: getBigint(vaultsYData, [index, 'result']) }, 0n)
     } else {
-      vaultsState[vc.vault] = proxyGetDef(
-        {
-          settingsDecimals: 10n,
-          ...(vaultsStateData?.[index]?.result as any),
-          Y: getBigint(vaultsYData, [index, 'result']),
-        },
-        0n,
-      )
+      vaultsState[vc.vault] = proxyGetDef({ settingsDecimals: 10n, ...(vaultsStateData?.[index]?.result as any), Y: getBigint(vaultsYData, [index, 'result']) }, 0n)
     }
     // VaultsMode
     const vs_s = stableVaultsState[vc.vault]
-
-    vaultsMode[vc.vault] = vc.isStable
-      ? vs_s.aar < vs_s.AARS && vs_s.M_USDC > 0n
-        ? 2
-        : 1
-      : (vaultsModeData?.[index]?.result as number) || 0
+    vaultsMode[vc.vault] = vc.isStable ? (vs_s.aar < vs_s.AARS && vs_s.M_USDC > 0n ? 2 : 1) : (vaultsModeData?.[index]?.result as number) || 0
   })
 
   const earns = useReadEarns()
@@ -571,7 +424,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
         usbApr,
         ptypoolYields,
         plainVaultsStat,
-        bVaultsData
+        bVaultsData,
       }}
     >
       {children}
