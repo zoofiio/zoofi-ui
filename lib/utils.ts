@@ -134,7 +134,7 @@ export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 
   return res
 }
 // 'seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'
-const FMT_DURATION_TYPES = ['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'] as const
+const FMT_DURATION_TYPES = ['seconds', 'minutes', 'hours', 'days', 'months', 'years'] as const
 type FMT_DURATION_TYPE = (typeof FMT_DURATION_TYPES)[number]
 export const fmtDuration = (duration: number | bigint, type: FMT_DURATION_TYPE | 'auto' = 'auto') => {
   let durationBn = typeof duration == 'number' ? BigInt(duration) : duration
@@ -144,7 +144,7 @@ export const fmtDuration = (duration: number | bigint, type: FMT_DURATION_TYPE |
     minutes: 1000n * 60n,
     hours: 1000n * 60n * 60n,
     days: 1000n * 60n * 60n * 24n,
-    weeks: 1000n * 60n * 60n * 24n * 7n,
+    // weeks: 1000n * 60n * 60n * 24n * 7n,
     months: 1000n * 60n * 60n * 24n * 7n * 30n,
     years: 1000n * 60n * 60n * 24n * 365n,
   }
@@ -175,7 +175,19 @@ export const fmtBn = (bn: bigint, decimals: bigint | number = 18) => {
   return formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
 }
 
-
-export function retry<T>(fn: () => Promise<T>, count:number = Infinity){
-
+export async function retry<T>(fn: () => Promise<T>, count: number = Infinity, wait: number = 2000) {
+  let mCount = count
+  while (true) {
+    try {
+      return await fn()
+    } catch (error) {
+      if (mCount <= 0) {
+        throw error
+      } else {
+        console.error('retry:error', mCount, error)
+        mCount--
+        await sleep(wait)
+      }
+    }
+  }
 }

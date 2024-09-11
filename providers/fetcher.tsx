@@ -19,7 +19,6 @@ import { useAsyncRetry } from 'react-use'
 import { Address, erc20Abi, formatUnits, stringToHex } from 'viem'
 import { UseBalanceParameters, useAccount, useBalance } from 'wagmi'
 import { GetBalanceData } from 'wagmi/query'
-import { defBVaultsData, useBVaultsData } from './useBVaultsData'
 
 export interface FetcherContextInterface {
   balances: { [k: string]: bigint }
@@ -91,7 +90,7 @@ export interface FetcherContextInterface {
   ptypoolYields?: UnPromise<typeof getPtypoolYields>
   plainVaultsStat: ReturnType<typeof usePlainVualtsReads>
 
-  bVaultsData: ReturnType<typeof useBVaultsData>
+  // bVaultsData: ReturnType<typeof useBVaultsData>
 }
 
 export const FetcherContext = createContext<FetcherContextInterface>({
@@ -111,7 +110,7 @@ export const FetcherContext = createContext<FetcherContextInterface>({
     aprDecimals: 10,
   },
   plainVaultsStat: proxyGetDef({}, proxyGetDef({}, 0n)),
-  bVaultsData: defBVaultsData(),
+  // bVaultsData: defBVaultsData(),
 })
 
 function useReadEarns() {
@@ -408,7 +407,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   const { value: ptypoolYields = {} } = useAsyncRetry(getPtypoolYields, [wand.time])
   useUpdatePtypoolApy(earns, prices, vaultsState)
   const plainVaultsStat = usePlainVualtsReads(prices)
-  const bVaultsData = useBVaultsData()
+  // const bVaultsData = useBVaultsData()
   return (
     <FetcherContext.Provider
       value={{
@@ -426,7 +425,7 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
         usbApr,
         ptypoolYields,
         plainVaultsStat,
-        bVaultsData,
+        // bVaultsData,
       }}
     >
       {children}

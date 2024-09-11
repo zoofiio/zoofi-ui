@@ -89,6 +89,9 @@ dependencies:
   graphql:
     specifier: ^16.8.1
     version: 16.8.1
+  immer:
+    specifier: ^10.1.1
+    version: 10.1.1
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -130,7 +133,7 @@ dependencies:
     version: 9.22.5(react-dom@18.2.0)(react@18.2.0)
   reactflow:
     specifier: ^11.7.4
-    version: 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+    version: 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
   recharts:
     specifier: ^2.8.0
     version: 2.10.3(prop-types@15.8.1)(react-dom@18.2.0)(react@18.2.0)
@@ -157,13 +160,13 @@ dependencies:
     version: 2.19.3(typescript@5.1.6)(zod@3.22.4)
   wagmi:
     specifier: 2.x
-    version: 2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
+    version: 2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(immer@10.1.1)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
   zod:
     specifier: ^3.22.4
     version: 3.22.4
   zustand:
     specifier: 4.5.5
-    version: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+    version: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
 
 devDependencies:
   '@types/lodash':
@@ -3839,7 +3842,7 @@ packages:
       react-remove-scroll: 2.5.7(@types/react@18.2.15)(react@18.2.0)
       ua-parser-js: 1.0.37
       viem: 2.19.3(typescript@5.1.6)(zod@3.22.4)
-      wagmi: 2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
+      wagmi: 2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(immer@10.1.1)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
     transitivePeerDependencies:
       - '@types/react'
       - supports-color
@@ -4206,39 +4209,39 @@ packages:
       react-native: 0.74.1(@babel/core@7.23.6)(@babel/preset-env@7.24.5)(@types/react@18.2.15)(encoding@0.1.13)(react@18.2.0)
     dev: false
 
-  /@reactflow/background@11.2.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/background@11.2.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-SYQbCRCU0GuxT/40Tm7ZK+l5wByGnNJSLtZhbL9C/Hl7JhsJXV3UGXr0vrlhVZUBEtkWA7XhZM/5S9XEA5XSFA==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
     dev: false
 
-  /@reactflow/controls@11.1.15(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/controls@11.1.15(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-//33XfBYu8vQ6brfmlZwKrDoh+8hh93xO2d88XiqfIbrPEEb32SYjsb9mS9VuHKNlSIW+eB27fBA1Gt00mEj5w==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
     dev: false
 
-  /@reactflow/core@11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/core@11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-nt0T8ERp8TE7YCDQViaoEY9lb0StDPrWHVx3zBjhStFYET3wc88t8QRasZdf99xRTmyNtI3U3M40M5EBLNUpMw==}
     peerDependencies:
       react: '>=17'
@@ -4254,19 +4257,19 @@ packages:
       d3-zoom: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
     dev: false
 
-  /@reactflow/minimap@11.5.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/minimap@11.5.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-1tDBj2zX2gxu2oHU6qvH5RGNrOWRfRxu8369KhDotuuBN5yJrGXJzWIKikwhzjsNsQJYOB+B0cS44yWAfwSwzw==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       '@types/d3-selection': 3.0.5
       '@types/d3-zoom': 3.0.3
       classcat: 5.0.4
@@ -4274,41 +4277,41 @@ packages:
       d3-zoom: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
     dev: false
 
-  /@reactflow/node-resizer@2.1.1(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/node-resizer@2.1.1(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-5Q+IBmZfpp/bYsw3+KRVJB1nUbj6W3XAp5ycx4uNWH+K98vbssymyQsW0vvKkIhxEPg6tkiMzO4UWRWvwBwt1g==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       classcat: 5.0.4
       d3-drag: 3.0.0
       d3-selection: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
     dev: false
 
-  /@reactflow/node-toolbar@1.2.3(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /@reactflow/node-toolbar@1.2.3(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-uFQy9xpog92s0G1wsPLniwV9nyH4i/MmL7QoMsWdnKaOi7XMhd8SJcCzUdHC3imR21HltsuQITff/XQ51ApMbg==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -5091,7 +5094,7 @@ packages:
       '@metamask/sdk': 0.18.6(encoding@0.1.13)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)
       '@safe-global/safe-apps-provider': 0.18.1(encoding@0.1.13)(typescript@5.1.6)(zod@3.22.4)
       '@safe-global/safe-apps-sdk': 8.1.0(encoding@0.1.13)(typescript@5.1.6)(zod@3.22.4)
-      '@wagmi/core': 2.9.3(@types/react@18.2.15)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
+      '@wagmi/core': 2.9.3(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
       '@walletconnect/ethereum-provider': 2.13.0(@types/react@18.2.15)(encoding@0.1.13)(react@18.2.0)
       '@walletconnect/modal': 2.6.2(@types/react@18.2.15)(react@18.2.0)
       typescript: 5.1.6
@@ -5124,7 +5127,7 @@ packages:
       - zod
     dev: false
 
-  /@wagmi/core@2.9.3(@types/react@18.2.15)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4):
+  /@wagmi/core@2.9.3(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4):
     resolution: {integrity: sha512-Mbhbmyz0wLbAOkjNoUoSJ0nI43sHz6/NyxTuzQ+g4ZMz9dAlMq5qNNqecfyaeXfOvSKuahlWu/frTIz8+jMgsw==}
     peerDependencies:
       '@tanstack/query-core': '>=5.0.0'
@@ -5140,7 +5143,7 @@ packages:
       mipd: 0.0.5(typescript@5.1.6)(zod@3.22.4)
       typescript: 5.1.6
       viem: 2.19.3(typescript@5.1.6)(zod@3.22.4)
-      zustand: 4.4.1(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.4.1(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - bufferutil
@@ -8183,6 +8186,10 @@ packages:
       queue: 6.0.2
     dev: false
 
+  /immer@10.1.1:
+    resolution: {integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==}
+    dev: false
+
   /import-fresh@2.0.0:
     resolution: {integrity: sha512-eZ5H8rcgYazHbKC3PG4ClHNykCSxtAhxSSEM+2mb+7evD2CKF5V7c0dNum7AdpDh0ZdICwZY9sRSn8f+KH96sg==}
     engines: {node: '>=4'}
@@ -10596,18 +10603,18 @@ packages:
       loose-envify: 1.4.0
     dev: false
 
-  /reactflow@11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0):
+  /reactflow@11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-QI6+oc1Ft6oFeLSdHlp+SmgymbI5Tm49wj5JyE84O4A54yN/ImfYaBhLit9Cmfzxn9Tz6tDqmGMGbk4bdtB8/w==}
     peerDependencies:
       react: '>=17'
       react-dom: '>=17'
     dependencies:
-      '@reactflow/background': 11.2.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
-      '@reactflow/controls': 11.1.15(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
-      '@reactflow/core': 11.7.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
-      '@reactflow/minimap': 11.5.4(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
-      '@reactflow/node-resizer': 2.1.1(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
-      '@reactflow/node-toolbar': 1.2.3(@types/react@18.2.15)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/background': 11.2.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/controls': 11.1.15(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/core': 11.7.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/minimap': 11.5.4(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/node-resizer': 2.1.1(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
+      '@reactflow/node-toolbar': 1.2.3(@types/react@18.2.15)(immer@10.1.1)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     transitivePeerDependencies:
@@ -12097,7 +12104,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /wagmi@2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4):
+  /wagmi@2.8.3(@tanstack/react-query@5.35.1)(@types/react@18.2.15)(encoding@0.1.13)(immer@10.1.1)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4):
     resolution: {integrity: sha512-uys33uAZPK/mxNLleghbZEcKTacLZ4trolkczjIE36afmgRpCc0S+yQcNej0ueurwiYzhywMd5PZZMUTEs7CgQ==}
     peerDependencies:
       '@tanstack/react-query': '>=5.0.0'
@@ -12110,7 +12117,7 @@ packages:
     dependencies:
       '@tanstack/react-query': 5.35.1(react@18.2.0)
       '@wagmi/connectors': 4.3.5(@types/react@18.2.15)(@wagmi/core@2.9.3)(encoding@0.1.13)(react-dom@18.2.0)(react-i18next@13.5.0)(react-native@0.74.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
-      '@wagmi/core': 2.9.3(@types/react@18.2.15)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
+      '@wagmi/core': 2.9.3(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0)(typescript@5.1.6)(viem@2.19.3)(zod@3.22.4)
       react: 18.2.0
       typescript: 5.1.6
       use-sync-external-store: 1.2.0(react@18.2.0)
@@ -12430,7 +12437,7 @@ packages:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
     dev: false
 
-  /zustand@4.4.1(@types/react@18.2.15)(react@18.2.0):
+  /zustand@4.4.1(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0):
     resolution: {integrity: sha512-QCPfstAS4EBiTQzlaGP1gmorkh/UL1Leaj2tdj+zZCZ/9bm0WS7sI2wnfD5lpOszFqWJ1DcPnGoY8RDL61uokw==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -12446,11 +12453,12 @@ packages:
         optional: true
     dependencies:
       '@types/react': 18.2.15
+      immer: 10.1.1
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
 
-  /zustand@4.5.5(@types/react@18.2.15)(react@18.2.0):
+  /zustand@4.5.5(@types/react@18.2.15)(immer@10.1.1)(react@18.2.0):
     resolution: {integrity: sha512-+0PALYNJNgK6hldkgDq2vLrw5f6g/jCInz52n9RTpropGgeAf/ioFUCdtsjCqu4gNhW9D01rUQBROoRjdzyn2Q==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -12466,6 +12474,7 @@ packages:
         optional: true
     dependencies:
       '@types/react': 18.2.15
+      immer: 10.1.1
       react: 18.2.0
       use-sync-external-store: 1.2.2(react@18.2.0)
     dev: false

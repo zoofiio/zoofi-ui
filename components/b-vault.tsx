@@ -3,15 +3,23 @@ import VenomLine from '@/components/icons/VenomLine'
 import { abiBVault, abiRedeemPool } from '@/config/abi'
 import { BVaultConfig } from '@/config/bvaults'
 import { getBexPoolURL } from '@/config/network'
-import { DECIMAL, YEAR_SECONDS } from '@/constants'
+import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
 import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
-import { FetcherContext } from '@/providers/fetcher'
-import { EpochType, useBVaultApy, useBVaultBoost, useCalcClaimable } from '@/providers/useBVaultsData'
+import {
+  BVaultEpocheDTO,
+  useBVaultApy,
+  useBVaultBoost,
+  useBVaultData,
+  useBVaultsDataShallow,
+  useCalcClaimable,
+  useEpochesData,
+  UserBVaultEpocheDTO
+} from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { useMeasure } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
@@ -44,17 +52,15 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
   const [inputPToken, setInputPToken] = useState('')
   const inputPTokenBn = parseEthers(inputPToken)
-  const { bVaultsData } = useContext(FetcherContext)
-
-  const bvd = bVaultsData[bvc.vault]
-  const { ids, claimable } = useCalcClaimable(bvd)
-  const epoch = bvd.epoches[0]
-  const assetBalance = bvd.userBalanceAssset || 0n
-  const pTokenBalance = bvd.userBalancePToken || 0n
+  const [bvd, ubvd] = useBVaultsDataShallow((s) => [s.bvaults[bvc.vault], s.userBvaults[bvc.vault]])
+  const epoch = useBVaultsDataShallow((s) => s.epochs[bvc.vault][0])
+  const { ids, claimable } = useCalcClaimable(bvc.vault)
+  const assetBalance = ubvd.userBalanceAssset || 0n
+  const pTokenBalance = ubvd.userBalancePToken || 0n
   const claimableAssetBalance = claimable
-  const redeemingBalance = epoch?.redeemingBalance || 0n
+  const redeemingBalance = ubvd.redeemingBalance || 0n
   const redeemInfo = `Your ${pTokenSymbolShort} can be claimed 1:1 for ${assetSymbolShort} at the end of this Epoch`
-  const [fmtApy] = useBVaultApy(bvd)
+  const [fmtApy] = useBVaultApy(bvc.vault)
   const { data: walletClient } = useWalletClient()
   const onAddPToken = () => {
     walletClient
@@ -204,10 +210,10 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const assetSymbolShort = isLP ? 'LP token' : bvc.assetSymbol
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
-  const { bVaultsData } = useContext(FetcherContext)
-  const bvd = bVaultsData[bvc.vault]
-  const epoch = bvd.epoches[0]
-  const assetBalance = bvd.userBalanceAssset || 0n
+
+  const [bvd, ubvd] = useBVaultsDataShallow((s) => [s.bvaults[bvc.vault], s.userBvaults[bvc.vault]])
+  const epoch = useBVaultsDataShallow((s) => s.epochs[bvc.vault][0])
+  const assetBalance = ubvd.userBalanceAssset || 0n
   const { data: result, refetch: reFetchCalcSwap } = useReadContract({
     abi: abiBVault,
     address: bvc.vault,
@@ -231,7 +237,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
   const oneYoutAsset = bvd.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.yTokenAmountForSwapYT : 0n
-  const [fmtBoost] = useBVaultBoost(bvd)
+  const [fmtBoost] = useBVaultBoost(bvc.vault)
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
@@ -268,7 +274,11 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
                   <span>
                     {fmtTime(epoch.startTime * 1000n, 'date')}-{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
                   </span>
-                  <span className='ml-auto'>~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining</span>
+                  <span className='ml-auto whitespace-nowrap'>
+                    ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))}
+                    <br />
+                    remaining
+                  </span>
                 </>
               }
             />
@@ -322,12 +332,11 @@ function BribeTit(p: { name: string }) {
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [onlyMy, setOnlyMy] = useState(true)
-  const { bVaultsData } = useContext(FetcherContext)
-  const bvd = bVaultsData[bvc.vault]
+  const epochesData = useEpochesData(bvc.vault)
   const epoches = useMemo(() => {
-    const myFilter = (item: EpochType) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
-    return onlyMy ? bvd.epoches.filter(myFilter) : bvd.epoches
-  }, [bvd.epoches, onlyMy])
+    const myFilter = (item: BVaultEpocheDTO & UserBVaultEpocheDTO) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
+    return onlyMy ? epochesData.filter(myFilter) : epochesData
+  }, [epochesData, onlyMy])
   const viewMax = 6
   const itemHeight = 56
   const itemSpaceY = 20
@@ -336,7 +345,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [inputYToken, setInputYToken] = useState('')
   const inputYTokenBn = parseEthers(inputYToken)
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
-  const [current, setCurrent] = useState<EpochType | undefined | null>(epoches[0])
+  const [current, setCurrent] = useState<(BVaultEpocheDTO & UserBVaultEpocheDTO) | undefined | null>(epoches[0])
   useEffect(() => {
     setCurrent(epoches[0])
   }, [epoches])
@@ -450,12 +459,10 @@ export function BVaultHarvest({ bvc }: { bvc: BVaultConfig }) {
 export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const r = useRouter()
   const [token1, token2] = vc.assetSymbol.split('-')
-  const { bVaultsData } = useContext(FetcherContext)
-  const bvd = bVaultsData[vc.vault]
-  const [fmtBoost] = useBVaultBoost(bvd)
-  const [fmtApy] = useBVaultApy(bvd)
-  const epoch = bvd.epoches[0]
-  const epochName = `Epoch ${(epoch?.epochId || 1n).toString()}`
+  const bvd = useBVaultData(vc)
+  const [fmtBoost] = useBVaultBoost(vc.vault)
+  const [fmtApy] = useBVaultApy(vc.vault)
+  const epochName = `Epoch ${bvd.epochCount.toString()}`
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
       <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>

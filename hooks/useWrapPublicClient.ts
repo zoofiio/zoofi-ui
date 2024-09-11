@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { createPublicClient, http, PublicClient } from 'viem'
 import { create } from 'zustand'
 import { useCurrentChainId } from './useCurrentChainId'
+import { genPromiseObj } from '@/lib/utils'
+import _ from 'lodash'
 
 export const usePublicClientStore = create<{ pc?: PublicClient; chainId?: number; setPc: (chainId: number, pc: PublicClient) => void }>((set) => ({
   setPc: (chainId, pc) => {
@@ -10,25 +12,24 @@ export const usePublicClientStore = create<{ pc?: PublicClient; chainId?: number
   },
 }))
 
-let count = 0
-setInterval(() => {
-  if (count >= apiBatchConfig.batchSize) {
-    count = 0
-  }
-}, 1000)
-
-export async function isBusy(): Promise<void> {
-  let needRety = false
-  return new Promise<void>((resolve) => {
-    count++
-    if (count < apiBatchConfig.batchSize) {
-      resolve()
-    } else {
-      needRety = true
-      setTimeout(resolve, 1000)
-    }
-  }).then(() => (needRety ? isBusy() : Promise.resolve()))
-}
+// const stat: { lastTime: number; count: number; current?: ReturnType<typeof genPromiseObj> } = { lastTime: 0, count: 0 }
+// export async function isBusy(): Promise<void> {
+//   stat.count++
+//   const now = new Date().getTime()
+//   if (now - stat.lastTime > 1000) {
+//     stat.count = 1
+//   }
+//   let needRety = false
+//   return new Promise<void>((resolve) => {
+//     count++
+//     if (count < apiBatchConfig.batchSize) {
+//       resolve()
+//     } else {
+//       needRety = true
+//       setTimeout(resolve, 1000)
+//     }
+//   }).then(() => (needRety ? isBusy() : Promise.resolve()))
+// }
 
 export function useSetPublicClient() {
   const chainId = useCurrentChainId()
@@ -44,6 +45,7 @@ export function useSetPublicClient() {
       pc.readContract = async (...args) => {
         try {
           // await isBusy()
+          // @ts-ignore
           return await originRead(...args)
         } catch (error) {
           console.error('readError', error, '\nArgs', [...args])
