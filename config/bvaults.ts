@@ -10,6 +10,7 @@ export type BVaultConfig = {
   yTokenSymbol: string
   protocolAddress: Address
   protocolSettingsAddress: Address
+  onEnv?: ('beta' | 'test' | 'prod')[]
 }
 export const ZooProtocolAddress = '0xF86a9a53D963B7a845F3496a97d0dB11cEc3c4E0'
 export const ZooProtocolSettingsAddress = '0x97d82C639835F4EfaCC366fdE78CA0c4EC2a2A83'
@@ -35,6 +36,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-USDC',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
     },
     {
       vault: '0xF484F7D00DD44c1F8B047b79cF8674e78FEcaba7',
@@ -45,6 +47,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
     },
     {
       vault: '0xF778D2B9E0238D385008e916D7245F51959Ba279',
@@ -55,8 +58,9 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
     },
-    // new 
+    // new
     {
       vault: '0x686C72Aecf2D08410A8270D514B0Dc3Cc72e5288',
       asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
@@ -66,6 +70,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
     },
     {
       vault: '0xB0a0C11a77E67acBD161cc44743a1774f2C4Fff5',
@@ -76,6 +81,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta', 'test'],
     },
   ],
 }

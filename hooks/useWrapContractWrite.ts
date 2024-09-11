@@ -12,6 +12,7 @@ import {
 } from 'viem'
 import { usePublicClient, useWalletClient } from 'wagmi'
 import { useWandTimestamp } from './useWand'
+import { useWrapPublicClient } from './useWrapPublicClient'
 
 export function useWrapContractWrite<
   const abi extends Abi | readonly unknown[],
@@ -31,7 +32,7 @@ export function useWrapContractWrite<
   const { autoToast = true, onSuccess } = opts || {}
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const pc = usePublicClient()
+  const pc = useWrapPublicClient()
   const { data: wc } = useWalletClient()
   const isDisabled = !pc || !wc || !wc.account || isLoading || !config
   const wt = useWandTimestamp()

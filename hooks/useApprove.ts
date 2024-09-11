@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Address, erc20Abi } from 'viem'
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
+import { useWrapPublicClient } from './useWrapPublicClient'
 
 const cacheAllowance: { [k: Address]: { [k: Address]: bigint } } = {}
 
@@ -13,7 +14,7 @@ export const useApproves = (
   reqBigAmount: bigint | false = 10000000000n * 10n ** 18n,
 ) => {
   const { address, chainId } = useAccount()
-  const pc = usePublicClient()
+  const pc = useWrapPublicClient()
   const { data: walletClient } = useWalletClient()
   const [isSuccess, setSuccess] = useState(false)
   const tokens = useMemo(
@@ -26,7 +27,6 @@ export const useApproves = (
     cacheAllowance[spender] = { ...(cacheAllowance[spender] || {}), [token]: value }
     setAllownce((old) => ({ ...old, [token]: value }))
   }
-  const client = usePublicClient()
   useEffect(() => {
     if (!address || !spender || !pc || !chainId) {
       return
@@ -56,7 +56,7 @@ export const useApproves = (
           functionName: 'approve',
           args: [spender, allowanceValue],
         })
-        txHash && (await client?.waitForTransactionReceipt({ hash: txHash }))
+        txHash && (await pc?.waitForTransactionReceipt({ hash: txHash }))
         updateAllownce(token, allowanceValue)
       }
       toast.success('Approve success')

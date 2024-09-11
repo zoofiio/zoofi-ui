@@ -162,8 +162,8 @@ dependencies:
     specifier: ^3.22.4
     version: 3.22.4
   zustand:
-    specifier: ^4.3.1
-    version: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+    specifier: 4.5.5
+    version: 4.5.5(@types/react@18.2.15)(react@18.2.0)
 
 devDependencies:
   '@types/lodash':
@@ -4216,7 +4216,7 @@ packages:
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -4232,7 +4232,7 @@ packages:
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -4254,7 +4254,7 @@ packages:
       d3-zoom: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -4274,7 +4274,7 @@ packages:
       d3-zoom: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -4292,7 +4292,7 @@ packages:
       d3-selection: 3.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -4308,7 +4308,7 @@ packages:
       classcat: 5.0.4
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-      zustand: 4.5.2(@types/react@18.2.15)(react@18.2.0)
+      zustand: 4.5.5(@types/react@18.2.15)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -11955,6 +11955,14 @@ packages:
       react: 18.2.0
     dev: false
 
+  /use-sync-external-store@1.2.2(react@18.2.0):
+    resolution: {integrity: sha512-PElTlVMwpblvbNqQ82d2n6RjStvdSoNe9FG28kNfz3WiXilJm4DdNkEzRhCZuIDwY8U08WVihhGR5iRqAwfDiw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /utf-8-validate@6.0.3:
     resolution: {integrity: sha512-uIuGf9TWQ/y+0Lp+KGZCMuJWc3N9BHA+l/UmHd/oUHwJJDeysyTRxNQVkbzsIWfGFbRe3OcgML/i0mvVRPOyDA==}
     engines: {node: '>=6.14.2'}
@@ -12442,8 +12450,8 @@ packages:
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false
 
-  /zustand@4.5.2(@types/react@18.2.15)(react@18.2.0):
-    resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}
+  /zustand@4.5.5(@types/react@18.2.15)(react@18.2.0):
+    resolution: {integrity: sha512-+0PALYNJNgK6hldkgDq2vLrw5f6g/jCInz52n9RTpropGgeAf/ioFUCdtsjCqu4gNhW9D01rUQBROoRjdzyn2Q==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
       '@types/react': '>=16.8'
@@ -12459,5 +12467,5 @@ packages:
     dependencies:
       '@types/react': 18.2.15
       react: 18.2.0
-      use-sync-external-store: 1.2.0(react@18.2.0)
+      use-sync-external-store: 1.2.2(react@18.2.0)
     dev: false

@@ -1,33 +1,26 @@
 import { useMutation } from '@tanstack/react-query'
 import _ from 'lodash'
 import { useState } from 'react'
-import {
-  Abi,
-  ContractFunctionArgs,
-  ContractFunctionName,
-  ContractFunctionParameters,
-  PublicClient,
-  ReadContractParameters,
-  WalletClient,
-} from 'viem'
+import { Abi, ContractFunctionArgs, ContractFunctionName, ContractFunctionParameters, PublicClient, ReadContractParameters, WalletClient } from 'viem'
 import {
   Config,
   ResolvedRegister,
-  usePublicClient,
   useReadContract,
   useReadContracts,
   useWalletClient,
   type UseReadContractParameters,
-  type UseReadContractsParameters,
+  type UseReadContractsParameters
 } from 'wagmi'
 import { ReadContractData, ReadContractsData } from 'wagmi/query'
 import { create } from 'zustand'
+import { useWrapPublicClient } from './useWrapPublicClient'
 export const useWandTimestamp = create<{ time: number; update: () => void }>((set) => ({
   time: _.now(),
   update: () => {
     set({ time: _.now() })
   },
 }))
+
 
 // export const useWandContractRead = useContractRead;
 export function useWandContractRead<
@@ -76,7 +69,7 @@ export type TaskType = UseReadContractParameters<Abi, string> & {
 }
 export function useMultiWriteContracts() {
   const { data: wc } = useWalletClient()
-  const pc = usePublicClient()
+  const pc = useWrapPublicClient()
   const [finishCount, setFinishCount] = useState(0)
   const wt = useWandTimestamp()
   const res = useMutation({
@@ -100,7 +93,7 @@ export function useMultiWriteContracts() {
 }
 
 export function useWandRead() {
-  const pc = usePublicClient()
+  const pc = useWrapPublicClient()
   const read = async <
     const abi extends Abi | readonly unknown[],
     functionName extends ContractFunctionName<abi, 'pure' | 'view'>,

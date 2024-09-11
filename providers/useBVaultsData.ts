@@ -5,6 +5,7 @@ import { YEAR_SECONDS } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
 import { useWandTimestamp } from '@/hooks/useWand'
+import { useWrapPublicClient } from '@/hooks/useWrapPublicClient'
 import { divMultipOtherBn, fmtPercent, proxyGetDef } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
 import { useQuery } from '@tanstack/react-query'
@@ -12,6 +13,7 @@ import _ from 'lodash'
 import { useEffect, useMemo } from 'react'
 import { Address, erc20Abi, stringToHex, zeroAddress } from 'viem'
 import { useAccount, usePublicClient } from 'wagmi'
+import { create } from 'zustand'
 
 export type BribeInfo = {
   totalRewards: bigint
@@ -69,61 +71,27 @@ export function defBVaultsData() {
   return proxyGetDef({}, (k: string) => defBVaultData(k))
 }
 
-function genPromiseObj<T = void>() {
-  let resolve: (v: T) => void = () => {}
-  const promise = new Promise<T>((_resolve) => {
-    resolve = _resolve
-  })
-  return { promise, resolve, id: new Date().getTime() }
-}
+export const useBVaultsDataStore = create<{ data: { [k: Address]: BVaultDataType }; update: (data: { [k: Address]: BVaultDataType }) => void }>((set) => ({
+  data: {},
+  update: (data) => {
+    set({ data })
+  },
+    
+}))
 
-function useMPublicClient() {
-  const chainId = useCurrentChainId()
-  const pc = usePublicClient({ chainId })
-  return useMemo(() => {
-    if (pc) {
-      console.info('setReadContract')
-      const originRead = pc.readContract
-      let time = new Date().getTime()
-      let count = 0
-      let busy: { promise: Promise<void>; resolve: (v: void) => void; id: number } | undefined
-      const getBusy = () => {
-        count++
-        if (count >= apiBatchConfig.batchSize) {
-          count = 0
-          busy = genPromiseObj()
-        }
-        return busy
-      }
-      pc.readContract = async (...args) => {
-        try {
-          let po = getBusy()
-          const mCount = count
-          po && mCount > 0 && (await po.promise)
-          return await originRead(...args).finally(() => {
-            po && mCount == 0 && console.info('unlock:', mCount, po.id)
-            po && mCount == 0 && setTimeout(po.resolve, 1000)
-          })
-        } catch (error) {
-          console.error('readError', error, '\nArgs', [...args])
-          throw error
-        }
-      }
-    }
-    return pc
-  }, [pc])
-}
+
+
 
 export function useBVaultsData() {
   const chainId = useCurrentChainId()
   const time = useWandTimestamp((s) => s.time)
   const data = useMemoOfChainId<{ [k: Address]: BVaultDataType }>(defBVaultsData)
   const bvcs = BVAULTS_CONFIG[chainId]
-  const pc = useMPublicClient()
+  const pc = useWrapPublicClient()
   const { address } = useAccount()
-
   const { data: datas, refetch } = useQuery<BVaultDataType[]>({
     queryFn: async () => {
+      console.info('pc:', !!pc)
       if (!pc) return []
       const bvcsi = await Promise.all(
         bvcs.map((vc) => pc.readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochIdCount' }).then((idCount) => ({ ...vc, epochCount: idCount }))),
@@ -215,7 +183,7 @@ export function useBVaultsData() {
       console.info('bVaultsData:', res)
       return res
     },
-    queryKey: ['getBVautsData'],
+    queryKey: ['getBVautsData', pc],
     retry: true,
   })
   useEffect(() => {

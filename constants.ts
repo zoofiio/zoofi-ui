@@ -10,7 +10,7 @@ const Day1 = 24 * 60 * 60 * 1000
 
 const DOC_LINK = () => `https://docs.${DomainRef.value}`
 
-const ENV: '' | 'test' | 'beta' = (process.env.NEXT_PUBLIC_ENV as any) || ''
+const ENV: 'prod' | 'test' | 'beta' = (process.env.NEXT_PUBLIC_ENV as any) || 'prod'
 
 const isTEST = ENV == 'test'
 const isBETA = ENV == 'beta'

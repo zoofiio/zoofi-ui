@@ -10,13 +10,14 @@ import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
 import { usePlainVualtsReads } from '@/hooks/usePlainVaultsReads'
 import { useUpdatePtypoolApy } from '@/hooks/usePtypoolApy'
 import { useWandContractReads, useWandTimestamp } from '@/hooks/useWand'
+import { useSetPublicClient, useWrapPublicClient } from '@/hooks/useWrapPublicClient'
 import { UnPromise, getBigint, proxyGetDef } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import _ from 'lodash'
 import { ReactNode, createContext, useEffect, useMemo } from 'react'
 import { useAsyncRetry } from 'react-use'
 import { Address, erc20Abi, formatUnits, stringToHex } from 'viem'
-import { UseBalanceParameters, useAccount, useBalance, usePublicClient } from 'wagmi'
+import { UseBalanceParameters, useAccount, useBalance } from 'wagmi'
 import { GetBalanceData } from 'wagmi/query'
 import { defBVaultsData, useBVaultsData } from './useBVaultsData'
 
@@ -152,7 +153,7 @@ function useReadEarns() {
   const { data: totalStaking } = useWandContractReads({
     contracts: [...pools.map(({ poolAddress }) => ({ abi: abiPtyPool, address: poolAddress, functionName: 'totalStakingBalance' }))],
   })
-  const pc = usePublicClient()
+  const pc = useWrapPublicClient()
   const { data: poolBalance } = useQuery({
     queryKey: [pools, pc],
     initialData: proxyGetDef({}, 0n),
@@ -273,6 +274,7 @@ function useUSBApr(vaultsState: FetcherContextInterface['vaultsState'], stableVa
 }
 
 export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Element => {
+  useSetPublicClient()
   const wand = useWandTimestamp()
   const chainId = useCurrentChainId()
   useEthersProvider()

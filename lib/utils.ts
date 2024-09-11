@@ -19,14 +19,26 @@ export function getErrorMsg(error: any) {
   else if (typeof error?.msg == 'string') msg = error?.msg
   else if (typeof error?.message == 'string') msg = error?.message
   // replace
-  if (msg.includes('User denied') || msg.includes('user rejected transaction'))
-    return 'You declined the action in your wallet.'
+  if (msg.includes('User denied') || msg.includes('user rejected transaction')) return 'You declined the action in your wallet.'
   if (msg.includes('transaction failed')) return 'Transaction failed'
   return msg
 }
 
 export function handleError(error: any) {
   toast.error(getErrorMsg(error))
+}
+
+let poIndex = 0
+export function genPromiseObj<T = void>() {
+  let resolve: (v: T) => void = () => {}
+  const promise = new Promise<T>((_resolve) => {
+    resolve = _resolve
+  })
+  poIndex++
+  return { promise, resolve, id: poIndex }
+}
+export function sleep(time: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, time))
 }
 
 export function aarToNumber(aar: bigint, decimals: bigint | number) {
@@ -102,15 +114,8 @@ export const shortStr = (v?: string, count = 6, endCount = 5) => {
   return `${v.toString().substring(0, count)}...${v.toString().substring(v.length - endCount)}`
 }
 
-export const fmtTime = (
-  time: number | string | bigint,
-  type: 'date' | 'time' | 'all' = 'all',
-  locale: 'zh' | 'en' = 'en',
-  split: string = '/',
-) => {
-  const date = new Date(
-    typeof time == 'number' ? time : typeof time == 'bigint' ? parseInt(time.toString()) : time + ' UTC',
-  )
+export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 'all' = 'all', locale: 'zh' | 'en' = 'en', split: string = '/') => {
+  const date = new Date(typeof time == 'number' ? time : typeof time == 'bigint' ? parseInt(time.toString()) : time + ' UTC')
   let res = ''
   switch (type) {
     case 'date':
@@ -156,22 +161,21 @@ export const fmtDuration = (duration: number | bigint, type: FMT_DURATION_TYPE |
 export const decimalBn = (decimals: bigint | number = 10n) => 10n ** BigInt(decimals || 10n)
 
 // src * multip
-export const multipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
-  (src * multip) / decimalBn(multipDecimal || 10n)
+export const multipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) => (src * multip) / decimalBn(multipDecimal || 10n)
 // src * (1 - multip)
 export const multipOtherBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
-  decimalBn(multipDecimal || 10n) - multip > 0n
-    ? (src * (decimalBn(multipDecimal || 10n) - multip)) / decimalBn(multipDecimal || 10n)
-    : 0n
+  decimalBn(multipDecimal || 10n) - multip > 0n ? (src * (decimalBn(multipDecimal || 10n) - multip)) / decimalBn(multipDecimal || 10n) : 0n
 // src / multip
-export const divMultipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
-  multip > 0n ? (src * decimalBn(multipDecimal || 10n)) / multip : 0n
+export const divMultipBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) => (multip > 0n ? (src * decimalBn(multipDecimal || 10n)) / multip : 0n)
 // src / (1 - multip)
 export const divMultipOtherBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
-  decimalBn(multipDecimal || 10n) - multip > 0n
-    ? (src * decimalBn(multipDecimal || 10n)) / (decimalBn(multipDecimal || 10n) - multip)
-    : 0n
+  decimalBn(multipDecimal || 10n) - multip > 0n ? (src * decimalBn(multipDecimal || 10n)) / (decimalBn(multipDecimal || 10n) - multip) : 0n
 
 export const fmtBn = (bn: bigint, decimals: bigint | number = 18) => {
   return formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
+}
+
+
+export function retry<T>(fn: () => Promise<T>, count:number = Infinity){
+
 }

@@ -120,12 +120,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
               tab: 'Mint',
               content: (
                 <div className='flex flex-col gap-1'>
-                  <AssetInput
-                    asset={bvc.assetSymbol}
-                    amount={inputAsset}
-                    balance={assetBalance}
-                    setAmount={setInputAsset}
-                  />
+                  <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
                   <div className='text-xs font-medium flex justify-between items-center'>
                     <span>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</span>
                     {isLP && (
@@ -159,13 +154,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
               tab: 'Redeem',
               content: (
                 <div className='flex flex-col gap-1'>
-                  <AssetInput
-                    asset={bvc.pTokenSymbol}
-                    assetIcon='Panda'
-                    amount={inputPToken}
-                    balance={pTokenBalance}
-                    setAmount={setInputPToken}
-                  />
+                  <AssetInput asset={bvc.pTokenSymbol} assetIcon='Panda' amount={inputPToken} balance={pTokenBalance} setAmount={setInputPToken} />
                   {epoch && epoch.settled && (
                     <div className='flex flex-wrap justify-between items-center h-5'>
                       <div className='text-xs font-medium'>{redeemInfo}</div>
@@ -193,8 +182,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                   {(!epoch || !epoch.settled) && (
                     <div className='flex flex-wrap justify-between items-center h-5 mt-5'>
                       <div className='text-xs font-medium'>
-                        {`Redemption in transit: ${displayBalance(redeemingBalance)}`}{' '}
-                        <Tip>Redemption will be completed at the end of an Epoch.</Tip>
+                        {`Redemption in transit: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
                       </div>
                       {renderClaimable()}
                     </div>
@@ -238,18 +226,11 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
 
   const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
   const ytAssetPrice = displayBalance(ytAssetPriceBn)
-  const afterYtAssetPrice =
-    vualtYTokenBalance > outputYTokenForInput
-      ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput)
-      : 0n
+  const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput)
-  const priceImpact =
-    afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n
-      ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn
-      : 0n
+  const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
-  const oneYoutAsset =
-    bvd.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.yTokenAmountForSwapYT : 0n
+  const oneYoutAsset = bvd.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvd)
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
@@ -285,12 +266,9 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
               sub={
                 <>
                   <span>
-                    {fmtTime(epoch.startTime * 1000n, 'date')}-
-                    {fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
+                    {fmtTime(epoch.startTime * 1000n, 'date')}-{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
                   </span>
-                  <span className='ml-auto'>
-                    ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining
-                  </span>
+                  <span className='ml-auto'>~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining</span>
                 </>
               }
             />
@@ -307,8 +285,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
           <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
         </div>
         <div className='text-xs font-medium text-black/80 dark:text-white/80'>
-          1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1{' '}
-          {assetSymbolShort} until the end of Epoch.
+          1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1 {assetSymbolShort} until the end of Epoch.
         </div>
 
         <ApproveAndTx
@@ -378,12 +355,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   function rowRender({ key, style, index }: ListRowProps) {
     return (
       <div key={key} style={style} className='cursor-pointer' onClick={() => onRowClick(index)}>
-        <div
-          className={cn(
-            'flex h-[56px] card !rounded-lg !p-5 justify-between items-center font-semibold',
-            index < epoches.length - 1 ? 'mb-[20px]' : '',
-          )}
-        >
+        <div className={cn('flex h-[56px] card !rounded-lg !p-5 justify-between items-center font-semibold', index < epoches.length - 1 ? 'mb-[20px]' : '')}>
           <div className='text-base'>Epoch {epoches[index].epochId.toString()}</div>
           <div className='text-xs dark:text-white/60'>3/4/2024~4/4/2024</div>
         </div>
@@ -418,13 +390,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             rowClassName='text-center'
             header={['', '', 'Total', 'Mine', '']}
             span={{ 1: 2, 2: 1, 3: 1 }}
-            data={bribes.map((item) => [
-              '',
-              <BribeTit name={item.bribeSymbol} key={'1'} />,
-              displayBalance(item.totalRewards),
-              displayBalance(item.bribeAmount),
-              '',
-            ])}
+            data={bribes.map((item) => ['', <BribeTit name={item.bribeSymbol} key={'1'} />, displayBalance(item.totalRewards), displayBalance(item.bribeAmount), ''])}
           />
         </div>
         <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>
@@ -433,31 +399,23 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
               My yToken: <span className={cn(valueClassname)}>{displayBalance(userBalanceYToken)}</span>
             </div>
             <div>
-              Time Weighted Points:{' '}
-              <span className={cn(valueClassname)}>{displayBalance(current?.userBalanceYTokenSyntyetic)}</span>
+              Time Weighted Points: <span className={cn(valueClassname)}>{displayBalance(current?.userBalanceYTokenSyntyetic)}</span>
             </div>
           </div>
           <div>
             My Share: <span className={cn(valueClassname, 'text-2xl')}>{myShare}</span>
           </div>
         </div>
-        <AssetInput
-          asset={bvc.yTokenSymbol}
-          assetIcon='Venom'
-          amount={inputYToken}
-          balance={current?.userBalanceYToken || 0n}
-          setAmount={setInputYToken}
-        />
         <span className='text-xs mx-auto'>You will receive {myShare} of total bribes</span>
         <ApproveAndTx
           className='mx-auto mt-4'
           tx='Harvest'
-          disabled={inputYTokenBn <= 0n || inputYTokenBn > userBalanceYToken || !current?.settled}
+          disabled={!current || !current?.settled}
           config={{
             abi: abiBVault,
             address: bvc.vault,
             functionName: 'claimBribes',
-            args: [inputYTokenBn],
+            args: [current?.epochId!],
           }}
           onTxSuccess={() => {
             setInputYToken('')
@@ -499,26 +457,15 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const epoch = bvd.epoches[0]
   const epochName = `Epoch ${(epoch?.epochId || 1n).toString()}`
   return (
-    <div
-      className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})}
-      onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}
-    >
-      <div
-        className={cn(
-          itemClassname,
-          'border-b',
-          'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center',
-        )}
-      >
+    <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
+      <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
         <CoinIcon symbol={vc.assetSymbol} size={44} />
         <div>
           <div className=' text-lg font-semibold whitespace-nowrap'>{vc.assetSymbol}</div>
           <div className=' text-sm font-medium'>{vc.assetSymbol.includes('-') ? 'LP Token' : ''}</div>
         </div>
         <div className='ml-auto'>
-          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>
-            {'Total Value Locked'}
-          </div>
+          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{'Total Value Locked'}</div>
           <div className='text-sm font-medium'>{displayBalance(bvd.lockedAssetTotal)}</div>
         </div>
       </div>
@@ -534,22 +481,14 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
 export function BVaultCardComming({ symbol }: { symbol: string }) {
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden h-[367px]', {})}>
-      <div
-        className={cn(
-          itemClassname,
-          'border-b',
-          'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center h-20',
-        )}
-      >
+      <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center h-20')}>
         <CoinIcon symbol={symbol} size={44} />
         <div>
           <div className=' text-lg font-semibold whitespace-nowrap'>{symbol}</div>
           <div className=' text-sm font-medium'>{symbol.includes('-') ? 'LP Token' : ''}</div>
         </div>
         <div className='ml-auto'>
-          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>
-            {'Total Value Locked'}
-          </div>
+          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{'Total Value Locked'}</div>
           <div className='text-sm font-medium'>{'$-'}</div>
         </div>
       </div>

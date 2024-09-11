@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 
-import { apiBatchConfig, SUPPORT_CHAINS } from '@/config/network'
+import { apiBatchConfig, multicallBatchConfig, SUPPORT_CHAINS } from '@/config/network'
 import { RainbowKitProvider, connectorsForWallets, darkTheme, lightTheme } from '@rainbow-me/rainbowkit'
 import {
   bitgetWallet,
@@ -34,7 +34,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const multicallBatchConfig = { batchSize: 100, wait: 500 }
+
 
 const qClient = new QueryClient()
 

@@ -19,12 +19,16 @@ export const berachainTestnet = defineChain({
       url: 'https://80084.testnet.routescan.io/',
     },
   },
+  contracts: {
+    multicall3: { address: '0xcA11bde05977b3631167028862bE2a173976CA11', blockCreated: 109269 },
+  },
   testnet: true,
   fees: {
-    baseFeeMultiplier: 1.4
-  }
+    baseFeeMultiplier: 1.4,
+  },
 })
-export const apiBatchConfig = { batchSize: 30, wait: 1000 }
+export const apiBatchConfig = { batchSize: 50, wait: 1000 }
+export const multicallBatchConfig = { batchSize: 100, wait: 500 }
 
 export const beraChains = [berachainTestnet]
 export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter(

@@ -6,7 +6,7 @@ import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
 import { BVAULTS_CONFIG } from '@/config/bvaults'
-import { isBETA } from '@/constants'
+import { ENV, isBETA } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { Grid } from '@tremor/react'
 import { useSearchParams } from 'next/navigation'
@@ -20,7 +20,7 @@ const SupportTabs = ['mint', 'harvest'] as const
 
 export default function Vaults() {
   const chainId = useCurrentChainId()
-  const bvcs = BVAULTS_CONFIG[chainId]
+  const bvcs = BVAULTS_CONFIG[chainId].filter((vc) => vc.onEnv && vc.onEnv.includes(ENV))
   const current = bvcs[0]
   const params = useSearchParams()
   const paramsVault = params.get('vault')
@@ -37,13 +37,10 @@ export default function Vaults() {
             <div className='page-title'>B-Vaults</div>
             <Noti data='A pendle-like product with more innovation.' />
             <Grid numItems={1} numItemsMd={2} numItemsLg={3} className='gap-5 mt-4'>
-              {isBETA ? (
-                <>
-                  {bvcs.map((item, index) => (
-                    <BVaultCard key={`group_vault_item_${index}`} vc={item} />
-                  ))}
-                </>
-              ) : (
+              {bvcs.map((item, index) => (
+                <BVaultCard key={`group_vault_item_${index}`} vc={item} />
+              ))}
+              {bvcs.length == 0 && (
                 <>
                   <BVaultCardComming symbol='HONEY-USDC' />
                   <BVaultCardComming symbol='HONEY-WBTC' />
