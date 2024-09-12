@@ -3,11 +3,9 @@ import { BVaultConfig } from '@/config/bvaults'
 import { YEAR_SECONDS } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { usePublicClientStore } from '@/hooks/useWrapPublicClient'
-import { divMultipOtherBn, fmtPercent, proxyGetDef, retry } from '@/lib/utils'
+import { divMultipOtherBn, fmtPercent, proxyGetDef } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
 import { useQuery } from '@tanstack/react-query'
-import { produce } from 'immer'
-import _ from 'lodash'
 import { useEffect, useMemo } from 'react'
 import { Address, erc20Abi, PublicClient, stringToHex } from 'viem'
 import { useAccount } from 'wagmi'
@@ -263,7 +261,15 @@ export function useBVaultData(bvcOrVault: BVaultConfig | Address) {
   const vault = typeof bvcOrVault == 'string' ? (bvcOrVault as Address) : bvcOrVault.vault
   return useBVaultsDataShallow((s) => s.bvaults[vault])
 }
+
 export function useUpdateBVaultsData(bvcs: BVaultConfig[]) {
+  return useQuery({
+    queryFn: () => useBVaultsDataStore.getState().updateBVaults(bvcs),
+    queryKey: [bvcs],
+  })
+}
+
+export function useResetBVaultsData() {
   const chainId = useCurrentChainId()
   const { address } = useAccount()
   useEffect(() => {
@@ -272,10 +278,6 @@ export function useUpdateBVaultsData(bvcs: BVaultConfig[]) {
   useEffect(() => {
     useBVaultsDataStore.setState({ userBvaults: defUserBvaults(), userEpochs: defEpoches() })
   }, [address])
-  return useQuery({
-    queryFn: () => useBVaultsDataStore.getState().updateBVaults(bvcs),
-    queryKey: [bvcs],
-  })
 }
 
 export function useUpdateUserBVaultData(bvc: BVaultConfig) {

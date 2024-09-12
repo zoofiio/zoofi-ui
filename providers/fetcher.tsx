@@ -19,6 +19,7 @@ import { useAsyncRetry } from 'react-use'
 import { Address, erc20Abi, formatUnits, stringToHex } from 'viem'
 import { UseBalanceParameters, useAccount, useBalance } from 'wagmi'
 import { GetBalanceData } from 'wagmi/query'
+import { useResetBVaultsData } from './useBVaultsData'
 
 export interface FetcherContextInterface {
   balances: { [k: string]: bigint }
@@ -273,6 +274,7 @@ function useUSBApr(vaultsState: FetcherContextInterface['vaultsState'], stableVa
 }
 
 export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Element => {
+  useResetBVaultsData()
   useSetPublicClient()
   const wand = useWandTimestamp()
   const chainId = useCurrentChainId()

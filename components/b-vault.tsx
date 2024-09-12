@@ -338,7 +338,7 @@ function BribeTit(p: { name: string }) {
 }
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
-  const [onlyMy, setOnlyMy] = useState(true)
+  const [onlyMy, setOnlyMy] = useState(false)
   const epochesData = useEpochesData(bvc.vault)
   const epoches = useMemo(() => {
     const myFilter = (item: BVaultEpocheDTO & UserBVaultEpocheDTO) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
@@ -348,9 +348,6 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const itemHeight = 56
   const itemSpaceY = 20
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
-
-  const [inputYToken, setInputYToken] = useState('')
-  const inputYTokenBn = parseEthers(inputYToken)
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
   const [current, setCurrent] = useState<(BVaultEpocheDTO & UserBVaultEpocheDTO) | undefined | null>(epoches[0])
   useEffect(() => {

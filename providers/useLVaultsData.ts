@@ -1,5 +1,3 @@
-import { getPtypoolYields } from '@/config/api'
-import { usePlainVualtsReads } from '@/hooks/usePlainVaultsReads'
 import { Address } from 'viem'
 
 export type LVaultDTO = {
