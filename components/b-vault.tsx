@@ -12,6 +12,7 @@ import {
   useBVaultBoost,
   useBVaultData,
   useBVaultsDataShallow,
+  useBVaultsDataStore,
   useCalcClaimable,
   useEpochesData,
   UserBVaultEpocheDTO
@@ -23,7 +24,7 @@ import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { useMeasure } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
-import { useReadContract, useWalletClient } from 'wagmi'
+import { useAccount, useReadContract, useWalletClient } from 'wagmi'
 import { ApproveAndTx } from './approve-and-tx'
 import { AssetInput } from './asset-input'
 import { CoinIcon } from './icons/coinicon'
@@ -90,6 +91,9 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
             functionName: 'batchClaimRedeemAssets',
             args: [ids.length > 40 ? ids.slice(ids.length - 40) : ids],
           }}
+          onTxSuccess={() => {
+            useBVaultsDataStore.getState().updateBVaults([bvc])
+          }}
         />
       </div>
     )
@@ -151,6 +155,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                     }}
                     onTxSuccess={() => {
                       setInputAsset('')
+                      useBVaultsDataStore.getState().updateBVaults([bvc])
                     }}
                   />
                 </div>
@@ -183,6 +188,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                     }}
                     onTxSuccess={() => {
                       setInputPToken('')
+                      useBVaultsDataStore.getState().updateBVaults([bvc])
                     }}
                   />
                   {(!epoch || !epoch.settled) && (
@@ -314,6 +320,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
           spender={bvc.vault}
           onTxSuccess={() => {
             setInputAsset('')
+            useBVaultsDataStore.getState().updateBVaults([bvc])
           }}
         />
       </div>
@@ -427,7 +434,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             args: [current?.epochId!],
           }}
           onTxSuccess={() => {
-            setInputYToken('')
+            useBVaultsDataStore.getState().updateBVaults([bvc])
           }}
         />
       </div>

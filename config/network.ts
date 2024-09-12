@@ -1,4 +1,3 @@
-import { isPROD } from '@/constants'
 import { providers } from 'ethers'
 import { Address, Chain, defineChain } from 'viem'
 
@@ -27,8 +26,8 @@ export const berachainTestnet = defineChain({
     baseFeeMultiplier: 1.4,
   },
 })
-export const apiBatchConfig = { batchSize: 50, wait: 1000 }
-export const multicallBatchConfig = { batchSize: 100, wait: 500 }
+export const apiBatchConfig = { batchSize: 30, wait: 1500 }
+export const multicallBatchConfig = { batchSize: 100, wait: 1000 }
 
 export const beraChains = [berachainTestnet]
 export const SUPPORT_CHAINS: readonly [Chain, ...Chain[]] = [...beraChains].filter(

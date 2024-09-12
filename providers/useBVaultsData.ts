@@ -146,7 +146,7 @@ const defUserBvaults = (obj: {} = {}) =>
 const defEpoches = (obj: {} = {}) => proxyGetDef(obj, [])
 
 export type BVaultsDataStore = {
-  isLoading: boolean,
+  isLoading: boolean
   bvaults: { [k: Address]: BVaultDTO }
   userBvaults: { [k: Address]: UserBVaultDTO }
   epochs: { [k: Address]: BVaultEpocheDTO[] }
@@ -163,113 +163,96 @@ export const useBVaultsDataStore = create<BVaultsDataStore>((set, get) => ({
   userBvaults: defUserBvaults(),
   epochs: defEpoches(),
   userEpochs: defEpoches(),
-  updateBVaults: (bvcs: BVaultConfig[]) =>
-    retry(async () => {
-      const pc = usePublicClientStore.getState().pc
-      if (!pc) throw 'No public client'
-      const bvaultsDatas = await Promise.all(bvcs.map((bvc) => getBVaultData(pc, bvc)))
-      set({
-        bvaults: defBvaults(
-          produce(get().bvaults, (draft) => {
-            bvaultsDatas.forEach((bvd) => {
-              draft[bvd.vault!] = proxyGetDef(bvd as any, 0n)
-            })
-          }),
-        ),
-      })
-      return bvaultsDatas
-    }),
-  updateUserBVaults: (bvcs: BVaultConfig[], user: Address) =>
-    retry(async () => {
-      const pc = usePublicClientStore.getState().pc
-      if (!pc) throw 'No public client'
-      const getUserBVault = (vc: BVaultConfig) => {
-        const bvd = get().bvaults[vc.vault]
-        return Promise.all([
-          // balance asset
-          pc.readContract({ abi: erc20Abi, address: vc.asset, functionName: 'balanceOf', args: [user] }),
-          // balance pToken
-          pc.readContract({ abi: erc20Abi, address: vc.pToken, functionName: 'balanceOf', args: [user] }),
-          // redeemingBalance
-          bvd.epochCount
-            ? pc
-                .readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochInfoById', args: [bvd.epochCount] })
-                .then((epoch) => pc.readContract({ abi: abiRedeemPool, address: epoch.redeemPool, functionName: 'settled' }).then((settled) => ({ epoch, settled })))
-                .then(({ epoch, settled }) =>
-                  !settled ? pc.readContract({ abi: abiRedeemPool, address: epoch.redeemPool, functionName: 'userRedeemingBalance', args: [user] }) : 0n,
-                )
-            : Promise.resolve(0n),
-          // pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [user] }) : Promise.resolve(0n)
-        ]).then<UserBVaultDTO>(([userBalanceAssset, userBalancePToken, redeemingBalance]) => ({ userBalanceAssset, userBalancePToken, vault: vc.vault, redeemingBalance }))
-      }
-      const usersBvaults = await Promise.all(bvcs.map(getUserBVault))
+  updateBVaults: async (bvcs: BVaultConfig[]) => {
+    console.info('updateBVaults', bvcs)
+    const pc = usePublicClientStore.getState().pc
+    const bvaultsDatas = await Promise.all(bvcs.map((bvc) => getBVaultData(pc, bvc)))
+    const bvaultsMap = { ...get().bvaults }
+    bvaultsDatas.forEach((item) => (bvaultsMap[item.vault] = item))
+    set({ bvaults: defBvaults(bvaultsMap) })
+    return bvaultsDatas
+  },
+  updateUserBVaults: async (bvcs: BVaultConfig[], user: Address) => {
+    console.info('updateUserBVaults', bvcs, user)
+    const pc = usePublicClientStore.getState().pc
+    const getUserBVault = (vc: BVaultConfig) => {
+      const bvd = get().bvaults[vc.vault]
+      return Promise.all([
+        // balance asset
+        pc.readContract({ abi: erc20Abi, address: vc.asset, functionName: 'balanceOf', args: [user] }),
+        // balance pToken
+        pc.readContract({ abi: erc20Abi, address: vc.pToken, functionName: 'balanceOf', args: [user] }),
+        // redeemingBalance
+        bvd.epochCount
+          ? pc
+              .readContract({ abi: abiBVault, address: vc.vault, functionName: 'epochInfoById', args: [bvd.epochCount] })
+              .then((epoch) => pc.readContract({ abi: abiRedeemPool, address: epoch.redeemPool, functionName: 'settled' }).then((settled) => ({ epoch, settled })))
+              .then(({ epoch, settled }) =>
+                !settled ? pc.readContract({ abi: abiRedeemPool, address: epoch.redeemPool, functionName: 'userRedeemingBalance', args: [user] }) : 0n,
+              )
+          : Promise.resolve(0n),
+      ]).then<UserBVaultDTO>(([userBalanceAssset, userBalancePToken, redeemingBalance]) => ({ userBalanceAssset, userBalancePToken, vault: vc.vault, redeemingBalance }))
+    }
+    const usersBvaults = await Promise.all(bvcs.map(getUserBVault))
+    const usersBvaultsMap = { ...get().userBvaults }
+    usersBvaults.forEach((item) => (usersBvaultsMap[item.vault] = item))
+    console.info('setUserBvaults:', usersBvaultsMap)
+    set({ userBvaults: defUserBvaults(usersBvaultsMap) })
+    return usersBvaults
+  },
+  updateEpoches: async (bvc: BVaultConfig, bvd: BVaultDTO) => {
+    console.info('updateEpoches', bvc, bvd)
+    const pc = usePublicClientStore.getState().pc
+    const epochIds = new Array(parseInt(bvd.epochCount.toString())).fill(0).map((_v, i) => bvd.epochCount - BigInt(i))
+    // 获取所有Epoches的数据
+    const getEpoches = () => {
+      return bvd.epochCount > 0n ? Promise.all(epochIds.map((epochId) => getBVaultEpochData(pc, bvc, epochId))) : Promise.resolve([])
+    }
+    const epoches = await getEpoches()
+    set({ epochs: defEpoches({ ...get().epochs, [bvc.vault]: epoches }) })
+    return epoches
+  },
+  updateUserEpoches: async (bvc: BVaultConfig, epoches: BVaultEpocheDTO[], user: Address) => {
+    console.info('updateUserEpoches', bvc, epoches, user)
+    const pc = usePublicClientStore.getState().pc
+    // 获取RedeemPool的数据。
+    const getRedeemPoolData = (redeemPool: Address, epoch: BVaultEpocheDTO) =>
+      Promise.all([
+        !epoch.settled ? pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [user] }) : Promise.resolve(0n),
+        pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'earnedAssetAmount', args: [user] }),
+      ]).then(([redeemingBalance, claimableAssetBalance]) => ({ redeemingBalance, claimableAssetBalance }))
 
-      set({
-        userBvaults: defUserBvaults(
-          produce(get().userBvaults, (draft) => {
-            usersBvaults.forEach((item) => {
-              draft[item.vault] = proxyGetDef(item, 0n)
-            })
-          }),
-        ),
-      })
-      return usersBvaults
-    }),
-  updateEpoches: (bvc: BVaultConfig, bvd: BVaultDTO) =>
-    retry(async () => {
-      const pc = usePublicClientStore.getState().pc
-      if (!pc) throw 'No public client'
-      const epochIds = new Array(parseInt(bvd.epochCount.toString())).fill(0).map((_v, i) => bvd.epochCount - BigInt(i))
-      // 获取所有Epoches的数据
-      const getEpoches = () => {
-        return bvd.epochCount > 0n ? Promise.all(epochIds.map((epochId) => getBVaultEpochData(pc, bvc, epochId))) : Promise.resolve([])
-      }
-      const epoches = await getEpoches()
-      set({ epochs: defEpoches({ ...get().epochs, [bvc.vault]: epoches }) })
-      return epoches
-    }),
-  updateUserEpoches: (bvc: BVaultConfig, epoches: BVaultEpocheDTO[], user: Address) =>
-    retry(async () => {
-      const pc = usePublicClientStore.getState().pc
-      if (!pc) throw 'No public client'
-      // 获取RedeemPool的数据。
-      const getRedeemPoolData = (redeemPool: Address, epoch: BVaultEpocheDTO) =>
+    const getBribe = async (epochId: bigint, bribe: Pick<BribeInfo, 'bribeAmount' | 'epochId' | 'bribeToken'>) => {
+      const totalRewards = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'bribeTotalAmount', args: [epochId, bribe.bribeToken] })
+      const bribeSymbol = await pc.readContract({ abi: erc20Abi, address: bribe.bribeToken, functionName: 'symbol' })
+      return { ...bribe, totalRewards, bribeSymbol }
+    }
+    // getBribes
+    const getBribes = async (epochId: bigint) => {
+      const bribes = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'calcBribes', args: [epochId, user] })
+      return Promise.all(bribes.map((bribe) => getBribe(epochId, bribe)))
+    }
+    const userEpoches = await Promise.all(
+      epoches.map((epoche) =>
         Promise.all([
-          !epoch.settled ? pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [user] }) : Promise.resolve(0n),
-          pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'earnedAssetAmount', args: [user] }),
-        ]).then(([redeemingBalance, claimableAssetBalance]) => ({ redeemingBalance, claimableAssetBalance }))
-
-      const getBribe = async (epochId: bigint, bribe: Pick<BribeInfo, 'bribeAmount' | 'epochId' | 'bribeToken'>) => {
-        const totalRewards = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'bribeTotalAmount', args: [epochId, bribe.bribeToken] })
-        const bribeSymbol = await pc.readContract({ abi: erc20Abi, address: bribe.bribeToken, functionName: 'symbol' })
-        return { ...bribe, totalRewards, bribeSymbol }
-      }
-      // getBribes
-      const getBribes = async (epochId: bigint) => {
-        const bribes = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'calcBribes', args: [epochId, user] })
-        return Promise.all(bribes.map((bribe) => getBribe(epochId, bribe)))
-      }
-      const userEpoches = await Promise.all(
-        epoches.map((epoche) =>
-          Promise.all([
-            getBribes(epoche.epochId),
-            getRedeemPoolData(epoche.redeemPool, epoche),
-            // balance yToken
-            pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epoche.epochId, user] }),
-            // balance yTokenSynthetic
-            pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalanceSynthetic', args: [epoche.epochId, user] }),
-          ]).then<UserBVaultEpocheDTO>(([bribes, redeemPoolData, userBalanceYToken, userBalanceYTokenSyntyetic]) => ({
-            epochId: epoche.epochId,
-            bribes,
-            ...redeemPoolData,
-            userBalanceYToken,
-            userBalanceYTokenSyntyetic,
-          })),
-        ),
-      )
-      set({ userEpochs: defEpoches({ ...get().userEpochs, [bvc.vault]: userEpoches }) })
-      return userEpoches
-    }),
+          getBribes(epoche.epochId),
+          getRedeemPoolData(epoche.redeemPool, epoche),
+          // balance yToken
+          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epoche.epochId, user] }),
+          // balance yTokenSynthetic
+          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalanceSynthetic', args: [epoche.epochId, user] }),
+        ]).then<UserBVaultEpocheDTO>(([bribes, redeemPoolData, userBalanceYToken, userBalanceYTokenSyntyetic]) => ({
+          epochId: epoche.epochId,
+          bribes,
+          ...redeemPoolData,
+          userBalanceYToken,
+          userBalanceYTokenSyntyetic,
+        })),
+      ),
+    )
+    set({ userEpochs: defEpoches({ ...get().userEpochs, [bvc.vault]: userEpoches }) })
+    return userEpoches
+  },
 }))
 
 export function useBVaultsDataShallow<T>(selector: (state: BVaultsDataStore) => T) {
@@ -282,9 +265,13 @@ export function useBVaultData(bvcOrVault: BVaultConfig | Address) {
 }
 export function useUpdateBVaultsData(bvcs: BVaultConfig[]) {
   const chainId = useCurrentChainId()
+  const { address } = useAccount()
   useEffect(() => {
     useBVaultsDataStore.setState({ bvaults: defBvaults(), userBvaults: defUserBvaults(), epochs: defEpoches(), userEpochs: defEpoches() })
   }, [chainId])
+  useEffect(() => {
+    useBVaultsDataStore.setState({ userBvaults: defUserBvaults(), userEpochs: defEpoches() })
+  }, [address])
   return useQuery({
     queryFn: () => useBVaultsDataStore.getState().updateBVaults(bvcs),
     queryKey: [bvcs],
@@ -294,9 +281,6 @@ export function useUpdateBVaultsData(bvcs: BVaultConfig[]) {
 export function useUpdateUserBVaultData(bvc: BVaultConfig) {
   const { address } = useAccount()
   const bvd = useBVaultData(bvc)
-  useEffect(() => {
-    useBVaultsDataStore.setState({ userBvaults: defUserBvaults(), userEpochs: defEpoches() })
-  }, [address])
   return useQuery({
     queryKey: [address, bvc, bvd],
     enabled: !!address,
@@ -325,10 +309,12 @@ export function useUpdateUserBVaultEpoches(bvc: BVaultConfig) {
 }
 
 export function useEpochesData(vault: Address) {
-  const epoches = useBVaultsDataShallow(({ epochs, userEpochs }) =>
-    epochs[vault].map((ep) => proxyGetDef({ ...ep, ...(userEpochs[vault].find((item) => item.epochId == ep.epochId)! || {}) }, 0n)),
-  )
-  return epoches
+  const { epochs, userEpochs } = useBVaultsDataShallow(({ epochs, userEpochs }) => ({ epochs, userEpochs }))
+  return useMemo(() => {
+    return epochs[vault].map((ep) =>
+      proxyGetDef<BVaultEpocheDTO & UserBVaultEpocheDTO>({ ...ep, ...(userEpochs[vault].find((item) => item.epochId == ep.epochId) || ({ bribes: [] } as any)) }, 0n),
+    )
+  }, [epochs, userEpochs])
 }
 
 export function useCalcClaimable(vault: Address) {

@@ -27,7 +27,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 })
 
-const qClient = new QueryClient()
+const qClient = new QueryClient({ defaultOptions: { queries: { retry: 3 }}})
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = React.useState<ReturnType<typeof createConfig>>()

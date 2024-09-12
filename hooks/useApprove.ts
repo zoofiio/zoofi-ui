@@ -28,7 +28,7 @@ export const useApproves = (
     setAllownce((old) => ({ ...old, [token]: value }))
   }
   useEffect(() => {
-    if (!address || !spender || !pc || !chainId) {
+    if (!address || !spender || !chainId) {
       return
     }
     tokens.forEach((t) => {

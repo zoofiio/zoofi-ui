@@ -175,7 +175,7 @@ export const fmtBn = (bn: bigint, decimals: bigint | number = 18) => {
   return formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
 }
 
-export async function retry<T>(fn: () => Promise<T>, count: number = Infinity, wait: number = 2000) {
+export async function retry<T>(fn: () => Promise<T>, count: number = 3, wait: number = 2000) {
   let mCount = count
   while (true) {
     try {
@@ -184,7 +184,7 @@ export async function retry<T>(fn: () => Promise<T>, count: number = Infinity, w
       if (mCount <= 0) {
         throw error
       } else {
-        console.error('retry:error', mCount, error)
+        // console.error('retry:error', mCount, error)
         mCount--
         await sleep(wait)
       }

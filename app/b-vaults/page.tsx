@@ -11,7 +11,7 @@ import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useUpdateBVaultEpoches, useUpdateBVaultsData, useUpdateUserBVaultData, useUpdateUserBVaultEpoches } from '@/providers/useBVaultsData'
 import { Grid } from '@tremor/react'
 import { useSearchParams } from 'next/navigation'
-import { ReactNode } from 'react'
+import { ReactNode, useMemo } from 'react'
 
 function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
@@ -44,7 +44,7 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
 
 export default function Vaults() {
   const chainId = useCurrentChainId()
-  const bvcs = BVAULTS_CONFIG[chainId].filter((vc) => vc.onEnv && vc.onEnv.includes(ENV))
+  const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((vc) => vc.onEnv && vc.onEnv.includes(ENV)), [chainId, ENV])
   const params = useSearchParams()
   const paramsVault = params.get('vault')
   const paramsTab = params.get('tab')
