@@ -25,6 +25,8 @@ import { FmtPercent } from '../fmt-percent'
 import { Spinner } from '../spinner'
 import { Tip } from '../ui/tip'
 import { WrapDiv } from '../ui/wrap-div'
+import { useLVault, useUpLVaultOnUserAction, useUserLVault } from '@/providers/useLVaultsData'
+import { useBalances } from '@/providers/useTokenStore'
 
 interface DualInvestmentCardProps {
   vc: VaultConfig
@@ -48,33 +50,34 @@ function TokenValue({ symbol, value, decimals }: { symbol: string; value?: bigin
 
 export function PoolCard({ type, vc }: DualInvestmentCardProps) {
   const isBuy = type == 'buy'
+
   const chainId = useCurrentChainId()
   const stakeAddress = isBuy ? USB_ADDRESS[chainId] : vc.assetTokenAddress
   const matchAddress = isBuy ? vc.assetTokenAddress : vc.xTokenAddress
   const SELL = isBuy ? USBSymbol : vc.assetTokenSymbol
   const BUY = isBuy ? vc.assetTokenSymbol : USBSymbol
   const title = isBuy ? `Buy ${vc.assetTokenSymbol} Low` : `Sell ${vc.assetTokenSymbol} High`
-  const poolAddress = isBuy ? vc.ptyPoolBelowAddress : vc.ptyPoolAboveAddress
-  const { prices, balances, earns, vaultsState, assetLocked, vaultUSBTotal, usbApr } = useContext(FetcherContext)
-  const vs = vaultsState[vc.vault]
-  const earn = earns[poolAddress as any]
+  const poolAddress = isBuy ? vc.ptyPoolBelowAddress! : vc.ptyPoolAboveAddress!
+  const { prices, usbApr } = useContext(FetcherContext)
+  const balances = useBalances()
+  const vs = useLVault(vc.vault)
+  const uvs = useUserLVault(vc.vault)
   const { address } = useAccount()
   const balance = balances[stakeAddress]
-  // const [stakeAmount, setStakeAmount] = useState('')
-  // const [unStakeAmount, setUnStakeAmount] = useState('')
   const [amount, setAmount] = useState('')
   const amountBn = parseEthers(amount)
   const STAKE_YIELD = isBuy ? vc.xTokenSymbol : vc.assetTokenSymbol
   const MATCH_YIELD = isBuy ? vc.assetTokenSymbol : vc.xTokenSymbol
+  const totalStakingAmount = isBuy ? vs.buyPoolTotalStaking : vs.sellPoolTotalStaking
+  const userStakingAmount = isBuy ? uvs.buyPool_userStakingBalance : uvs.sellPool_userStakingBalance
   const tvl = useMemo(() => {
-    return (earn.totalStake * getBigint(prices, stakeAddress, DECIMAL)) / DECIMAL
-  }, [prices[stakeAddress], earn.totalStake])
-  const targetAAR = isBuy ? vs?.AARS : vs?.AARU
-  const assetAmount = getBigint(assetLocked, vc.assetTokenAddress)
-  const usbTotal = getBigint(vaultUSBTotal, vc.vault)
+    return (totalStakingAmount * getBigint(prices, stakeAddress, DECIMAL)) / DECIMAL
+  }, [prices[stakeAddress], totalStakingAmount])
+  const targetAAR = isBuy ? vs.AARS : ((vs as any)['AARU'] as bigint)
+  const assetAmount = vs.assetBalance
+  const usbTotal = vs.usbTotalSupply
   const targetPrice = useMemo(() => {
-    if (!targetAAR || !vs.AARDecimals || assetAmount == 0n || usbTotal == 0n)
-      return getBigint(prices, vc.assetTokenAddress)
+    if (!targetAAR || !vs.AARDecimals || assetAmount == 0n || usbTotal == 0n) return getBigint(prices, vc.assetTokenAddress)
     return (targetAAR * usbTotal * DECIMAL) / vs.AARDecimals / assetAmount / BigInt(1e9)
   }, [targetAAR, usbTotal, vs.AARDecimals, assetAmount])
 
@@ -87,10 +90,11 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
     address: poolAddress,
     functionName: 'getAccruedMatchingYields',
   })
+
   const ptypoolForMatching = getBigint(yieldForMatching, 'data')
   const discountRate = useMemo(() => {
-    let staked = getBigint(earn, 'totalStake')
-    if (staked == 0n || prices[stakeAddress] == 0n) return '0.00%'
+    let staked = totalStakingAmount
+    if (vs.isStable || staked == 0n || prices[stakeAddress] == 0n) return '0.00%'
     const AARDECIMALS = 10n ** (vs.AARDecimals || 10n)
     const targetPriceAART = (vs.AART - AARDECIMALS) * targetPrice
     if (targetPriceAART == 0n) return '0.00%'
@@ -98,21 +102,11 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
       ? (vs.AART * vs.M_USB_ETH * DECIMAL - vs.M_ETH * targetPrice * AARDECIMALS) / (vs.AART - AARDECIMALS) / DECIMAL
       : (vs.M_ETH * targetPrice * AARDECIMALS - vs.AART * vs.M_USB_ETH * DECIMAL) / targetPriceAART
     staked = bnMin([staked, deltaStaked])
-    return staked * prices[stakeAddress] > 0n
-      ? fmtPercent((ptypoolForMatching * prices[matchAddress] * DECIMAL) / (staked * prices[stakeAddress]), 18, 3)
-      : '0.00%'
-  }, [
-    earn.totalStake,
-    ptypoolForMatching,
-    matchAddress,
-    stakeAddress,
-    prices[matchAddress],
-    prices[stakeAddress],
-    isBuy,
-  ])
+    return staked * prices[stakeAddress] > 0n ? fmtPercent((ptypoolForMatching * prices[matchAddress] * DECIMAL) / (staked * prices[stakeAddress]), 18, 3) : '0.00%'
+  }, [vs.isStable, ptypoolForMatching, matchAddress, stakeAddress, prices[matchAddress], prices[stakeAddress], isBuy])
 
   const apys = usePtypoolApy()
-  const stakingApy = getBigint(apys[poolAddress as any], 'staking')
+  const stakingApy = getBigint(apys[poolAddress], 'staking')
   const change =
     prices[vc.assetTokenAddress] > 0 && targetPrice > 0n
       ? isBuy
@@ -121,6 +115,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
       : 0n
 
   const triggerAmount = useMemo(() => {
+    if (vs.isStable) return 0n
     const AARDECIMALS = 10n ** (vs.AARDecimals || 10n)
     const price65 = ((vs.AART - AARDECIMALS) * targetPrice) / AARDECIMALS
     if (price65 == 0n) return 0n
@@ -128,20 +123,20 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
       const deltaETH = (vs.AART * vs.M_USB_ETH * DECIMAL - vs.M_ETH * targetPrice * AARDECIMALS) / AARDECIMALS / price65
       const deltaUSB = (deltaETH * targetPrice) / DECIMAL
       // const userStake = 1000n * DECIMAL
-      const userStake = earn.stake
+      const userStake = uvs.buyPool_userStakingBalance
       // (staked/pool) *(（AART*USB of ethvault-Value of ethvault）/(0.65*target price))
-      const amount = earn.totalStake > deltaUSB && deltaUSB >= 0n ? (userStake * deltaUSB) / earn.totalStake : userStake
+      const amount = vs.buyPoolTotalStaking > deltaUSB && deltaUSB >= 0n ? (userStake * deltaUSB) / vs.buyPoolTotalStaking : userStake
       return amount
     } else {
       const deltaETH = (vs.M_ETH * targetPrice * AARDECIMALS - vs.AART * vs.M_USB_ETH * DECIMAL) / AARDECIMALS / price65
       // const userStake = 1n * DECIMAL
-      const userStake = earn.stake
+      const userStake = uvs.sellPool_userStakingBalance
       // console.info('info:', earn.totalStake > deltaETH,  earn.totalStake, deltaETH )
       // (staked/pool) *(（Value of ethvault - AART*USB of ethvault）/(0.65*target price))
-      const amount = earn.totalStake > deltaETH && deltaETH >= 0n ? (userStake * deltaETH) / earn.totalStake : userStake
+      const amount = vs.sellPoolTotalStaking > deltaETH && deltaETH >= 0n ? (userStake * deltaETH) / vs.sellPoolTotalStaking : userStake
       return amount
     }
-  }, [earn, vs, isBuy, targetPrice])
+  }, [vs.isStable, uvs, vs, isBuy, targetPrice])
 
   const data = useMemo(() => {
     const infos: {
@@ -235,7 +230,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
           },
         ]
     return infos
-  }, [earn, ptypoolForMatching])
+  }, [ptypoolForMatching])
 
   const addressData = useMemo(() => {
     const infos = isBuy
@@ -245,9 +240,9 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
             label: `Successfully Bought`,
             value: (
               <div className='flex items-center'>
-                <TokenValue symbol={BUY} value={earn.match} />
+                <TokenValue symbol={BUY} value={uvs.buyPool_earnedMatchedToken} />
                 <span>+</span>
-                <TokenValue symbol={MATCH_YIELD} value={earn.earnForMatch} />
+                <TokenValue symbol={MATCH_YIELD} value={uvs.buyPool_earnedMatchingYields} />
                 <Tip inFlex>From Reward Pool</Tip>
               </div>
             ),
@@ -256,7 +251,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
           {
             key: 'staking_earend',
             label: `${STAKE_YIELD} Earned`,
-            value: <TokenValue symbol={STAKE_YIELD} value={earn.earn} />,
+            value: <TokenValue symbol={STAKE_YIELD} value={uvs.buyPool_earnedStakingYields} />,
           },
         ]
       : [
@@ -265,17 +260,17 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
             label: `Successfully Sold`,
             value: (
               <div className='flex items-center'>
-                <TokenValue symbol={BUY} value={earn.match} />
+                <TokenValue symbol={BUY} value={uvs.sellPool_earnedMatchedToken} />
                 <span>+</span>
-                <TokenValue symbol={MATCH_YIELD} value={earn.earnForMatch} />
+                <TokenValue symbol={MATCH_YIELD} value={uvs.sellPool_earnedMatchingYields} />
                 <Tip inFlex>From Reward Pool</Tip>
               </div>
             ),
           },
         ]
     return infos
-  }, [earn, BUY, STAKE_YIELD, MATCH_YIELD])
-
+  }, [uvs, BUY, STAKE_YIELD, MATCH_YIELD])
+  const upForUserAction = useUpLVaultOnUserAction(vc)
   // writes
   const {
     write: claimAll,
@@ -312,9 +307,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
           {/* <PointsIcons icons={['blast', 'gold', 'wand']} /> */}
           <div>
             <div className='text-xs text-black/60 dark:text-white/60 font-medium text-right'>Total {SELL} Staked</div>
-            <div className='text-base text-black dark:text-slate-50 text-end font-semibold'>
-              {displayBalance(earn.totalStake)}
-            </div>
+            <div className='text-base text-black dark:text-slate-50 text-end font-semibold'>{displayBalance(totalStakingAmount)}</div>
           </div>
         </WrapDiv>
       </div>
@@ -322,10 +315,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
       <Divider className='my-4 h-[1px] dark:bg-zinc-600 ' />
 
       <Grid numItemsSm={2} className='flex-1'>
-        <Grid
-          numItemsSm={1}
-          className='gap-y-2 gap-x-7 sm:border-r-[1px] border-[#E4E4E7] dark:border-zinc-600 mb-3 md:mb-0 '
-        >
+        <Grid numItemsSm={1} className='gap-y-2 gap-x-7 sm:border-r-[1px] border-[#E4E4E7] dark:border-zinc-600 mb-3 md:mb-0 '>
           {data?.map((datum) => (
             <div key={datum.key} className={clsx('flex flex-col text-sm', { 'mb-4': datum.groupEnd })}>
               <div className='flex items-center flex-wrap'>
@@ -343,9 +333,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
             <div className='w-full border-t-[1px] border-[#E4E4E7] dark:border-zinc-600 sm:border-0 sm:px-[0px]'>
               {addressData?.map((datum) => (
                 <div key={datum.key} className='flex items-center flex-wrap mt-[8px] sm:mt-0 sm:mb-2'>
-                  <div className='text-xs text-black dark:text-slate-50 whitespace-nowrap font-medium mr-[5px]'>
-                    {datum.label} :
-                  </div>
+                  <div className='text-xs text-black dark:text-slate-50 whitespace-nowrap font-medium mr-[5px]'>{datum.label} :</div>
                   <div className='text-neutral-900 dark:text-slate-50 text-sm shrink-0 ml-2'>{datum.value}</div>
                 </div>
               ))}
@@ -355,7 +343,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
                 <button
                   className='btn-primary flex items-center w-[60%] md:w-fit self-end justify-center gap-4 bg-[#64738B]'
                   disabled={claimAllDisabled || isClaimAllLoading}
-                  onClick={() => claimAll()}
+                  onClick={() => claimAll().then(upForUserAction)}
                 >
                   <div className='flex px-10 py-2 gap-4 items-center whitespace-nowrap'>
                     {isClaimAllLoading && <Spinner />}
@@ -367,11 +355,8 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
                 <div className='flex items-center gap-1'>
                   Staked
                   <CoinIcon symbol={SELL} size={16} />
-                  {displayBalance(earn.stake)}
-                  <span
-                    className='text-primary ml-[5px] cursor-pointer'
-                    onClick={() => setAmount(formatEther(earn.stake))}
-                  >
+                  {displayBalance(userStakingAmount)}
+                  <span className='text-primary ml-[5px] cursor-pointer' onClick={() => setAmount(formatEther(userStakingAmount))}>
                     Max
                   </span>
                 </div>
@@ -399,6 +384,7 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
               disabled={amountBn <= 0n || amountBn > balance}
               onTxSuccess={() => {
                 setAmount('')
+                upForUserAction()
               }}
               config={{
                 abi: abiPtyPool,
@@ -414,9 +400,10 @@ export function PoolCard({ type, vc }: DualInvestmentCardProps) {
             <ApproveAndTx
               className='mt-2 w-[calc(50%-10px)] !mx-0'
               tx='Withdraw'
-              disabled={amountBn <= 0n || amountBn > earn.stake}
+              disabled={amountBn <= 0n || amountBn > userStakingAmount}
               onTxSuccess={() => {
                 setAmount('')
+                upForUserAction()
               }}
               config={{
                 abi: abiPtyPool,

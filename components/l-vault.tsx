@@ -3,30 +3,31 @@
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { AssetInput } from '@/components/asset-input'
 import { Tip } from '@/components/ui/tip'
-import { LVaultAdvance } from '@/components/vault-card'
+import { LVaultAdvance } from '@/components/lvault-advance'
 import { abiStableVault, abiVault, abiVaultQuery } from '@/config/abi'
 import { isBerachain, SUPPORT_CHAINS } from '@/config/network'
 import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VAULT_QUERY_ADDRESS, VaultConfig } from '@/config/swap'
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { useVaultLeverageRatio } from '@/hooks/useVaultLeverageRatio'
+import { useTokenApys } from '@/hooks/useTokenApys'
 import { useWandContractRead } from '@/hooks/useWand'
 import { bnMin, cn, fmtAAR, fmtPercent, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
+import { useLVault, useUpLVaultOnUserAction, useVaultLeverageRatio } from '@/providers/useLVaultsData'
+import { useBalances } from '@/providers/useTokenStore'
 import { displayBalance } from '@/utils/display'
-import { Button, Flex } from '@tremor/react'
+import { Button } from '@tremor/react'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useContext, useMemo, useState } from 'react'
 import { MdSettings } from 'react-icons/md'
 import { useAccount, useWalletClient } from 'wagmi'
-import { CoinIcon } from './icons/coinicon'
 import ConnectBtn from './connet-btn'
+import { CoinIcon } from './icons/coinicon'
 import { PointCards } from './point-card'
 import { SimpleDialog } from './simple-dialog'
 import { SimpleTabs } from './simple-tabs'
-import { StableLVaultAdvance } from './stable-vault-card'
-import { useTokenApys } from '@/hooks/useTokenApys'
+import { StableLVaultAdvance } from './lvault-stable-advance'
 import { renderChoseSide } from './vault-card-ui'
 
 const arrowDown = (
@@ -68,16 +69,16 @@ const cycle = (
 )
 
 export function VaultSimple({ vc }: { vc: VaultConfig }) {
-  const { balances, prices, vaultsMode, stableVaultsState } = useContext(FetcherContext)
-
+  const { prices } = useContext(FetcherContext)
+  const balances = useBalances()
   const assetPrice = getBigint(prices, vc.assetTokenAddress)
-  const modeNumber = vaultsMode[vc.vault]
+  const vs = useLVault(vc.vault)
+  const modeNumber = vs.vaultMode
   const asset = vc.assetTokenSymbol
   const [amount, setAmount] = useState('')
   const amountBn = parseEthers(amount)
   const x = vc.xTokenSymbol
   const balance = balances[vc.assetTokenAddress]
-  const vs_s = stableVaultsState[vc.vault]
   // withdraw
   const [assetAmount, setAssetAmount] = useState('')
   const chainId = useCurrentChainId()
@@ -95,15 +96,11 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
     query: { enabled: vc.isStable },
   })
 
-  const oneAssetUsbOut = vc.isStable && vs_s.M_USDCx == 0n ? 0n : getBigint(dataOneAssetOut, [1])
-  const oneAssetXOut =
-    vc.isStable && vs_s.M_USDCx == 0n ? getBigint(firstMintXOut, [1]) : getBigint(dataOneAssetOut, [2])
+  const oneAssetUsbOut = vc.isStable && vs.isStable && vs.M_USDCx == 0n ? 0n : getBigint(dataOneAssetOut, [1])
+  const oneAssetXOut = vc.isStable && vs.isStable && vs.M_USDCx == 0n ? getBigint(firstMintXOut, [1]) : getBigint(dataOneAssetOut, [2])
   const usbBalance = balances[USB_ADDRESS[chainId]]
   const xBalance = balances[vc.xTokenAddress]
-  const maxPairAssetOut = bnMin([
-    oneAssetXOut > 0n ? (xBalance * DECIMAL) / oneAssetXOut : 0n,
-    oneAssetUsbOut > 0n ? (usbBalance * DECIMAL) / oneAssetUsbOut : 0n,
-  ])
+  const maxPairAssetOut = bnMin([oneAssetXOut > 0n ? (xBalance * DECIMAL) / oneAssetXOut : 0n, oneAssetUsbOut > 0n ? (usbBalance * DECIMAL) / oneAssetUsbOut : 0n])
   const assetAmountBn = parseEthers(assetAmount)
   const redeemPrepareConfig = useMemo(() => {
     const base: Parameters<typeof ApproveAndTx>[0]['config'] = {
@@ -115,6 +112,7 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
     // console.info('redeem:', base)
     return base
   }, [modeNumber, assetAmountBn, oneAssetXOut, vc])
+  const upForUserAction = useUpLVaultOnUserAction(vc)
   return (
     <div className='w-full relative flex items-center justify-between'>
       <SimpleDialog
@@ -137,18 +135,11 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
             tab: 'Deposit',
             content: (
               <div className='mt-4'>
-                <AssetInput
-                  asset={asset}
-                  exchange={displayBalance((assetPrice * amountBn) / DECIMAL)}
-                  balance={balance}
-                  amount={amount}
-                  setAmount={setAmount}
-                />
+                <AssetInput asset={asset} exchange={displayBalance((assetPrice * amountBn) / DECIMAL)} balance={balance} amount={amount} setAmount={setAmount} />
                 <div className='text-xs text-[#64748B] dark:text-slate-50/60 leading-[12px] flex items-center pl-[5px] mt-[6px]'>
                   1 <CoinIcon className='mx-1' symbol={asset} size={12} />
-                  {asset} = {displayBalance(oneAssetXOut)} <CoinIcon className='mx-1' symbol={x} size={12} /> {asset}x +
-                  {displayBalance(oneAssetUsbOut)} <CoinIcon className='mx-1' symbol={USBSymbol} size={12} />{' '}
-                  {USBSymbol}
+                  {asset} = {displayBalance(oneAssetXOut)} <CoinIcon className='mx-1' symbol={x} size={12} /> {asset}x +{displayBalance(oneAssetUsbOut)}{' '}
+                  <CoinIcon className='mx-1' symbol={USBSymbol} size={12} /> {USBSymbol}
                 </div>
                 <ApproveAndTx
                   tx='Deposit'
@@ -156,13 +147,14 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
                   disabled={vc.disableIn || amountBn <= 0n || amountBn > balance}
                   onTxSuccess={() => {
                     setAmount('')
+                    upForUserAction()
                   }}
                   config={{
                     abi: abiStableVault,
                     address: vc.vault,
                     args: [amountBn],
                     value: vc.assetTokenAddress == NATIVE_TOKEN_ADDRESS ? amountBn : 0n,
-                    functionName: vc.isStable && vs_s.M_USDCx == 0n ? 'mintMarginTokens' : 'mintPairs',
+                    functionName: vc.isStable && vs.isStable && vs.M_USDCx == 0n ? 'mintMarginTokens' : 'mintPairs',
                   }}
                   approves={{ [vc.assetTokenAddress]: amountBn }}
                   spender={vc.vault}
@@ -190,8 +182,7 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
                     <CoinIcon className='mx-1' symbol={x} size={12} /> {displayBalance(xBalance)}
                   </span>
                   <span className={cn('flex relative')}>
-                    {USBSymbol} Balance: <CoinIcon className='mx-1' symbol={USBSymbol} size={12} />{' '}
-                    {displayBalance(usbBalance)}
+                    {USBSymbol} Balance: <CoinIcon className='mx-1' symbol={USBSymbol} size={12} /> {displayBalance(usbBalance)}
                   </span>
                 </div>
                 {!vc.isStable && (
@@ -205,12 +196,11 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
                   tx='Withdraw'
                   className={cn({ 'md:mt-1': !vc.isStable }, 'mx-auto mt-6')}
                   config={redeemPrepareConfig}
-                  disabled={
-                    oneAssetUsbOut == 0n || oneAssetXOut == 0n || assetAmountBn <= 0n || assetAmountBn > maxPairAssetOut
-                  }
+                  disabled={oneAssetUsbOut == 0n || oneAssetXOut == 0n || assetAmountBn <= 0n || assetAmountBn > maxPairAssetOut}
                   onTxSuccess={() => {
                     console.info('Redeem onSuccess:')
                     setAssetAmount('')
+                    upForUserAction()
                   }}
                   spender={vc.vault}
                 />
@@ -226,10 +216,7 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
 const ExpandUI = ({ onClick, isOpen }: { onClick: () => void; isOpen: boolean }) => {
   return (
     <div className='flex md:hidden justify-center  items-center py-5'>
-      <div
-        className='px-2 py-1 rounded-full border border-solid border-[#6466F1] flex items-center text-xs text-[#6466F1] cursor-pointer '
-        onClick={onClick}
-      >
+      <div className='px-2 py-1 rounded-full border border-solid border-[#6466F1] flex items-center text-xs text-[#6466F1] cursor-pointer ' onClick={onClick}>
         <span className='mr-[5px]'>{isOpen ? 'Hide' : 'Details'}</span>
         {isOpen ? arrowUp : arrowDown}
       </div>
@@ -239,15 +226,14 @@ const ExpandUI = ({ onClick, isOpen }: { onClick: () => void; isOpen: boolean })
 
 export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
   const chainId = useCurrentChainId()
-  const { balances, prices, vaultsState, stableVaultsState } = useContext(FetcherContext)
+
   const leverage = useVaultLeverageRatio(vc)
   const { address } = useAccount()
-  const vs = vaultsState[vc.vault]
-  const vs_s = stableVaultsState[vc.vault]
-  const totalBn = vc.isStable ? vs_s.M_USDC : vs.M_ETH
-  const xTotalBn = vc.isStable ? vs_s.M_USDCx : vs.M_ETHx
-  const mUsbBn = vc.isStable ? vs_s.M_USB_USDC : vs.M_USB_ETH
-
+  const vs = useLVault(vc.vault)
+  const totalBn = vs.isStable ? vs.M_USDC : vs.M_ETH
+  const xTotalBn = vs.isStable ? vs.M_USDCx : vs.M_ETHx
+  const mUsbBn = vs.isStable ? vs.M_USB_USDC : vs.M_USB_ETH
+  const balances = useBalances()
   const myOpenPosition = xTotalBn > 0n ? (balances[vc.xTokenAddress] * totalBn) / xTotalBn : 0n
   const myMarginLoan = xTotalBn > 0n ? -(balances[vc.xTokenAddress] * mUsbBn) / xTotalBn : 0n
 
@@ -312,8 +298,7 @@ export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
           <div className='card text-[#64748B] w-full flex-1 dark:text-slate-50/60 text-xs font-medium leading-[12px] px-[30px] py-[23px] rounded-2xl'>
             <div className='flex items-center mb-[16px] whitespace-nowrap'>
               {cycle}
-              {leverage.toFixed(2)}x{' '}
-              {isBerachain() && vc.isStable ? 'Blast Native Yield' : `Leveraged long on ${vc.assetTokenSymbol}`}
+              {leverage.toFixed(2)}x {isBerachain() && vc.isStable ? 'Blast Native Yield' : `Leveraged long on ${vc.assetTokenSymbol}`}
             </div>
             <div className='flex items-center mb-[16px] cursor-pointer whitespace-nowrap' onClick={onAddXtoken}>
               {cycle}Add {vc.xTokenSymbol} to wallet
@@ -328,13 +313,7 @@ export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
         </div>
 
         <div className='card w-full'>
-          {address && vc && vc.vault.length == 42 ? (
-            <VaultSimple vc={vc} />
-          ) : vc && vc.vault.length == 42 ? (
-            <ConnectBtn />
-          ) : (
-            <Button className='rounded'>Comming soon</Button>
-          )}
+          {address && vc && vc.vault.length == 42 ? <VaultSimple vc={vc} /> : vc && vc.vault.length == 42 ? <ConnectBtn /> : <Button className='rounded'>Comming soon</Button>}
         </div>
       </div>
     </>
@@ -344,15 +323,13 @@ export function LVaultSimpleWrap({ vc }: { vc: VaultConfig }) {
 export function LVaultCard({ vc }: { vc: VaultConfig }) {
   const r = useRouter()
   const chainId = useCurrentChainId()
-  const { prices, vaultsMode, vaultsState, stableVaultsState } = useContext(FetcherContext)
+
+  const lvd = useLVault(vc.vault)
   const leverage = useVaultLeverageRatio(vc)
-  const assetPrice = getBigint(prices, vc.assetTokenAddress)
-  // fake data
-  const vs = vaultsState[vc.vault]
-  const vs_s = stableVaultsState[vc.vault]
-  const totalBn = vc.isStable ? vs_s.M_USDC : vs.M_ETH
-  const xTotalBn = vc.isStable ? vs_s.M_USDCx : vs.M_ETHx
-  const mUsbBn = vc.isStable ? vs_s.M_USB_USDC : vs.M_USB_ETH
+  const assetPrice = lvd.latestPrice
+  const totalBn = lvd.isStable ? lvd.M_USDC : lvd.M_ETH
+  const xTotalBn = lvd.isStable ? lvd.M_USDCx : lvd.M_ETHx
+  const mUsbBn = lvd.isStable ? lvd.M_USB_USDC : lvd.M_USB_ETH
 
   const total = displayBalance(totalBn)
   const xTotal = displayBalance(xTotalBn)
@@ -360,8 +337,8 @@ export function LVaultCard({ vc }: { vc: VaultConfig }) {
 
   const totalDep = displayBalance((totalBn * assetPrice) / DECIMAL)
   const usbDebt = displayBalance(mUsbBn)
-  const aar = vc.isStable ? fmtAAR(vs_s.aar, vs_s.AARDecimals) : fmtAAR(vs.aar, vs.AARDecimals)
-  const modeNumber = vaultsMode[vc.vault]
+  const aar = fmtAAR(lvd.aar, lvd.AARDecimals)
+  const modeNumber = lvd.vaultMode
 
   // console.log(vaultConfig)
   const x = vc.xTokenSymbol
@@ -374,29 +351,19 @@ export function LVaultCard({ vc }: { vc: VaultConfig }) {
       })}
       onClick={() => r.push(`/l-vaults?vault=${vc.vault}`)}
     >
-      <div
-        className={cn(
-          itemClassname,
-          'border-b',
-          'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center',
-        )}
-      >
+      <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
         <CoinIcon symbol={vc.assetTokenSymbol} size={44} />
         <div>
           <div className=' text-lg font-semibold whitespace-nowrap'>{vc.assetTokenSymbol}</div>
-          <div className=' text-sm font-medium'>${displayBalance(prices[vc.assetTokenAddress])}</div>
+          <div className=' text-sm font-medium'>${displayBalance(assetPrice)}</div>
         </div>
         <div className='ml-auto'>
-          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>
-            {'Total Deposit'}
-          </div>
+          <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{'Total Deposit'}</div>
           <div className='text-sm font-medium'>{total}</div>
         </div>
       </div>
       <div className={cn(itemClassname, 'border-b border-r')}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          Status
-        </div>
+        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>Status</div>
         <div className='flex items-center'>
           <span className=' text-[14px] leading-[14px] font-medium'>
             <div className='flex items-center'>
@@ -433,21 +400,13 @@ export function LVaultCard({ vc }: { vc: VaultConfig }) {
           <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{usbDebt}</span>
         </div>
       </div>
-      {renderChoseSide(
-        'Bera',
-        'Interest Bear',
-        fmtPercent(tapys[USB_ADDRESS[chainId]], 10),
-        'Bull',
-        'Leverage Bull',
-        `${leverage.toFixed(2)}x`,
-      )}
+      {renderChoseSide('Bera', 'Interest Bear', fmtPercent(tapys[USB_ADDRESS[chainId]], 10), 'Bull', 'Leverage Bull', `${leverage.toFixed(2)}x`)}
     </div>
   )
 }
 
 export function LVaultComming({ symbol }: { symbol: string }) {
-  const itemClassname =
-    'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid even:border-l even:border-b odd:border-b last:!border-b-0 h-[5.3125rem]'
+  const itemClassname = 'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid even:border-l even:border-b odd:border-b last:!border-b-0 h-[5.3125rem]'
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden order-5', {})}>
       <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
@@ -457,9 +416,7 @@ export function LVaultComming({ symbol }: { symbol: string }) {
         {/* <PointsIcons icons={['blast', 'gold', 'wand']} className='ml-auto md:absolute top-10 left-0' /> */}
       </div>
       <div className={cn(itemClassname, 'bg-black/10 dark:bg-white/10')}>
-        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-          Total Deposit
-        </div>
+        <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>Total Deposit</div>
         <div className='flex items-center'>
           <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>-</span>
         </div>

@@ -6,17 +6,8 @@ import { getBexPoolURL } from '@/config/network'
 import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
 import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
-import {
-  BVaultEpocheDTO,
-  useBVaultApy,
-  useBVaultBoost,
-  useBVaultData,
-  useBVaultsDataShallow,
-  useBVaultsDataStore,
-  useCalcClaimable,
-  useEpochesData,
-  UserBVaultEpocheDTO
-} from '@/providers/useBVaultsData'
+import { useStoreShallow } from '@/providers/useBoundStore'
+import { useBVault, useBVaultApy, useBVaultBoost, useBVaultCurrentEpoch, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -46,6 +37,7 @@ function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
 const maxClassname = 'max-w-4xl mx-auto w-full'
 
 function BVaultP({ bvc }: { bvc: BVaultConfig }) {
+  const { address } = useAccount()
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
   const isLP = bvc.assetSymbol.includes('-')
@@ -53,16 +45,17 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
   const [inputPToken, setInputPToken] = useState('')
   const inputPTokenBn = parseEthers(inputPToken)
-  const [bvd, ubvd] = useBVaultsDataShallow((s) => [s.bvaults[bvc.vault], s.userBvaults[bvc.vault]])
-  const epoch = useBVaultsDataShallow((s) => s.epochs[bvc.vault][0])
+  const bvd = useBVault(bvc.vault)
+  const epoch = useEpochesData(bvc.vault)[0]
   const { ids, claimable } = useCalcClaimable(bvc.vault)
-  const assetBalance = ubvd.userBalanceAssset || 0n
-  const pTokenBalance = ubvd.userBalancePToken || 0n
+  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
+  const pTokenBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.pToken] || 0n)
   const claimableAssetBalance = claimable
-  const redeemingBalance = ubvd.redeemingBalance || 0n
+  const redeemingBalance = epoch?.redeemingBalance || 0n
   const redeemInfo = `Your ${pTokenSymbolShort} can be claimed 1:1 for ${assetSymbolShort} at the end of this Epoch`
   const [fmtApy] = useBVaultApy(bvc.vault)
   const { data: walletClient } = useWalletClient()
+  const upForUserAction = useUpBVaultForUserAction(bvc)
   const onAddPToken = () => {
     walletClient
       ?.watchAsset({
@@ -87,12 +80,12 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
           disabled={claimableAssetBalance <= 0n}
           config={{
             abi: abiBVault,
-            address: bvd.vault,
+            address: bvc.vault,
             functionName: 'batchClaimRedeemAssets',
             args: [ids.length > 40 ? ids.slice(ids.length - 40) : ids],
           }}
           onTxSuccess={() => {
-            useBVaultsDataStore.getState().updateBVaults([bvc])
+            upForUserAction()
           }}
         />
       </div>
@@ -155,7 +148,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                     }}
                     onTxSuccess={() => {
                       setInputAsset('')
-                      useBVaultsDataStore.getState().updateBVaults([bvc])
+                      upForUserAction()
                     }}
                   />
                 </div>
@@ -188,7 +181,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
                     }}
                     onTxSuccess={() => {
                       setInputPToken('')
-                      useBVaultsDataStore.getState().updateBVaults([bvc])
+                      upForUserAction()
                     }}
                   />
                   {(!epoch || !epoch.settled) && (
@@ -216,10 +209,11 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const assetSymbolShort = isLP ? 'LP token' : bvc.assetSymbol
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
-
-  const [bvd, ubvd] = useBVaultsDataShallow((s) => [s.bvaults[bvc.vault], s.userBvaults[bvc.vault]])
-  const epoch = useBVaultsDataShallow((s) => s.epochs[bvc.vault][0])
-  const assetBalance = ubvd.userBalanceAssset || 0n
+  const { address } = useAccount()
+  const bvd = useBVault(bvc.vault)
+  const bvCurentEpoch = useBVaultCurrentEpoch(bvc.vault)
+  const epoch = useEpochesData(bvc.vault)[0]
+  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
   const { data: result, refetch: reFetchCalcSwap } = useReadContract({
     abi: abiBVault,
     address: bvc.vault,
@@ -236,14 +230,15 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const vualtYTokenBalance = epoch?.vaultYTokenBalance || 0n
   const outputYTokenForInput = getBigint(result, '1')
 
-  const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
+  const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvCurentEpoch.Y * DECIMAL) / vualtYTokenBalance : 0n
   const ytAssetPrice = displayBalance(ytAssetPriceBn)
-  const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
+  const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvCurentEpoch.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
-  const oneYoutAsset = bvd.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.yTokenAmountForSwapYT : 0n
+  const oneYoutAsset = bvCurentEpoch.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvCurentEpoch.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvc.vault)
+  const upForUserAction = useUpBVaultForUserAction(bvc)
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
@@ -263,7 +258,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
             tit='Total Minted'
             sub={
               <>
-                {displayBalance(bvd.yTokenAmountForSwapYT)}
+                {displayBalance(bvCurentEpoch.yTokenAmountForSwapYT)}
                 <span className='text-xs ml-auto'>
                   1{yTokenSymbolShort} = Yield of <br />
                   {displayBalance(oneYoutAsset, 2)} {assetSymbolShort}
@@ -320,7 +315,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
           spender={bvc.vault}
           onTxSuccess={() => {
             setInputAsset('')
-            useBVaultsDataStore.getState().updateBVaults([bvc])
+            upForUserAction()
           }}
         />
       </div>
@@ -338,10 +333,12 @@ function BribeTit(p: { name: string }) {
 }
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
+  const { address } = useAccount()
   const [onlyMy, setOnlyMy] = useState(false)
   const epochesData = useEpochesData(bvc.vault)
   const epoches = useMemo(() => {
-    const myFilter = (item: BVaultEpocheDTO & UserBVaultEpocheDTO) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
+    // console.info('epchesDataChange:', epochesData.length)
+    const myFilter = (item: (typeof epochesData)[number]) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
     return onlyMy ? epochesData.filter(myFilter) : epochesData
   }, [epochesData, onlyMy])
   const viewMax = 6
@@ -349,7 +346,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const itemSpaceY = 20
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
-  const [current, setCurrent] = useState<(BVaultEpocheDTO & UserBVaultEpocheDTO) | undefined | null>(epoches[0])
+  const [current, setCurrent] = useState<(typeof epochesData)[number] | undefined | null>(epoches[0])
   useEffect(() => {
     setCurrent(epoches[0])
   }, [epoches])
@@ -364,7 +361,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
     if (!fb) return fmtPercent(0n, 0n)
     return fmtPercent((fb.bribeAmount * DECIMAL) / fb.totalRewards, 18)
   }, [bribes])
-
+  const upForUserAction = useUpBVaultForUserAction(bvc)
   function rowRender({ key, style, index }: ListRowProps) {
     return (
       <div key={key} style={style} className='cursor-pointer' onClick={() => onRowClick(index)}>
@@ -431,7 +428,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             args: [current?.epochId!],
           }}
           onTxSuccess={() => {
-            useBVaultsDataStore.getState().updateBVaults([bvc])
+            upForUserAction()
           }}
         />
       </div>
@@ -463,10 +460,11 @@ export function BVaultHarvest({ bvc }: { bvc: BVaultConfig }) {
 export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const r = useRouter()
   const [token1, token2] = vc.assetSymbol.split('-')
-  const bvd = useBVaultData(vc)
+  const bvd = useBVault(vc.vault)
+
   const [fmtBoost] = useBVaultBoost(vc.vault)
   const [fmtApy] = useBVaultApy(vc.vault)
-  const epochName = `Epoch ${bvd.epochCount.toString()}`
+  const epochName = `Epoch ${(bvd?.epochCount || 0n).toString()}`
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
       <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
@@ -477,7 +475,7 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
         </div>
         <div className='ml-auto'>
           <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{'Total Value Locked'}</div>
-          <div className='text-sm font-medium'>{displayBalance(bvd.lockedAssetTotal)}</div>
+          <div className='text-sm font-medium'>{displayBalance(bvd?.lockedAssetTotal)}</div>
         </div>
       </div>
       {renderToken(token1, 0n, 0n)}

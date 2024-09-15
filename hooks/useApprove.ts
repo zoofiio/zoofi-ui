@@ -1,10 +1,10 @@
 import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
 import { getBigint, getErrorMsg } from '@/lib/utils'
+import { getPC } from '@/providers/publicClient'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Address, erc20Abi } from 'viem'
-import { useAccount, usePublicClient, useWalletClient } from 'wagmi'
-import { useWrapPublicClient } from './useWrapPublicClient'
+import { useAccount, useWalletClient } from 'wagmi'
 
 const cacheAllowance: { [k: Address]: { [k: Address]: bigint } } = {}
 
@@ -14,7 +14,6 @@ export const useApproves = (
   reqBigAmount: bigint | false = 10000000000n * 10n ** 18n,
 ) => {
   const { address, chainId } = useAccount()
-  const pc = useWrapPublicClient()
   const { data: walletClient } = useWalletClient()
   const [isSuccess, setSuccess] = useState(false)
   const tokens = useMemo(
@@ -32,7 +31,7 @@ export const useApproves = (
       return
     }
     tokens.forEach((t) => {
-      pc.readContract({ abi: erc20Abi, address: t, functionName: 'allowance', args: [address, spender] })
+      getPC().readContract({ abi: erc20Abi, address: t, functionName: 'allowance', args: [address, spender] })
         .then((value) => updateAllownce(t, value || 0n))
         .catch(console.error)
     })
@@ -56,7 +55,7 @@ export const useApproves = (
           functionName: 'approve',
           args: [spender, allowanceValue],
         })
-        txHash && (await pc?.waitForTransactionReceipt({ hash: txHash }))
+        txHash && (await getPC().waitForTransactionReceipt({ hash: txHash }))
         updateAllownce(token, allowanceValue)
       }
       toast.success('Approve success')

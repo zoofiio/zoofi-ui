@@ -1,17 +1,20 @@
 'use client'
 
 import { BVaultCard, BVaultCardComming, BVaultHarvest, BVaultMint } from '@/components/b-vault'
-import { MigrationTip } from '@/components/migrationv2'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
 import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
 import { ENV } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { useUpdateBVaultEpoches, useUpdateBVaultsData, useUpdateUserBVaultData, useUpdateUserBVaultEpoches } from '@/providers/useBVaultsData'
+import { useBoundStore } from '@/providers/useBoundStore'
+import { useBVault, useEpochesData } from '@/providers/useBVaultsData'
+import { useQuery } from '@tanstack/react-query'
 import { Grid } from '@tremor/react'
+import _ from 'lodash'
 import { useSearchParams } from 'next/navigation'
 import { ReactNode, useMemo } from 'react'
+import { useAccount } from 'wagmi'
 
 function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
@@ -20,9 +23,30 @@ function StrongSpan({ children }: { children: ReactNode }) {
 const SupportTabs = ['mint', 'harvest'] as const
 
 function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
-  useUpdateBVaultEpoches(bvc)
-  useUpdateUserBVaultData(bvc)
-  useUpdateUserBVaultEpoches(bvc)
+  const { address } = useAccount()
+  const bvd = useBVault(bvc.vault)
+
+  useQuery({
+    queryKey: ['UpdateVaultDetails', bvc, bvd],
+    queryFn: async () => {
+      if (bvd.epochCount == 0n) return false
+      const bs = useBoundStore.getState().sliceBVaultsStore
+      await bs.updateEpoches(bvc)
+      await bs.updateEpochesRedeemPool(bvc)
+      return true
+    },
+  })
+  const epoches = useEpochesData(bvc.vault)
+  useQuery({
+    queryKey: ['UpdateUserData', bvc, epoches, address],
+    queryFn: async () => {
+      if (epoches.length == 0 || !address) return false
+      console.info('epochesOld:', epoches)
+      await useBoundStore.getState().sliceUserBVaults.updateEpoches(bvc, address!, epoches)
+      return true
+    },
+  })
+
   return (
     <SimpleTabs
       listClassName='flex-wrap p-0 mb-5 md:gap-14'
@@ -50,11 +74,36 @@ export default function Vaults() {
   const paramsTab = params.get('tab')
   const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : 'deposit'
   const currentVc = bvcs.find((item) => item.vault == paramsVault)
-  useUpdateBVaultsData(bvcs)
+  // useUpdateBVaultsData(bvcs)
+  useQuery({
+    queryKey: [bvcs],
+    queryFn: async () => {
+      const bs = useBoundStore.getState().sliceBVaultsStore
+      await bs.updateBvaults(bvcs)
+      await bs.updateBvaultsCurrentEpoch()
+      return true
+    },
+  })
+  const { address } = useAccount()
+  const tokens = useMemo(() => bvcs.map((b) => [b.asset, b.pToken]).flat(), [bvcs])
+  useQuery({
+    queryKey: ['UpdateBvautlsTokens', tokens],
+    queryFn: async () => {
+      await useBoundStore.getState().sliceTokenStore.updateTokenTotalSupply(tokens)
+      return true
+    },
+  })
+  useQuery({
+    queryKey: ['UpdateUserBvautlsTokens', tokens, address],
+    queryFn: async () => {
+      if (!address) return false
+      await useBoundStore.getState().sliceTokenStore.updateTokensBalance(tokens, address)
+      return true
+    },
+  })
   return (
     <PageWrap>
       <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
-        <MigrationTip />
         {!currentVc ? (
           <>
             <div className='page-title'>B-Vaults</div>

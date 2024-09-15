@@ -30,6 +30,7 @@ export type VaultConfig = {
   assetTokenFeed: Address
   xTokenSymbol: string
   xTokenAddress: Address
+  vaultQuery: Address
   ptyPoolBelowAddress?: Address
   ptyPoolAboveAddress?: Address
   version: string
@@ -48,6 +49,7 @@ export const VAULTS_CONFIG: { [k: number]: VaultConfig[] } = {
       ptyPoolBelowAddress: '0x5841b2119fF4f30021a8A21cC1a826DEcf1ed953',
       ptyPoolAboveAddress: '0xFaA58B694d3fDac5C210687eC994fd6eb3b8c179',
       version: '',
+      vaultQuery: VAULT_QUERY_ADDRESS[berachainTestnet.id]
     },
     {
       vault: '0x2c7556046e32F2EC1e3389Ae645E9257AcF39f99',
@@ -59,6 +61,7 @@ export const VAULTS_CONFIG: { [k: number]: VaultConfig[] } = {
       ptyPoolBelowAddress: '0x3251606b4Ea0d50913ba542779bfF6745272eeA3',
       ptyPoolAboveAddress: '0xdaAd032fDF7E534d7BA8AB9e62D53A200F363252',
       version: '',
+      vaultQuery: VAULT_QUERY_ADDRESS[berachainTestnet.id]
     },
   ],
 }

@@ -1,12 +1,4 @@
-import {
-  NATIVE_TOKEN_ADDRESS,
-  OLD_VAULTS_CONFIG,
-  PLAIN_VAULTS_CONFIG,
-  USBSymbol,
-  USB_ADDRESS,
-  VAULTS_CONFIG,
-  VAULT_QUERY_ADDRESS,
-} from '@/config/swap'
+import { NATIVE_TOKEN_ADDRESS, OLD_VAULTS_CONFIG, PLAIN_VAULTS_CONFIG, USBSymbol, USB_ADDRESS, VAULTS_CONFIG, VAULT_QUERY_ADDRESS } from '@/config/swap'
 import { useCurrentChainId } from './useCurrentChainId'
 import { useContext } from 'react'
 import { FetcherContext } from '@/providers/fetcher'
@@ -15,6 +7,7 @@ import { useWandContractReads } from './useWand'
 
 import { abiPtyPool, abiVaultQuery } from '@/config/abi'
 import { getBigint } from '@/lib/utils'
+import { useBoundStore, useStoreShallow } from '@/providers/useBoundStore'
 
 export function useTVLV1() {
   const chainId = useCurrentChainId()
@@ -46,18 +39,17 @@ export function useTVLV1() {
   const depositETH = getBigint(data, [0, 'result', 'M_ETH'])
   const depositUSDB = getBigint(data, [1, 'result', 'M_USDC'])
   const stakingETH = getBigint(data, [2, 'result'])
-  return (
-    ((depositETH + stakingETH) * prices[NATIVE_TOKEN_ADDRESS]) / DECIMAL +
-    (depositUSDB * prices[usdbVC?.assetTokenAddress]) / DECIMAL
-  )
+  return ((depositETH + stakingETH) * prices[NATIVE_TOKEN_ADDRESS]) / DECIMAL + (depositUSDB * prices[usdbVC?.assetTokenAddress]) / DECIMAL
 }
 
 export function useTVL() {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId]
-  const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
-  const { earns, prices, totalSupplies, vaultUSBTotal, plainVaultsStat } = useContext(FetcherContext)
-  const vaultUsbTotal = vcs.map((v) => vaultUSBTotal[v.vault]).reduce((a, b) => a + b, 0n)
+  // const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
+  const { prices } = useContext(FetcherContext)
+  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const totalSupply = useStoreShallow((s) => s.sliceTokenStore.totalSupply)
+  const vaultUsbTotal = vcs.map((v) => lvaults[v.vault]?.usbTotalSupply || 0n).reduce((a, b) => a + b, 0n)
   const tvlItems = [{ name: USBSymbol, symbol: USBSymbol, address: USB_ADDRESS[chainId] }]
     .concat(
       vcs.map((v) => ({
@@ -68,7 +60,7 @@ export function useTVL() {
     )
     .map((item) => {
       const price = prices[item.address]
-      const amount = item.symbol == USBSymbol ? vaultUsbTotal : totalSupplies[item.address]
+      const amount = item.symbol == USBSymbol ? vaultUsbTotal : totalSupply[item.address] || 0n
       const usdAmount = (price * amount) / DECIMAL
       return {
         ...item,
@@ -81,8 +73,8 @@ export function useTVL() {
       vcs
         .filter((vc) => !vc.isStable)
         .map((vc) => {
-          console.info('earns: ', earns[vc.ptyPoolAboveAddress!].totalStake, earns[vc.ptyPoolBelowAddress!].balance)
-          const amount = earns[vc.ptyPoolAboveAddress!].totalStake + earns[vc.ptyPoolBelowAddress!].balance
+          const lvd = lvaults[vc.vault]
+          const amount = (lvd?.sellPoolTotalStaking || 0n) + (lvd?.buyPoolBalance || 0n)
           const price = prices[vc.assetTokenAddress]
           const usdAmount = (price * amount) / DECIMAL
           return {
@@ -95,21 +87,21 @@ export function useTVL() {
           }
         }),
     )
-    .concat(
-      pvcs.map((pvc) => {
-        const price = prices[pvc.assetToken]
-        const amount = plainVaultsStat[pvc.vault].totalSupply
-        const usdAmount = (price * amount) / DECIMAL
-        return {
-          name: pvc.assetTokenSymbol,
-          symbol: pvc.assetTokenSymbol,
-          address: pvc.assetToken,
-          price,
-          amount,
-          usdAmount,
-        }
-      }),
-    )
+  // .concat(
+  //   pvcs.map((pvc) => {
+  //     const price = prices[pvc.assetToken]
+  //     const amount = plainVaultsStat[pvc.vault].totalSupply
+  //     const usdAmount = (price * amount) / DECIMAL
+  //     return {
+  //       name: pvc.assetTokenSymbol,
+  //       symbol: pvc.assetTokenSymbol,
+  //       address: pvc.assetToken,
+  //       price,
+  //       amount,
+  //       usdAmount,
+  //     }
+  //   }),
+  // )
 
   const tvl = tvlItems.reduce((_sum, item) => _sum + item.usdAmount, 0n)
   return { tvl, tvlItems }

@@ -2,13 +2,14 @@
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { AssetInput } from '@/components/asset-input'
-import { abiVault, abiVaultQuery } from '@/config/abi'
-import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VAULT_QUERY_ADDRESS, VaultConfig } from '@/config/swap'
+import { abiStableVault, abiVaultQuery } from '@/config/abi'
+import { NATIVE_TOKEN_ADDRESS, PROTOCOL_SETTINGS_ADDRESS, USB_ADDRESS, USBSymbol, VAULT_QUERY_ADDRESS, VaultConfig } from '@/config/swap'
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
 import { fmtBn, getBigint, parseEthers } from '@/lib/utils'
-import { FetcherContext } from '@/providers/fetcher'
+import { useBoundStore } from '@/providers/useBoundStore'
+import { useLVault, useUpLVaultOnUserAction } from '@/providers/useLVaultsData'
 import { displayBalance } from '@/utils/display'
 import { useContext, useMemo, useState } from 'react'
 import { LuChevronDown } from 'react-icons/lu'
@@ -17,41 +18,24 @@ import { twMerge } from 'tailwind-merge'
 import { formatEther } from 'viem'
 import { SimpleTabs } from './simple-tabs'
 import { Tip } from './ui/tip'
+import { FetcherContext } from '@/providers/fetcher'
+import { useBalances } from '@/providers/useTokenStore'
 
-export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
-  const { balances, prices, vaultsMode } = useContext(FetcherContext)
+export function StableLVaultAdvance({ vc }: { vc: VaultConfig }) {
   const chainId = useCurrentChainId()
+  const { prices } = useContext(FetcherContext)
   const vaultQueryAddress = VAULT_QUERY_ADDRESS[chainId]
-  const modeNumber = vaultsMode[vc.vault]
   const [tab, setTab] = useState('Mint')
-  const [mode, modeDesc] = useMemo(() => {
-    const isMint = tab == 'Mint'
-    if (modeNumber == 3)
-      return [
-        'Adjustment Model--High AAR',
-        isMint ? `Minting ${USBSymbol} alone is feasible` : `Redeeming ${vc.xTokenSymbol} alone is feasible`,
-      ]
-    if (modeNumber == 2)
-      return [
-        'Adjustment Model--Low AAR',
-        isMint ? `Minting ${vc.xTokenSymbol} alone is feasible` : `Redeeming ${USBSymbol} alone is feasible`,
-      ]
-    return [
-      'Stability Model',
-      isMint
-        ? `${USBSymbol} and ${vc.xTokenSymbol} will be minted in fixed ratio`
-        : `Redemption require a fixed ration of ${USBSymbol} and ${vc.xTokenSymbol}`,
-    ]
-  }, [modeNumber, vc, tab])
-
   const [amount, setAmount] = useState('')
   const [selected, setSelected] = useState('')
-
-  const assetPrice = getBigint(prices, vc.assetTokenAddress)
-  const xPrice = getBigint(prices, vc.xTokenAddress)
-  const balance = balances[vc.assetTokenAddress]
-  const usbBalance = balances[USB_ADDRESS[chainId]]
-  const xBalance = balances[vc.xTokenAddress]
+  const vs = useLVault(vc.vault)
+  const isAdjustment = vs.aar > 0 && vs.aar < vs.AARS
+  const assetPrice = vs.latestPrice
+  const xPrice = prices[vc.xTokenAddress]
+  const balances = useBalances()
+  const balance = balances[vc.assetTokenAddress] || 0n
+  const usbBalance = balances[USB_ADDRESS[chainId]] || 0n
+  const xBalance = balances[vc.xTokenAddress] || 0n
   // redeem state
   const [{ usbAmount, xAmount, redeemActive, redeemFocus }, setRedeemState] = useSetState({
     usbAmount: '',
@@ -67,24 +51,24 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
           vc: vc,
           abi: abiVaultQuery,
           address: vaultQueryAddress,
-          functionName: 'calcMintPairs',
+          functionName: 'calcMintPairsFromStableVault',
           args: [vc.vault, parseEthers(amount || '0')],
         },
         {
           vc: vc,
           abi: abiVaultQuery,
           address: vaultQueryAddress,
-          functionName: 'calcMintUsbAboveAARU',
+          functionName: 'calcMintUsbFromStableVault',
           args: [vc.vault, parseEthers(amount || '0')],
         },
         {
           vc: vc,
           abi: abiVaultQuery,
           address: vaultQueryAddress,
-          functionName: 'calcMintMarginTokensBelowAARS',
+          functionName: 'calcMintMarginTokensFromStableVault',
           args: [vc.vault, parseEthers(amount || '0')],
         },
-      ] as any,
+      ],
       watch: true,
       enabled: tab == 'Mint',
     }),
@@ -101,14 +85,14 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
         vc: vc,
         abi: abiVaultQuery,
         address: vaultQueryAddress,
-        functionName: 'calcPairdMarginTokenAmount',
+        functionName: 'calcPairdMarginTokenAmountForStableVault',
         args: [vc.vault, parseEthers(usbAmount || '0')],
       },
       {
         vc: vc,
         abi: abiVaultQuery,
         address: vaultQueryAddress,
-        functionName: 'calcPairedUsbAmount',
+        functionName: 'calcPairedUsbAmountForStableVault',
         args: [vc.vault, parseEthers(xAmount || '0')],
       },
     ] as any,
@@ -120,15 +104,15 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
         vc: vc,
         abi: abiVaultQuery,
         address: vaultQueryAddress,
-        functionName: 'calcRedeemByMarginTokenAboveAARU',
-        args: [vc.vault, parseEthers(xAmount || '0')],
+        functionName: 'calcRedeemByMarginTokensFromStableVault',
+        args: [vc.vault, PROTOCOL_SETTINGS_ADDRESS[chainId], parseEthers(xAmount || '0')],
       },
       {
         vc: vc,
         abi: abiVaultQuery,
         address: vaultQueryAddress,
-        functionName: 'calcRedeemByUsbBelowAARS',
-        args: [vc.vault, parseEthers(usbAmount || '0')],
+        functionName: 'calcRedeemByUsbFromStableVault',
+        args: [vc.vault, PROTOCOL_SETTINGS_ADDRESS[chainId], parseEthers(usbAmount || '0')],
       },
     ] as any,
     query: { enabled: tab == 'Redeem' },
@@ -143,25 +127,21 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
 
   const mintPrepareConfig = useMemo(() => {
     const base: Parameters<typeof ApproveAndTx>[0]['config'] = {
-      abi: abiVault,
+      abi: abiStableVault,
       address: vc.vault,
+      functionName: 'mintPairs',
       args: [parseEthers(amount)],
       value: (vc.assetTokenAddress == NATIVE_TOKEN_ADDRESS ? parseEthers(amount) : 0n) as any,
-      functionName: 'mintPairs',
     }
-    if (selected == USBSymbol) base.functionName = 'mintUsbAboveAARU'
-    if (selected == vc.xTokenSymbol) base.functionName = 'mintMarginTokensBelowAARS'
+    if (selected == USBSymbol) base.functionName = 'mintUsb'
+    if (selected == vc.xTokenSymbol) base.functionName = 'mintMarginTokens'
     return base
-  }, [modeNumber, selected, amount, vc])
+  }, [selected, amount, vc])
 
   const finalUsbOut = selected == vc.xTokenSymbol ? 0n : selected === USBSymbol ? usbOutValue : pairOutValue1
   const finalXOut = selected == USBSymbol ? 0n : selected === vc.xTokenSymbol ? xTokenOutValue : pairOutValue2
   const showUsbInput = isRedeemByXtoken ? '0' : redeemFocus == USBSymbol ? usbAmount : formatEther(redeemPairUsbInVaule)
-  const showXInput = isRedeemByUSB
-    ? '0'
-    : redeemFocus == vc.xTokenSymbol
-    ? xAmount
-    : formatEther(redeemPairXtokenInVaule)
+  const showXInput = isRedeemByUSB ? '0' : redeemFocus == vc.xTokenSymbol ? xAmount : formatEther(redeemPairXtokenInVaule)
 
   const configRedeemOut = useMemo(
     () => ({
@@ -169,52 +149,49 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
       watch: true,
       abi: abiVaultQuery,
       address: vaultQueryAddress,
-      functionName: 'calcPairedRedeemAssetAmount',
-      args: [vc.vault, parseEthers(showXInput || '0')],
+      functionName: 'calcRedeemByPairsAssetAmountForStableVault',
+      args: [vc.vault, PROTOCOL_SETTINGS_ADDRESS[chainId], parseEthers(showXInput || '0')],
     }),
     [vc, showXInput],
   )
   const { data: redeemPairOutData } = useWandContractRead(configRedeemOut as any)
-  const redeemOut = isRedeemByXtoken
-    ? redeemOutByXtokenVaule
-    : isRedeemByUSB
-    ? redeemOutByUsbVaule
-    : getBigint(redeemPairOutData, [1])
+  const redeemOut = isRedeemByXtoken ? redeemOutByXtokenVaule : isRedeemByUSB ? redeemOutByUsbVaule : getBigint(redeemPairOutData, [1])
 
   const redeemPrepareConfig = useMemo(() => {
     const base: Parameters<typeof ApproveAndTx>[0]['config'] = {
-      abi: abiVault,
+      abi: abiStableVault,
       address: vc.vault,
-      functionName:
-        redeemActive == USBSymbol ? 'redeemByPairsWithExpectedUsbAmount' : 'redeemByPairsWithExpectedMarginTokenAmount',
+      functionName: redeemActive == USBSymbol ? 'redeemByPairsWithExpectedUsbAmount' : 'redeemByPairsWithExpectedMarginTokenAmount',
       args: redeemActive == USBSymbol ? [parseEthers(showUsbInput)] : [parseEthers(showXInput)],
     }
 
     if (redeemActive == vc.xTokenSymbol) {
-      base.functionName = 'redeemByMarginTokenAboveAARU'
+      base.functionName = 'redeemByMarginTokens'
       base.args = [parseEthers(showXInput)]
     }
     if (redeemActive == USBSymbol) {
-      base.functionName = 'redeemByUsbBelowAARS'
+      base.functionName = 'redeemByUsb'
       base.args = [parseEthers(showUsbInput)]
     }
     return base
-  }, [modeNumber, redeemActive, showUsbInput, showXInput, vc])
+  }, [redeemActive, showUsbInput, showXInput, vc])
+  const upForUserAction = useUpLVaultOnUserAction(vc)
 
   return (
-    <div className={twMerge('card relative h-[460px]', modeNumber > 1 ? '!bg-violet-500/10' : '')}>
+    <div className={twMerge('card relative h-[480px]')}>
       <div className='page-sub text-center'>Advanced Panel</div>
       <div className='absolute top-[50px] right-6 flex flex-col items-end z-10'>
-        <div className={twMerge('text-sm leading-5 flex items-center gap-1.5 rounded-full w-fit')}>
-          <div className={twMerge('w-3 h-3 rounded-full', mode == 'Stability Model' ? 'bg-green-500' : 'bg-red-500')} />
-          <Tip
-            node={<div className={twMerge(mode == 'Stability Model' ? 'text-green-500' : 'text-red-500')}>{mode}</div>}
-          >
-            {modeDesc}
-          </Tip>
-        </div>
+        <Tip
+          node={
+            <div className={twMerge('text-sm leading-5 flex items-center gap-1.5 rounded-full w-fit')}>
+              <div className={twMerge('w-3 h-3 rounded-full', !isAdjustment ? 'bg-green-500' : 'bg-red-500')} />
+              <div className={twMerge(!isAdjustment ? 'text-green-500' : 'text-red-500')}>{isAdjustment ? 'Adjustment Model' : 'Stability Model'}</div>
+            </div>
+          }
+        >
+          {!isAdjustment ? '' : tab == 'Mint' ? `Minting ${USBSymbol} alone is not feasible` : 'Redeeming USDBx alone is not feasible'}
+        </Tip>
       </div>
-
       <div className='relative flex items-center justify-between'>
         <SimpleTabs
           onTabChange={setTab}
@@ -238,33 +215,31 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                     <AssetInput
                       amount={fmtBn(finalUsbOut)}
                       onClick={() => {
-                        // modeNumber == 2 && setSelected((last) => last == USBSymbol?'':USBSymbol)
-                        setSelected(modeNumber == 3 ? USBSymbol : '')
+                        setSelected(isAdjustment ? '' : selected == USBSymbol ? '' : USBSymbol)
                       }}
                       asset={USBSymbol}
                       exchange={displayBalance(finalUsbOut)}
                       readonly
-                      disable={modeNumber <= 1}
                       selected={selected === USBSymbol}
                     />
                     <AssetInput
                       amount={fmtBn(finalXOut)}
                       onClick={() => {
-                        // modeNumber == 3 && setSelected((last) => (last == xTokenSymbol ? '' : xTokenSymbol))
-                        setSelected(modeNumber == 2 ? vc.xTokenSymbol : '')
+                        setSelected(selected == vc.xTokenSymbol ? '' : vc.xTokenSymbol)
                       }}
                       asset={vc.xTokenSymbol}
                       exchange={displayBalance((xPrice * finalXOut) / DECIMAL)}
                       readonly
-                      disable={modeNumber <= 1}
                       selected={selected === vc.xTokenSymbol}
                     />
                   </div>
                   <ApproveAndTx
                     tx='Mint'
+                    className='mt-6 w-full'
                     disabled={vc.disableIn || parseEthers(amount) == 0n || parseEthers(amount) > balance}
                     onTxSuccess={() => {
                       setAmount('')
+                      upForUserAction()
                     }}
                     config={mintPrepareConfig}
                     approves={{ [vc.assetTokenAddress]: parseEthers(amount) }}
@@ -284,7 +259,7 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                       balance={usbBalance}
                       onClick={() => {
                         setRedeemState({
-                          redeemActive: modeNumber == 2 ? USBSymbol : '',
+                          redeemActive: redeemActive == USBSymbol ? '' : USBSymbol,
                           redeemFocus: USBSymbol,
                         })
                       }}
@@ -299,7 +274,7 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                       asset={vc.xTokenSymbol}
                       onClick={() => {
                         setRedeemState({
-                          redeemActive: modeNumber == 3 ? vc.xTokenSymbol : '',
+                          redeemActive: isAdjustment ? '' : redeemActive == vc.xTokenSymbol ? '' : vc.xTokenSymbol,
                           redeemFocus: vc.xTokenSymbol,
                         })
                       }}
@@ -317,21 +292,15 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                     <div className='flex-1 text-sm text-slate-400 text-end whitespace-nowrap'>Redemption Fee: 0.5%</div>
                   </div>
                   <div className='w-full text-end'></div>
-                  <AssetInput
-                    asset={vc.assetTokenSymbol}
-                    amount={formatEther(redeemOut)}
-                    exchange={displayBalance((assetPrice * redeemOut) / DECIMAL)}
-                    readonly
-                  />
+                  <AssetInput asset={vc.assetTokenSymbol} amount={formatEther(redeemOut)} exchange={displayBalance((assetPrice * redeemOut) / DECIMAL)} readonly />
                   <ApproveAndTx
                     tx='Redeem'
+                    className='mt-6 w-full'
                     config={redeemPrepareConfig}
                     disabled={
                       (isRedeemByUSB && parseEthers(showUsbInput) == 0n) ||
                       (isRedeemByXtoken && parseEthers(showXInput) == 0n) ||
-                      (!isRedeemByUSB &&
-                        !isRedeemByXtoken &&
-                        (parseEthers(showUsbInput) == 0n || parseEthers(showXInput) == 0n)) ||
+                      (!isRedeemByUSB && !isRedeemByXtoken && (parseEthers(showUsbInput) == 0n || parseEthers(showXInput) == 0n)) ||
                       parseEthers(showUsbInput) > usbBalance ||
                       parseEthers(showXInput) > xBalance
                     }
@@ -340,6 +309,7 @@ export function LVaultAdvance({ vc }: { vc: VaultConfig }) {
                         usbAmount: '',
                         xAmount: '',
                       })
+                      upForUserAction()
                     }}
                     spender={vc.vault}
                   />

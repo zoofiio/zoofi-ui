@@ -3,14 +3,7 @@
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { AssetInput } from '@/components/asset-input'
 import { abiVault, abiVaultQuery } from '@/config/abi'
-import {
-  PROTOCOL_SETTINGS_ADDRESS,
-  USBSymbol,
-  USB_ADDRESS,
-  VAULTS_CONFIG,
-  VAULT_QUERY_ADDRESS,
-  VaultConfig,
-} from '@/config/swap'
+import { PROTOCOL_SETTINGS_ADDRESS, USBSymbol, USB_ADDRESS, VAULTS_CONFIG, VAULT_QUERY_ADDRESS, VaultConfig } from '@/config/swap'
 import { DECIMAL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead } from '@/hooks/useWand'
@@ -22,32 +15,30 @@ import { LuChevronDown } from 'react-icons/lu'
 import { twMerge } from 'tailwind-merge'
 import { Noti } from './noti'
 import { CoinIcon } from './icons/coinicon'
+import { useLVault, useUpLVaultOnUserAction } from '@/providers/useLVaultsData'
+import { useBalances } from '@/providers/useTokenStore'
 
 const ValutArea = ({ asset }: { asset: string }) => {
-  const { vaultsState, stableVaultsState, vaultsDiscount } = useContext(FetcherContext)
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId]
   const vc = vcs.find((item) => item.assetTokenSymbol == asset) as VaultConfig
+  const vs = useLVault(vc.vault)
   const token = vc.assetTokenSymbol
-  const discountEnable = vaultsDiscount[vc.vault]
+  const discountEnable = vs.discountEnable
   const discountSate = discountEnable ? 'Discount available' : 'No discount'
   const isTrigger = !discountEnable
-  const vs = vaultsState[vc.vault]
-  const vs_s = stableVaultsState[vc.vault]
   const { rate } = useDiscountRate(vc)
   const [left1, left2] = useMemo(() => {
-    if (vc.isStable) {
-      if (!vs_s) return ['50%', '50%']
+    if (vs.isStable) {
       const aaru = 2
       const start = aaru / 2
       const toPercent = (num: number) => {
         return (Math.max(0, Math.min(1, (num - start) / (aaru - start))) * 100).toFixed(2) + '%'
       }
-      const aars = aarToNumber(vs_s.AARS, vs_s.AARDecimals)
-      const aar = aarToNumber(vs_s.aar, vs_s.AARDecimals)
+      const aars = aarToNumber(vs.AARS, vs.AARDecimals)
+      const aar = aarToNumber(vs.aar, vs.AARDecimals)
       return [toPercent(aar), toPercent(aars)]
     } else {
-      if (!vs) return ['50%', '50%']
       const aaru = aarToNumber(vs.AARU, vs.AARDecimals)
       const aar = aarToNumber(vs.aar, vs.AARDecimals)
       const aars = aarToNumber(vs.AARS, vs.AARDecimals)
@@ -60,52 +51,28 @@ const ValutArea = ({ asset }: { asset: string }) => {
       if (isTrigger) return [left1, toPercent(aars)]
       return [left1, toPercent(aart)]
     }
-  }, [vc.isStable, vs.AARU, vs.aar, vs.AARS, vs.AART, vs_s.AARS, vs_s.aar, isTrigger])
+  }, [vc.isStable, vs, isTrigger])
 
-  const currentAar = vc.isStable ? fmtAAR(vs_s.aar, vs_s.AARDecimals) : fmtAAR(vs.aar, vs.AARDecimals)
-  const triggerAar = vc.isStable
-    ? fmtAAR(vs_s.AARS, vs_s.AARDecimals)
-    : isTrigger
-    ? fmtAAR(vs.AARS, vs.AARDecimals)
-    : fmtAAR(vs.AART, vs.AARDecimals)
+  const currentAar = fmtAAR(vs.aar, vs.AARDecimals)
+  const triggerAar = vs.isStable ? fmtAAR(vs.AARS, vs.AARDecimals) : isTrigger ? fmtAAR(vs.AARS, vs.AARDecimals) : fmtAAR(vs.AART, vs.AARDecimals)
   const aarClassname = 'px-2 py-1 bg-primary rounded font-medium text-black'
   const aarMark = (
-    <div
-      style={{ position: 'relative', left: left1, transform: 'translate(-50%,0)' }}
-      className='flex flex-col items-center w-fit rounded-md'
-    >
+    <div style={{ position: 'relative', left: left1, transform: 'translate(-50%,0)' }} className='flex flex-col items-center w-fit rounded-md'>
       <div className='text-xs flex flex-col gap-2 justify-center items-center'>
         <span className='text-neutral-400 whitespace-nowrap'>Current AAR</span>
         <span className={aarClassname}>{currentAar}</span>
       </div>
 
-      <svg
-        width='10'
-        height='8'
-        viewBox='0 0 10 8'
-        xmlns='http://www.w3.org/2000/svg'
-        className='fill-primary'
-        fill='currentColor'
-      >
+      <svg width='10' height='8' viewBox='0 0 10 8' xmlns='http://www.w3.org/2000/svg' className='fill-primary' fill='currentColor'>
         <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' />
       </svg>
     </div>
   )
 
   const triggerOrEndDiscount = (
-    <div
-      style={{ position: 'relative', left: left2, transform: 'translate(-50%,0)' }}
-      className='flex flex-col items-center w-fit rounded-md'
-    >
-      <svg
-        className='rotate-180 fill-primary'
-        width='10'
-        height='8'
-        viewBox='0 0 10 8'
-        fill='currentColor'
-        xmlns='http://www.w3.org/2000/svg'
-      >
-        <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z'/>
+    <div style={{ position: 'relative', left: left2, transform: 'translate(-50%,0)' }} className='flex flex-col items-center w-fit rounded-md'>
+      <svg className='rotate-180 fill-primary' width='10' height='8' viewBox='0 0 10 8' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+        <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' />
         {/* <path d='M5 7.5L0.669873 -7.57104e-07L9.33013 0L5 7.5Z' fill={isTrigger ? '#E83B3B' : '#54E83B'} /> */}
       </svg>
 
@@ -127,12 +94,7 @@ const ValutArea = ({ asset }: { asset: string }) => {
             <div className='text-xs flex items-center gap-2'>
               {!discountEnable && (
                 <div className='flex items-center text-neutral-700 dark:text-slate-50 gap-1'>
-                  <div
-                    className={twMerge(
-                      'w-3 h-3 shrink-0 rounded-full',
-                      !discountEnable ? 'bg-green-500' : 'bg-red-500',
-                    )}
-                  />
+                  <div className={twMerge('w-3 h-3 shrink-0 rounded-full', !discountEnable ? 'bg-green-500' : 'bg-red-500')} />
                   {discountSate}
                 </div>
               )}
@@ -183,14 +145,16 @@ function useDiscountRate(vc: VaultConfig) {
 }
 
 export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
-  const { balances, prices, vaultsDiscount } = useContext(FetcherContext)
+  const { prices } = useContext(FetcherContext)
+  const balances = useBalances()
+  const vs = useLVault(vc.vault)
   const chainId = useCurrentChainId()
   const vcs = useMemo(() => VAULTS_CONFIG[chainId].filter((item) => !item.disableIn), [chainId])
   const options = useMemo(() => vcs.map((vc) => ({ value: vc.vault, label: vc.xTokenSymbol })), [vcs])
   const [_coin, setCoin] = useState<(typeof options)[0]>(options[0])
   const coin = options.find((item) => item === _coin) ? _coin : options[0]
   //   const vc = vcs.find((item) => item.vault == coin.value) as VaultConfig
-  const discountEnable = vaultsDiscount[vc.vault]
+  const discountEnable = vs.discountEnable
   const isTrigger = !discountEnable
   const xPrice = getBigint(prices, vc.xTokenAddress)
 
@@ -205,6 +169,7 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
     console.log(e)
     setCoin(e)
   }
+  const upForUserAction = useUpLVaultOnUserAction(vc)
 
   return (
     <div className=''>
@@ -232,9 +197,7 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
               <LuChevronDown className='w-6 h-6 text-neutral-500  border border-neutral-200 rounded-full my-[10px]' />
               <div className='flex-1' />
             </div>
-            <div className='w-full flex-1 text-right text-neutral-700 dark:text-slate-50/60 text-md whitespace-nowrap'>
-              Discount Rate: {isTrigger ? '--' : rate}
-            </div>
+            <div className='w-full flex-1 text-right text-neutral-700 dark:text-slate-50/60 text-md whitespace-nowrap'>Discount Rate: {isTrigger ? '--' : rate}</div>
             <AssetInput
               asset={coin.label}
               amount={displayBalance(xOut)}
@@ -252,6 +215,7 @@ export function LVaultsDiscount({ vc }: { vc: VaultConfig }) {
             disabled={!swapEnable}
             onTxSuccess={() => {
               setUsbAmount('')
+              upForUserAction()
             }}
             config={{
               abi: abiVault,

@@ -1,101 +1,108 @@
+import { USB_ADDRESS, VaultConfig, VAULTS_CONFIG } from '@/config/swap'
+import { DECIMAL } from '@/constants'
+import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
+import { aarToNumber, proxyGetDef, retry } from '@/lib/utils'
 import { Address } from 'viem'
+import { BoundStoreType, useBoundStore, useStoreShallow } from './useBoundStore'
+import { useAccount } from 'wagmi'
+import { getCurrentChainId } from '@/config/network'
 
-export type LVaultDTO = {
-  vault: Address
-  state: {
-    M_ETH: bigint
-    P_ETH: bigint
-    P_ETH_DECIMALS: bigint
-    M_USB_ETH: bigint
-    M_ETHx: bigint
-    aar: bigint
-    AART: bigint
-    AARS: bigint
-    AARU: bigint
-    AARC: bigint
-    AARDecimals: bigint
-    RateR: bigint
-    AARBelowSafeLineTime: bigint
-    AARBelowCircuitBreakerLineTime: bigint
-    settingsDecimals: bigint
-  } & {
-    Y: bigint
-  }
-  aar: bigint
+export const defLVault = proxyGetDef<Exclude<BoundStoreType['sliceLVaultsStore']['lvaults'][Address], undefined>>({ vaultMode: 0, discountEnable: false }, 0n)
+export const defUserLVault = proxyGetDef<Exclude<BoundStoreType['sliceLVaultsStore']['user'][Address], undefined>>({}, 0n)
+export function useLVault(vault: Address) {
+  return useStoreShallow((s) => s.sliceLVaultsStore.lvaults[vault] || defLVault)
 }
-export type LVaultDetailsDTO = {}
-export type UserLVaultDTO = {}
 
-export type LVaultsDataStore = {
-  balances: { [k: string]: bigint }
-  totalSupplies: { [k: string]: bigint }
-  prices: { [k: string]: bigint }
-  assetLocked: { [k: string]: bigint }
+export function useUserLVault(vault: Address) {
+  return useStoreShallow((s) => s.sliceLVaultsStore.user[vault] || defUserLVault)
+}
 
-  aar: { [k: Address | string]: number }
-  vaultUSBTotal: { [k: Address]: bigint }
-  vaultsMode: { [k: Address | string]: number }
-  vaultsDiscount: { [k: Address | string]: boolean }
-  vaultsState: {
-    [k: Address | string]: {
-      M_ETH: bigint
-      P_ETH: bigint
-      P_ETH_DECIMALS: bigint
-      M_USB_ETH: bigint
-      M_ETHx: bigint
-      aar: bigint
-      AART: bigint
-      AARS: bigint
-      AARU: bigint
-      AARC: bigint
-      AARDecimals: bigint
-      RateR: bigint
-      AARBelowSafeLineTime: bigint
-      AARBelowCircuitBreakerLineTime: bigint
-      settingsDecimals: bigint
-    } & {
-      Y: bigint
+export function useVaultLeverageRatio(vc: VaultConfig) {
+  const lvd = useLVault(vc.vault)
+  const aarNum = aarToNumber(lvd.aar, lvd.AARDecimals)
+  const leverage = Math.max(0, 1 + 1 / (aarNum - 1))
+  return leverage
+}
+
+export function useValutsLeverageRatio() {
+  const chainId = useCurrentChainId()
+  const vcs = VAULTS_CONFIG[chainId]
+  const leverageMap: { [k: Address]: number } = useMemoOfChainId(() => proxyGetDef({}, 0))
+  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  vcs.forEach((vc) => {
+    const vs = lvaults[vc.vault]
+    const aarNum = vs ? aarToNumber(vs.aar, vs.AARDecimals) : 0
+    leverageMap[vc.vault] = Math.max(0, 1 + 1 / (aarNum - 1))
+  })
+  return leverageMap
+}
+
+export function useSetLVaultPrices(prices: { [k: Address]: bigint }) {
+  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const totalSupply = useStoreShallow((s) => s.sliceTokenStore.totalSupply)
+  const chainId = useCurrentChainId()
+  VAULTS_CONFIG[chainId].forEach((vc) => {
+    const lvd = lvaults[vc.vault] || defLVault
+    const _assetTotal = lvd.assetBalance
+    const assetPrice = lvd.latestPrice
+    const _usbTotalSupply = lvd.usbTotalSupply
+    const xTotalSupply = totalSupply[vc.xTokenAddress] || 0n
+    let xPrice =
+      xTotalSupply > 0n && _assetTotal > 0n && assetPrice > 0n && _usbTotalSupply > 0n && _assetTotal * assetPrice > _usbTotalSupply * DECIMAL
+        ? (_assetTotal * assetPrice - _usbTotalSupply * DECIMAL) / xTotalSupply
+        : 0n
+    prices[vc.xTokenAddress] = xPrice
+    prices[vc.assetTokenAddress] = assetPrice
+    // aar < 100%
+    if (xTotalSupply > 0n && _assetTotal > 0n && assetPrice > 0n && _usbTotalSupply > 0n && _assetTotal * assetPrice < _usbTotalSupply * DECIMAL) {
+      prices[USB_ADDRESS[chainId]] = (_assetTotal * assetPrice) / _usbTotalSupply
     }
-  }
-  stableVaultsState: {
-    [k: Address | string]: {
-      M_USDC: bigint
-      P_USDC: bigint
-      P_USDC_DECIMALS: bigint
-      M_USB_USDC: bigint
-      M_USDCx: bigint
-      aar: bigint
-      AARS: bigint
-      AARDecimals: bigint
-      RateR: bigint
-      AARBelowSafeLineTime: bigint
-    } & {
-      Y: bigint
+  })
+}
+
+export function useUSBApr() {
+  const chainId = useCurrentChainId()
+  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  let enableCount = 0
+  let multiTotal = 0n
+  let total = 0n
+  VAULTS_CONFIG[chainId].forEach((vc) => {
+    const lvd = lvaults[vc.vault] || defLVault
+    if (lvd.isStable) {
+      multiTotal += (lvd.M_USB_USDC * lvd.Y * lvd.aar) / 10n ** lvd.AARDecimals
+      total += lvd.M_USB_USDC
+      if (lvd.M_USB_USDC > 0n && lvd.Y > 0n) {
+        enableCount++
+      }
+    } else {
+      multiTotal += lvd.M_USB_ETH * lvd.Y
+      total += lvd.M_USB_ETH
+      if (lvd.M_USB_ETH > 0n && lvd.Y > 0n) {
+        enableCount++
+      }
     }
-  }
+  })
+  return { apr: total > 0n ? multiTotal / total : 0n, aprDecimals: 10 }
+}
 
-  earns: {
-    [k: Address]: {
-      stake: bigint
-      stakeSymbol: string
-      match: bigint
-      matchSymbol: string
-      earn: bigint
-      earnSymbol: string
-      earnForMatch: bigint
-      totalStake: bigint
-      balance: bigint
-    }
+export function useUpLVaultOnUserAction(vc: VaultConfig) {
+  const { address } = useAccount()
+  return () => {
+    retry(
+      async () => {
+        if (!address) return
+        const lvs = useBoundStore.getState().sliceLVaultsStore
+        const tokens = [vc.assetTokenAddress, vc.xTokenAddress, USB_ADDRESS[getCurrentChainId()]]
+        await Promise.all([
+          lvs.updateLVaults([vc]),
+          lvs.updateUserLVault(vc, address),
+          useBoundStore.getState().sliceTokenStore.updateTokensBalance(tokens, address),
+          useBoundStore.getState().sliceTokenStore.updateTokenTotalSupply(tokens),
+        ])
+      },
+      3,
+      1000,
+    ).catch(console.error)
   }
-
-  usbApr: {
-    apr: bigint
-    aprDecimals: number
-  }
-
-  // ptypoolYields?: UnPromise<typeof getPtypoolYields>
-  // plainVaultsStat: ReturnType<typeof usePlainVualtsReads>
-  lvaults: { [k: Address]: LVaultDTO }
-  lvaultsDetails: { [k: Address]: LVaultDetailsDTO }
-  userLvaults: { [k: Address]: UserLVaultDTO }
 }

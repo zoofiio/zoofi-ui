@@ -4,6 +4,7 @@ const TWITTER_LINK = 'https://x.com/ZooFinanceIO'
 const DISCORD_LINK = 'https://t.co/RJwdwdawe5'
 
 const DECIMAL = BigInt(1e18)
+const DECIMAL_PRICE = BigInt(1e8)
 const YEAR_SECONDS = BigInt('31536000')
 
 const Day1 = 24 * 60 * 60 * 1000
@@ -15,5 +16,5 @@ const ENV: 'prod' | 'test' | 'beta' = (process.env.NEXT_PUBLIC_ENV as any) || 'p
 const isTEST = ENV == 'test'
 const isBETA = ENV == 'beta'
 const isPROD = !ENV
-
-export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, Day1, ENV, isTEST, isBETA, isPROD, YEAR_SECONDS }
+console.info(process.env.NODE_ENV)
+export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, DECIMAL_PRICE, Day1, ENV, isTEST, isBETA, isPROD, YEAR_SECONDS }

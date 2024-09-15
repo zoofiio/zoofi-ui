@@ -7,7 +7,6 @@ import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useElementSizeCheck } from '@/hooks/useElementSizeCheck'
 import { usePtypoolApy } from '@/hooks/usePtypoolApy'
 import { useTokenApys } from '@/hooks/useTokenApys'
-import { useValutsLeverageRatio } from '@/hooks/useVaultLeverageRatio'
 import { FetcherContext } from '@/providers/fetcher'
 import { displayBalance } from '@/utils/display'
 import { useContext, useMemo } from 'react'
@@ -15,6 +14,7 @@ import { GoArrowUpRight } from 'react-icons/go'
 import { Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { useThemeState } from './theme-mode'
+import { useLVault, useValutsLeverageRatio } from '@/providers/useLVaultsData'
 
 type PointItem = {
   symbol: string
@@ -44,14 +44,15 @@ const titBgMap: { [k: string]: string } = {
 
 export function useVcPoints(vc: VaultConfig) {
   const chainId = useCurrentChainId()
-  const { prices, usbApr, vaultsState, stableVaultsState } = useContext(FetcherContext)
+  const { prices, usbApr } = useContext(FetcherContext)
+  const vs = useLVault(vc.vault)
   const levrages = useValutsLeverageRatio()
   const apys = usePtypoolApy()
   const tapys = useTokenApys()
   const items = useMemo(() => {
     const points: PointItem[] = []
-    const musb = vc.isStable ? stableVaultsState[vc.vault].M_USB_USDC : vaultsState[vc.vault].M_USB_ETH
-
+    const musb = vs.isStable ? vs.M_USB_USDC : vs.M_USB_ETH
+    const mXtoken = vs.isStable ? vs.M_USDCx : vs.M_ETHx
     // 0.06504987 Points/Block/ETH
     const perDecimals = 8
     const perBlockEth = 6504987n
@@ -72,23 +73,21 @@ export function useVcPoints(vc: VaultConfig) {
     })
     const tit = 'Leverage the Bull'
     const sub =
-      vc.isStable && isBerachain()
-        ? `~ ${levrages[vc.vault].toFixed(2)}x Berachain Native Yield`
-        : `~ ${levrages[vc.vault].toFixed(2)}x Leveraged long on ${vc.assetTokenSymbol}`
+      vc.isStable && isBerachain() ? `~ ${levrages[vc.vault].toFixed(2)}x Berachain Native Yield` : `~ ${levrages[vc.vault].toFixed(2)}x Leveraged long on ${vc.assetTokenSymbol}`
     points.push({
       symbol: vc.xTokenSymbol,
       symbolPrice: `$${displayBalance(prices[vc.xTokenAddress])}`,
       iconSymbol: 'Bull',
       tit,
       sub,
-      total: `Total Minted: ${displayBalance(musb, 0)}`,
+      total: `Total Minted: ${displayBalance(mXtoken, 0)}`,
     })
     return points
   }, [chainId, prices, levrages, usbApr, apys])
   return items
 }
 
-export function PointCard({ symbol,symbolPrice, iconSymbol, tit, sub, total, link }: PointItem) {
+export function PointCard({ symbol, symbolPrice, iconSymbol, tit, sub, total, link }: PointItem) {
   const theme = useThemeState((s) => s.theme)
   return (
     <div
@@ -99,10 +98,7 @@ export function PointCard({ symbol,symbolPrice, iconSymbol, tit, sub, total, lin
       }
       className='card overflow-hidden !p-0 text-base flex flex-col'
     >
-      <div
-        className='flex md:flex-wrap items-center p-4 gap-2 dark:text-black'
-        style={{ background: bgMap[`${symbol}_${theme}`] || bgMap[symbol] }}
-      >
+      <div className='flex md:flex-wrap items-center p-4 gap-2 dark:text-black' style={{ background: bgMap[`${symbol}_${theme}`] || bgMap[symbol] }}>
         <CoinIcon symbol={iconSymbol} size={42} className='shrink-0' />
         <div>
           <div className='font-semibold'>{symbol}</div>
@@ -121,11 +117,7 @@ export function PointCard({ symbol,symbolPrice, iconSymbol, tit, sub, total, lin
           <span className='font-semibold text-sm'>{total}</span>
         </div>
         {link && (
-          <a
-            className='underline text-slate-500 dark:text-slate-50 flex items-center gap-1'
-            href={link.url}
-            target='_blank'
-          >
+          <a className='underline text-slate-500 dark:text-slate-50 flex items-center gap-1' href={link.url} target='_blank'>
             {link.text} <GoArrowUpRight />
           </a>
         )}

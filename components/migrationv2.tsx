@@ -8,9 +8,11 @@ import {
   VAULT_QUERY_ADDRESS,
 } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { TaskType, useMultiWriteContracts, useWandRead } from '@/hooks/useWand'
+import { TaskType, useMultiWriteContracts } from '@/hooks/useWand'
 import { UnPromise, getBigint, getBigintGt, handleError, proxyGetDef } from '@/lib/utils'
+import { getPC } from '@/providers/publicClient'
 import { displayBalance } from '@/utils/display'
+import { useQuery } from '@tanstack/react-query'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef } from 'react'
 import { MdCheckCircle } from 'react-icons/md'
@@ -18,12 +20,10 @@ import { PiWarningFill } from 'react-icons/pi'
 import { useToggle } from 'react-use'
 import { erc20Abi, parseEther } from 'viem'
 import { useAccount } from 'wagmi'
-import STable from './simple-table'
 import { CoinIcon } from './icons/coinicon'
 import { SimpleDialog } from './simple-dialog'
+import STable from './simple-table'
 import { Spinner } from './spinner'
-import { useQuery } from '@tanstack/react-query'
-import _ from 'lodash'
 
 function MarginLoan({ symbol, value }: { symbol: string; value: bigint }) {
   return (
@@ -42,7 +42,6 @@ function useMigrationQuery(show: boolean) {
   const { address } = useAccount()
   const ethVC = OLD_VAULTS_CONFIG[chainId][0]
   const usdbVC = OLD_VAULTS_CONFIG[chainId][1]
-  const read = useWandRead()
   const queryFn = async () => {
     const data = await Promise.all(
       [
@@ -95,7 +94,7 @@ function useMigrationQuery(show: boolean) {
           functionName: 'earnedStakingYields',
           args: [address as any],
         },
-      ].map((item) => read(item as any)),
+      ].map((item) => getPC().readContract(item as any)),
     )
     const earnEthx = getBigint(data, [7])
     const ethxBalance = getBigint(data, [0])
@@ -111,7 +110,7 @@ function useMigrationQuery(show: boolean) {
 
     const assetData = await Promise.all([
       bnGt(ethxBalance)
-        ? read({
+        ? getPC().readContract({
             abi: abiVaultQuery,
             address: VAULT_QUERY_ADDRESS[chainId],
             functionName: 'calcPairedRedeemAssetAmount',
@@ -119,7 +118,7 @@ function useMigrationQuery(show: boolean) {
           }).then((res) => res[1])
         : 0n,
       bnGt(usdbxBalance)
-        ? read({
+        ? getPC().readContract({
             abi: abiVaultQuery,
             address: VAULT_QUERY_ADDRESS[chainId],
             functionName: 'calcRedeemByMarginTokensFromStableVault',

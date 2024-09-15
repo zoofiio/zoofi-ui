@@ -24,11 +24,11 @@ import {
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
 import { cn } from '@/lib/utils'
-import { LegacyRef, ReactNode, Ref, useMemo, useRef, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
 import Select from 'react-select'
-import { useMeasure, useRaf, useSetState } from 'react-use'
+import { useMeasure, useSetState } from 'react-use'
 import { Abi, AbiFunction, AbiParameter, Address, formatEther, formatUnits, parseUnits, stringToHex } from 'viem'
 import { useAccount } from 'wagmi'
 

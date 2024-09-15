@@ -1,6 +1,6 @@
 import { USB_ADDRESS, VAULTS_CONFIG } from '@/config/swap'
 import { DECIMAL } from '@/constants'
-import { FetcherContextInterface } from '@/providers/fetcher'
+import { useStoreShallow } from '@/providers/useBoundStore'
 import { useEffect } from 'react'
 import { Address, parseUnits } from 'viem'
 import { create } from 'zustand'
@@ -12,21 +12,16 @@ export const usePtypoolApy = create<Apys & { update: (data: Partial<Apys>) => vo
   update: set,
 }))
 
-export function useUpdatePtypoolApy(
-  earns: FetcherContextInterface['earns'],
-  prices: FetcherContextInterface['prices'],
-  vaultsState: FetcherContextInterface['vaultsState'],
-) {
+export function useUpdatePtypoolApy(prices: { [k: Address]: bigint }) {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId]
-  const total = Object.values(earns).reduce((sum, item) => item.totalStake + sum, 0n)
-  const { update } = usePtypoolApy()
+  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
   useEffect(() => {
+    console.info('updatePtypoolApy')
     vcs.forEach((vc) => {
-      const vs = vaultsState[vc.vault]
-
-      if (vc.ptyPoolAboveAddress && earns[vc.ptyPoolAboveAddress]) {
-        update({
+      const vs = lvaults[vc.vault]
+      if (vc.ptyPoolAboveAddress && vs && vs.sellPoolTotalStaking) {
+        usePtypoolApy.getState().update({
           [vc.ptyPoolAboveAddress]: {
             staking: parseUnits('0.025', 10),
             // staking: sellStakingApy(vc.ptyPoolAboveAddress),
@@ -34,14 +29,10 @@ export function useUpdatePtypoolApy(
           },
         })
       }
-      if (vc.ptyPoolBelowAddress && earns[vc.ptyPoolBelowAddress]) {
-        const staked = earns[vc.ptyPoolBelowAddress].totalStake * prices[USB_ADDRESS[chainId]]
-        console.info('hhh:', staked)
-        const apy =
-          staked > 0n && vs.settingsDecimals > 0n
-            ? (vs.M_ETHx * vs.Y * prices[vc.xTokenAddress] * DECIMAL) / 2n / staked / vs.settingsDecimals ** 10n
-            : 0n
-        update({
+      if (vc.ptyPoolBelowAddress && vs && vs.buyPoolTotalStaking && !vs.isStable) {
+        const staked = vs && vs.sellPoolTotalStaking * prices[USB_ADDRESS[chainId]]
+        const apy = staked > 0n && vs.settingsDecimals > 0n ? (vs.M_ETHx * vs.Y * prices[vc.xTokenAddress] * DECIMAL) / 2n / staked / vs.settingsDecimals ** 10n : 0n
+        usePtypoolApy.getState().update({
           [vc.ptyPoolBelowAddress]: {
             staking: (apy * 10n ** 10n) / DECIMAL,
             // staking: buyStakingApy(vc.ptyPoolBelowAddress),
@@ -50,5 +41,5 @@ export function useUpdatePtypoolApy(
         })
       }
     })
-  }, [vcs, total, earns, prices, vaultsState])
+  }, [vcs, lvaults, prices, chainId])
 }

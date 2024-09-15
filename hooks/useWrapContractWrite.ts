@@ -1,4 +1,5 @@
 import { getErrorMsg } from '@/lib/utils'
+import { getPC } from '@/providers/publicClient'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -10,9 +11,7 @@ import {
   ContractFunctionName,
   SimulateContractParameters,
 } from 'viem'
-import { usePublicClient, useWalletClient } from 'wagmi'
-import { useWandTimestamp } from './useWand'
-import { useWrapPublicClient } from './useWrapPublicClient'
+import { useWalletClient } from 'wagmi'
 
 export function useWrapContractWrite<
   const abi extends Abi | readonly unknown[],
@@ -32,10 +31,9 @@ export function useWrapContractWrite<
   const { autoToast = true, onSuccess } = opts || {}
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const pc = useWrapPublicClient()
   const { data: wc } = useWalletClient()
-  const isDisabled = !pc || !wc || !wc.account || isLoading || !config
-  const wt = useWandTimestamp()
+  const isDisabled = !wc || !wc.account || isLoading || !config
+  // const wt = useWandTimestamp()
   const write = async () => {
     if (isDisabled) return
     setIsLoading(true)
@@ -44,7 +42,7 @@ export function useWrapContractWrite<
       const mconfig: SimulateContractParameters<abi, functionName, args, Chain, chainOverride, accountOverride> = (
         typeof config == 'function' ? await config() : config
       ) as any
-
+      const pc = getPC()
       const { request } = await pc.simulateContract({ account: wc.account, ...mconfig } as any)
 
       const hash = await wc.writeContract(request)
@@ -55,7 +53,7 @@ export function useWrapContractWrite<
       setIsSuccess(true)
       onSuccess && onSuccess()
       autoToast && toast.success('Transaction success')
-      wt.update()
+      // wt.update()
     } catch (error) {
       autoToast && toast.error(getErrorMsg(error))
     }
