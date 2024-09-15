@@ -138,7 +138,7 @@ export function VaultSimple({ vc }: { vc: VaultConfig }) {
                 <AssetInput asset={asset} exchange={displayBalance((assetPrice * amountBn) / DECIMAL)} balance={balance} amount={amount} setAmount={setAmount} />
                 <div className='text-xs text-[#64748B] dark:text-slate-50/60 leading-[12px] flex items-center pl-[5px] mt-[6px]'>
                   1 <CoinIcon className='mx-1' symbol={asset} size={12} />
-                  {asset} = {displayBalance(oneAssetXOut)} <CoinIcon className='mx-1' symbol={x} size={12} /> {asset}x +{displayBalance(oneAssetUsbOut)}{' '}
+                  {asset} = {displayBalance(oneAssetXOut)} <CoinIcon className='mx-1' symbol={x} size={12} /> {x} +{displayBalance(oneAssetUsbOut)}{' '}
                   <CoinIcon className='mx-1' symbol={USBSymbol} size={12} /> {USBSymbol}
                 </div>
                 <ApproveAndTx

@@ -12,7 +12,7 @@ import { displayBalance } from '@/utils/display'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
-import { useMeasure } from 'react-use'
+import { useMeasure, useToggle } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
 import { useAccount, useReadContract, useWalletClient } from 'wagmi'
@@ -24,6 +24,7 @@ import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
+import { RiLoopLeftFill } from 'react-icons/ri'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -102,7 +103,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
           </div>
         </div>
         <div className='flex flex-col p-5 gap-5'>
-          <TupleTxt tit='APY' sub={fmtApy} />
+          <TupleTxt tit='APY Est.' sub={fmtApy} />
           <TupleTxt
             tit='Total Minted'
             sub={
@@ -227,11 +228,15 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   useEffect(() => {
     reFetchCalcSwap()
   }, [wt.time])
+  const [priceSwap, togglePriceSwap] = useToggle(false)
   const vualtYTokenBalance = epoch?.vaultYTokenBalance || 0n
   const outputYTokenForInput = getBigint(result, '1')
-
   const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvCurentEpoch.Y * DECIMAL) / vualtYTokenBalance : 0n
-  const ytAssetPrice = displayBalance(ytAssetPriceBn)
+  const ytAssetPriceBnReverse = (DECIMAL * DECIMAL) / ytAssetPriceBn
+  const priceStr = priceSwap
+    ? `1 ${assetSymbolShort}=${displayBalance(ytAssetPriceBnReverse)} ${yTokenSymbolShort}`
+    : `1 ${yTokenSymbolShort}=${displayBalance(ytAssetPriceBn)} ${assetSymbolShort}`
+
   const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvCurentEpoch.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
@@ -239,6 +244,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const oneYoutAsset = bvCurentEpoch.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvCurentEpoch.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvc.vault)
   const upForUserAction = useUpBVaultForUserAction(bvc)
+
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
@@ -246,13 +252,13 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
           <VenomLine className='text-[3.375rem]' showBg />
           <div className='flex flex-col gap-2'>
             <div className='text-xl text-black font-semibold'>{bvc.yTokenSymbol}</div>
-            <div className='text-xs text-black/60 font-medium'>Boost bribes yield</div>
+            <div className='text-xs text-black/60 font-medium'>Yield token</div>
           </div>
         </div>
         <div className='flex flex-col p-5 gap-5'>
           <div className='text-base font-semibold flex gap-5 items-end'>
             <span className='text-4xl font-medium'>{fmtBoost}x</span>
-            {'Bribes Yield'}
+            {'Yield Boosted'}
           </div>
           <TupleTxt
             tit='Total Minted'
@@ -291,8 +297,11 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
         <div className='text-base font-bold my-2'>Receive</div>
         <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable amount={outputYTokenFmt} />
 
-        <div className='text-xs font-medium  flex justify-between'>
-          <span>{`Price: 1 ${yTokenSymbolShort}=${ytAssetPrice} ${assetSymbolShort}`}</span>
+        <div className='text-xs font-medium  flex justify-between select-none'>
+          <div className='flex items-center gap-2'>
+            <RiLoopLeftFill className='text-sm text-primary cursor-pointer inline-block' onClick={() => togglePriceSwap()} />
+            <span>{`Price: ${priceStr}`}</span>
+          </div>
           <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
         </div>
         <div className='text-xs font-medium text-black/80 dark:text-white/80'>
