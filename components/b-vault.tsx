@@ -232,7 +232,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const vualtYTokenBalance = epoch?.vaultYTokenBalance || 0n
   const outputYTokenForInput = getBigint(result, '1')
   const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvCurentEpoch.Y * DECIMAL) / vualtYTokenBalance : 0n
-  const ytAssetPriceBnReverse = (DECIMAL * DECIMAL) / ytAssetPriceBn
+  const ytAssetPriceBnReverse = ytAssetPriceBn > 0n ? (DECIMAL * DECIMAL) / ytAssetPriceBn : 0n
   const priceStr = priceSwap
     ? `1 ${assetSymbolShort}=${displayBalance(ytAssetPriceBnReverse)} ${yTokenSymbolShort}`
     : `1 ${yTokenSymbolShort}=${displayBalance(ytAssetPriceBn)} ${assetSymbolShort}`

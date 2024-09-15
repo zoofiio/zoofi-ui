@@ -34,7 +34,7 @@ export const sliceUserBVaults: SliceFun<UserBVaultsStore> = (set, get, init) => 
           // bribes
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'calcBribes', args: [epochId, user] }),
           // redeemingBalance
-          settled ? pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [user] }).catch(() => 0n) : Promise.resolve(0n),
+          !settled ? pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'userRedeemingBalance', args: [user] }).catch(() => 0n) : Promise.resolve(0n),
           // claimableAssetBalance
           pc.readContract({ abi: abiRedeemPool, address: redeemPool, functionName: 'earnedAssetAmount', args: [user] }),
           // balance yToken
