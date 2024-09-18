@@ -10,10 +10,18 @@ export type BVaultConfig = {
   yTokenSymbol: string
   protocolAddress: Address
   protocolSettingsAddress: Address
+  lpPoolIdx?: number
   onEnv?: ('beta' | 'test' | 'prod')[]
 }
 export const ZooProtocolAddress = '0xF86a9a53D963B7a845F3496a97d0dB11cEc3c4E0'
 export const ZooProtocolSettingsAddress = '0x97d82C639835F4EfaCC366fdE78CA0c4EC2a2A83'
+export const CrocQueryAddress: { [k: number]: Address } = {
+  [berachainTestnet.id]: '0x8685CE9Db06D40CBa73e3d09e6868FE476B5dC89',
+}
+
+export const HONEY_Address: { [k: number]: Address } = {
+  [berachainTestnet.id]: '0x0e4aaf1351de4c0264c5c7056ef3777b41bd8e03',
+}
 
 export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
   [berachainTestnet.id]: [

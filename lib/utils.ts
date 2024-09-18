@@ -60,6 +60,7 @@ export function parseEthers(num: string, unit?: Parameters<typeof _parseEther>[1
   return parseUnits(num, decimal)
 }
 
+
 export function fmtPercent(percent: bigint, decimals: number | bigint, showDecimals: number = 2) {
   const _decimals = typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals
   const _percent = formatUnits(percent * 100n, _decimals)

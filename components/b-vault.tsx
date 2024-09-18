@@ -5,7 +5,7 @@ import { BVaultConfig } from '@/config/bvaults'
 import { getBexPoolURL } from '@/config/network'
 import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
-import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
+import { aarToNumber, cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { useStoreShallow } from '@/providers/useBoundStore'
 import { useBVault, useBVaultApy, useBVaultBoost, useBVaultCurrentEpoch, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
@@ -25,6 +25,7 @@ import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
 import { RiLoopLeftFill } from 'react-icons/ri'
+import { ProgressBar } from '@tremor/react'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -244,7 +245,13 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const oneYoutAsset = bvCurentEpoch.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvCurentEpoch.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvc.vault)
   const upForUserAction = useUpBVaultForUserAction(bvc)
-
+  const calcProgress = (ep: typeof epoch) => {
+    const now = BigInt(Math.floor(new Date().getTime() / 1000))
+    if (now < ep.startTime) return 0
+    if (now - epoch.startTime >= epoch.duration) return 100
+    const progress = ((now - epoch.startTime) * 100n) / ep.duration
+    return parseInt(progress.toString())
+  }
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden'>
@@ -273,22 +280,33 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
             }
           />
           {epoch && (
-            <TupleTxt
-              tit={`Epoch ${epoch.epochId.toString()}`}
-              subClassname='text-xs'
-              sub={
-                <>
-                  <span>
-                    {fmtTime(epoch.startTime * 1000n, 'date')}-{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
-                  </span>
-                  <span className='ml-auto whitespace-nowrap'>
-                    ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))}
-                    <br />
-                    remaining
-                  </span>
-                </>
-              }
-            />
+            // <TupleTxt
+            //   tit={`Epoch ${epoch.epochId.toString()}`}
+            //   subClassname='text-xs'
+            //   sub={
+            //     <>
+            //       <span>
+            //         {fmtTime(epoch.startTime * 1000n, 'date')}-{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
+            //       </span>
+            //       <span className='ml-auto whitespace-nowrap'>
+            //         ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))}
+            //         <br />
+            //         remaining
+            //       </span>
+            //     </>
+            //   }
+            // />
+            <div className='dark:text-white/60 text-xs whitespace-nowrap gap-1 flex w-full flex-col'>
+              <div className='flex justify-between items-center'>
+                <span>{`Epoch ${epoch.epochId.toString()}`}</span>
+                <span className='scale-90'>~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining</span>
+              </div>
+              <ProgressBar value={calcProgress(epoch)} className='mt-2 rounded-full overflow-hidden' />
+              <div className='flex justify-between items-center'>
+                <span className='scale-90'>{fmtTime(epoch.startTime * 1000n, 'all')}</span>
+                <span className='scale-90'>{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'all')}</span>
+              </div>
+            </div>
           )}
         </div>
       </div>

@@ -50,10 +50,16 @@ export type BVaultsStore = {
       | undefined
   }
 
+  epochesYTprice: {
+    [vaultEpocheId: `${Address}_${number}`]: { time: number; price: number }[]
+  }
+
   updateBvaults: (bvcs: BVaultConfig[]) => Promise<BVaultsStore['bvaults']>
   updateBvaultsCurrentEpoch: (bvaults?: BVaultsStore['bvaults']) => Promise<BVaultsStore['bvaultsCurrentEpoch']>
   updateEpoches: (bvc: BVaultConfig, ids?: bigint[]) => Promise<BVaultsStore['epoches']>
   updateEpochesRedeemPool: (bvc: BVaultConfig, epoches?: BVaultsStore['epoches']) => Promise<BVaultsStore['epochesRedeemPool']>
+
+  updateEpochesYTprice: (bvc: BVaultConfig, epochId: bigint) => Promise<BVaultsStore['epochesYTprice'][`${Address}_${number}`]>
 }
 export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) => {
   const updateBvaults = async (bvcs: BVaultConfig[]) => {
@@ -147,16 +153,31 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     set({ epochesRedeemPool: { ...get().epochesRedeemPool, ...map } })
     return map
   }
+
+  const updateEpochesYTprice = async (bvc: BVaultConfig, epochId: bigint) => {
+    const pc = getPC()
+    pc.getBlock()
+    pc.getBlockNumber()
+    
+    const getPrice = (blockNumber: bigint) =>
+      Promise.all([
+        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'Y', blockNumber }),
+        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epochId, bvc.vault], blockNumber }),
+      ]).then(([Y, yTokenUserBalance]) => ({}))
+    return []
+  }
   // init
   return {
     bvaults: {},
     bvaultsCurrentEpoch: {},
     epoches: {},
     epochesRedeemPool: {},
+    epochesYTprice: {},
     ...init,
     updateBvaults,
     updateBvaultsCurrentEpoch,
     updateEpoches,
     updateEpochesRedeemPool,
+    updateEpochesYTprice,
   }
 }

@@ -14,6 +14,7 @@ import { Grid } from '@tremor/react'
 import _ from 'lodash'
 import { useSearchParams } from 'next/navigation'
 import { ReactNode, useMemo } from 'react'
+import { Address } from 'viem'
 import { useAccount } from 'wagmi'
 
 function StrongSpan({ children }: { children: ReactNode }) {
@@ -85,11 +86,19 @@ export default function Vaults() {
     },
   })
   const { address } = useAccount()
-  const tokens = useMemo(() => bvcs.map((b) => [b.asset, b.pToken]).flat(), [bvcs])
+  const tokens = useMemo(
+    () =>
+      bvcs
+        .map((b) => [b.asset, b.pToken])
+        .flat()
+        .reduce<Address[]>((union, item) => (union.includes(item) ? union : [...union, item]), []),
+    [bvcs],
+  )
   useQuery({
     queryKey: ['UpdateBvautlsTokens', tokens],
     queryFn: async () => {
       await useBoundStore.getState().sliceTokenStore.updateTokenTotalSupply(tokens)
+      await useBoundStore.getState().sliceTokenStore.updateTokenPrices(tokens)
       return true
     },
   })
