@@ -2,25 +2,10 @@
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
 import { PageWrap } from '@/components/page-wrap'
-import {
-  abiBVault,
-  abiMockPriceFeed,
-  abiPlainVault,
-  abiProtocolSettings,
-  abiPtyPool,
-  abiVault,
-  abiWandProtocol,
-  abiZooProtocol,
-} from '@/config/abi'
+import { abiBVault, abiMockPriceFeed, abiPlainVault, abiProtocolSettings, abiPtyPool, abiVault, abiWandProtocol, abiZooProtocol } from '@/config/abi'
 import { BVAULTS_CONFIG, BVaultConfig } from '@/config/bvaults'
-import {
-  PLAIN_VAULTS_CONFIG,
-  PROTOCOL_SETTINGS_ADDRESS,
-  PlainVaultConfig,
-  VAULTS_CONFIG,
-  VaultConfig,
-  WAND_PROTOCOL_ADDRESS,
-} from '@/config/swap'
+import { PLAIN_VAULTS_CONFIG, PROTOCOL_SETTINGS_ADDRESS, PlainVaultConfig, VAULTS_CONFIG, VaultConfig, WAND_PROTOCOL_ADDRESS } from '@/config/swap'
+import { ENV } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
 import { cn } from '@/lib/utils'
@@ -38,8 +23,7 @@ const selectClassNames: Parameters<Select>[0]['classNames'] = {
   control: () => 'bg-white dark:bg-black !min-h-[58px] !border-primary/70 !shadow-none',
   singleValue: () => 'dark:text-white',
 }
-const inputClassname =
-  'bg-white dark:bg-transparent border-primary/70 w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none '
+const inputClassname = 'bg-white dark:bg-transparent border-primary/70 w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none '
 
 type ParamItem = { label: string; value: string; units?: number /** def 10 */ }
 
@@ -77,10 +61,7 @@ function Expandable({ children, tit, disable }: { tit: string; children?: ReactN
         {disable ? (
           children
         ) : (
-          <div
-            className='px-2 py-1 rounded-full border border-solid border-primary flex items-center text-xs text-primary cursor-pointer '
-            onClick={() => setOpen(!open)}
-          >
+          <div className='px-2 py-1 rounded-full border border-solid border-primary flex items-center text-xs text-primary cursor-pointer ' onClick={() => setOpen(!open)}>
             <span className='mr-[5px]'>{!open ? 'Expand' : 'Close'}</span>
             {open ? <FiArrowUp /> : <FiArrowDown />}
           </div>
@@ -93,21 +74,13 @@ function Expandable({ children, tit, disable }: { tit: string; children?: ReactN
   )
 }
 
-function UpdateVaultParams({
-  paramList,
-  vault,
-  protocoSettingAddress,
-}: {
-  paramList: ParamItem[]
-  vault: Address
-  protocoSettingAddress: Address
-}) {
+function UpdateVaultParams({ paramList, vault, protocoSettingAddress }: { paramList: ParamItem[]; vault: Address; protocoSettingAddress: Address }) {
   const params = useMemo(() => paramList.map((p) => ({ ...p, label: `${p.label}(${p.value})` })), [paramList])
   const [{ value, param }, setState] = useSetState({
     value: '',
     param: params[0],
   })
-  const { data } = useWandContractReads({
+  const { data, refetch } = useWandContractReads({
     contracts: paramList.map((p) => ({
       abi: abiProtocolSettings,
       address: protocoSettingAddress,
@@ -119,10 +92,7 @@ function UpdateVaultParams({
     () =>
       (data || []).map((d, index) => {
         const p = paramList[index]
-        return `${p.label}(${p.value}): ${formatUnits(
-          (d.result as unknown as bigint) || 0n,
-          typeof p.units == 'number' ? p.units : 10,
-        )}`
+        return `${p.label}(${p.value}): ${formatUnits((d.result as unknown as bigint) || 0n, typeof p.units == 'number' ? p.units : 10)}`
       }),
     [data],
   )
@@ -131,13 +101,7 @@ function UpdateVaultParams({
 
   return (
     <Expandable tit='Vault Param Vaule'>
-      <Select
-        classNames={selectClassNames}
-        maxMenuHeight={infoMeasure.height + 110}
-        value={param}
-        options={params}
-        onChange={(e) => setState({ param: e as any })}
-      />
+      <Select classNames={selectClassNames} maxMenuHeight={infoMeasure.height + 110} value={param} options={params} onChange={(e) => setState({ param: e as any })} />
       <input
         value={value.toString()}
         onChange={(e) => {
@@ -160,6 +124,7 @@ function UpdateVaultParams({
         }}
         onTxSuccess={() => {
           setState({ value: '' })
+          refetch()
         }}
         className='btn-primary w-full flex items-center justify-center gap-4'
       />
@@ -176,13 +141,7 @@ function UpdateVaultPrice({ vc }: { vc: VaultConfig }) {
   const [{ feed }, setState] = useSetState({ feed: '' })
   return (
     <Expandable tit='Vault Price Feed'>
-      <input
-        type='text'
-        placeholder='_assetTokenPriceFeed_'
-        value={feed}
-        onChange={(e) => setState({ feed: e.target.value })}
-        className={cn(inputClassname)}
-      />
+      <input type='text' placeholder='_assetTokenPriceFeed_' value={feed} onChange={(e) => setState({ feed: e.target.value })} className={cn(inputClassname)} />
       <ApproveAndTx
         tx='Write'
         config={{
@@ -209,17 +168,7 @@ const convertArgs = (args: string[], inputs: readonly AbiParameter[]) => {
   })
 }
 
-function GeneralAction({
-  abi,
-  address,
-  functionName,
-  tit,
-}: {
-  abi: Abi
-  address: Address
-  functionName: string
-  tit?: string
-}) {
+function GeneralAction({ abi, address, functionName, tit }: { abi: Abi; address: Address; functionName: string; tit?: string }) {
   const abiItem = abi.find((item) => item.type == 'function' && item.name == functionName) as AbiFunction
   const [{ args }, setState] = useSetState({ args: new Array(abiItem?.inputs?.length || 0).fill('') })
   if (!abiItem) return
@@ -246,10 +195,7 @@ function GeneralAction({
             args: convertArgs(args, abiItem.inputs),
           } as any
         }
-        className={cn(
-          '!mt-0 btn-primary flex items-center justify-center gap-4',
-          disableExpand ? 'max-w-[100px]' : 'w-full',
-        )}
+        className={cn('!mt-0 btn-primary flex items-center justify-center gap-4', disableExpand ? 'max-w-[100px]' : 'w-full')}
       />
     </Expandable>
   )
@@ -266,13 +212,7 @@ function ClaimYieldsForBuyPool({ vc }: { vc: VaultConfig }) {
   return (
     <Expandable tit={'ClaimYields for Buy Low Pool'}>
       <span>Yields: {formatEther(yieldsBn)}</span>
-      <input
-        type='text'
-        placeholder='recipient'
-        value={address}
-        onChange={(e) => setState({ address: e.target.value })}
-        className={cn(inputClassname)}
-      />
+      <input type='text' placeholder='recipient' value={address} onChange={(e) => setState({ address: e.target.value })} className={cn(inputClassname)} />
       <ApproveAndTx
         tx='Write'
         disabled={!vc.ptyPoolBelowAddress || yieldsBn <= 0n}
@@ -319,13 +259,7 @@ function SetTester({ vc }: { vc: VaultConfig }) {
       {testersList.map((t) => (
         <div key={t}>{t}</div>
       ))}
-      <input
-        type='text'
-        placeholder='recipient'
-        value={address}
-        onChange={(e) => setState({ address: e.target.value })}
-        className={cn(inputClassname)}
-      />
+      <input type='text' placeholder='recipient' value={address} onChange={(e) => setState({ address: e.target.value })} className={cn(inputClassname)} />
       <ApproveAndTx
         tx='Write'
         disabled={!address}
@@ -344,15 +278,12 @@ function SetTester({ vc }: { vc: VaultConfig }) {
 const PValutParams: ParamItem[] = [{ label: '赎回手续费', value: 'C' }]
 
 type OptionItem<T, type> = { label: string; value: Address; data: T; type: type }
-type OptionsItem =
-  | OptionItem<VaultConfig, 'L-Vault'>
-  | OptionItem<PlainVaultConfig, 'P-Vault'>
-  | OptionItem<BVaultConfig, 'B-Vault'>
+type OptionsItem = OptionItem<VaultConfig, 'L-Vault'> | OptionItem<PlainVaultConfig, 'P-Vault'> | OptionItem<BVaultConfig, 'B-Vault'>
 export default function AdminPage() {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId] || []
   const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
-  const bvcs = BVAULTS_CONFIG[chainId] || []
+  const bvcs = useMemo(() => (BVAULTS_CONFIG[chainId] || []).filter((vc) => vc.onEnv && vc.onEnv.includes(ENV)), [chainId])
   const { chain } = useAccount()
   const options: OptionsItem[] = useMemo(() => {
     const vcsOpt = vcs.map<OptionItem<VaultConfig, 'L-Vault'>>((vc) => ({
@@ -383,91 +314,36 @@ export default function AdminPage() {
     <PageWrap>
       <div className='w-full flex'>
         <div className='flex flex-col gap-4 w-full max-w-[840px] mx-auto px-5'>
-          <Select
-            classNames={selectClassNames}
-            defaultValue={options[0]}
-            options={options}
-            onChange={(e) => e && setState({ current: e as any })}
-          />
+          <Select classNames={selectClassNames} defaultValue={options[0]} options={options} onChange={(e) => e && setState({ current: e as any })} />
           {current.type == 'L-Vault' && (
             <>
-              <UpdateVaultParams
-                vault={current.data.vault}
-                paramList={LVaultParams}
-                protocoSettingAddress={PROTOCOL_SETTINGS_ADDRESS[chainId]}
-              />
+              <UpdateVaultParams vault={current.data.vault} paramList={LVaultParams} protocoSettingAddress={PROTOCOL_SETTINGS_ADDRESS[chainId]} />
               <UpdateVaultPrice vc={current.data} />
-              {[
-                'pauseMint',
-                'unpauseMint',
-                'pauseRedeem',
-                'unpauseRedeem',
-                'pauseUsbToMarginTokens',
-                'unpauseUsbToMarginTokens',
-              ].map((action) => (
-                <GeneralAction
-                  key={`l-vault-${action}`}
-                  functionName={action}
-                  abi={abiVault}
-                  address={current.data.vault}
-                />
+              {['pauseMint', 'unpauseMint', 'pauseRedeem', 'unpauseRedeem', 'pauseUsbToMarginTokens', 'unpauseUsbToMarginTokens'].map((action) => (
+                <GeneralAction key={`l-vault-${action}`} functionName={action} abi={abiVault} address={current.data.vault} />
               ))}
-              <GeneralAction
-                abi={abiWandProtocol}
-                functionName='transferOwnership'
-                address={WAND_PROTOCOL_ADDRESS[chainId]}
-              />
+              <GeneralAction abi={abiWandProtocol} functionName='transferOwnership' address={WAND_PROTOCOL_ADDRESS[chainId]} />
               <ClaimYieldsForBuyPool vc={current.data} />
               {chain?.testnet && <SetTester vc={current.data} />}
             </>
           )}
           {current.type == 'P-Vault' && (
             <>
-              <UpdateVaultParams
-                vault={current.data.vault}
-                paramList={PValutParams}
-                protocoSettingAddress={PROTOCOL_SETTINGS_ADDRESS[chainId]}
-              />
+              <UpdateVaultParams vault={current.data.vault} paramList={PValutParams} protocoSettingAddress={PROTOCOL_SETTINGS_ADDRESS[chainId]} />
               {['configureBlastYieldsAndGas', 'configureBlastPoints'].map((action) => (
-                <GeneralAction
-                  key={`p-vault-${action}`}
-                  abi={abiPlainVault}
-                  functionName={action}
-                  address={current.data.vault}
-                />
+                <GeneralAction key={`p-vault-${action}`} abi={abiPlainVault} functionName={action} address={current.data.vault} />
               ))}
             </>
           )}
           {current.type == 'B-Vault' && (
             <>
-              <UpdateVaultParams
-                vault={current.data.vault}
-                paramList={BVaultParams}
-                protocoSettingAddress={current.data.protocolSettingsAddress}
-              />
-              {[
-                'pauseDeposit',
-                'unpauseDeposit',
-                'pauseSwap',
-                'unpauseSwap',
-                'pauseClaimBribes',
-                'unpauseClaimBribes',
-                'updateStakingPool',
-                'rescueFromStakingPool',
-              ].map((functionName) => (
-                <GeneralAction
-                  key={`b-vault-${functionName}`}
-                  abi={abiBVault}
-                  functionName={functionName}
-                  address={current.data.vault}
-                />
-              ))}
-              <GeneralAction
-                tit='transferOwnership'
-                abi={abiZooProtocol}
-                functionName='transferOwnership'
-                address={current.data.protocolAddress}
-              />
+              <UpdateVaultParams vault={current.data.vault} paramList={BVaultParams} protocoSettingAddress={current.data.protocolSettingsAddress} />
+              {['pauseDeposit', 'unpauseDeposit', 'pauseSwap', 'unpauseSwap', 'pauseClaimBribes', 'unpauseClaimBribes', 'updateStakingPool', 'rescueFromStakingPool'].map(
+                (functionName) => (
+                  <GeneralAction key={`b-vault-${functionName}`} abi={abiBVault} functionName={functionName} address={current.data.vault} />
+                ),
+              )}
+              <GeneralAction tit='transferOwnership' abi={abiZooProtocol} functionName='transferOwnership' address={current.data.protocolAddress} />
             </>
           )}
         </div>

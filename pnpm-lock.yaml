@@ -68,6 +68,9 @@ dependencies:
   axios:
     specifier: ^1.6.7
     version: 1.6.7
+  bignumber.js:
+    specifier: ^9.1.2
+    version: 9.1.2
   class-variance-authority:
     specifier: ^0.6.1
     version: 0.6.1
@@ -5973,6 +5976,10 @@ packages:
   /big-integer@1.6.51:
     resolution: {integrity: sha512-GPEid2Y9QU1Exl1rpO9B2IPJGHPSupF5GnVIP0blYvNOMer2bTvSWs1jGOUg04hTmu67nmLsQ9TBo1puaotBHg==}
     engines: {node: '>=0.6'}
+    dev: false
+
+  /bignumber.js@9.1.2:
+    resolution: {integrity: sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==}
     dev: false
 
   /binary-extensions@2.2.0:

@@ -44,7 +44,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-USDC',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
-      onEnv: ['beta'],
+      // onEnv: ['beta'],
     },
     {
       vault: '0xF484F7D00DD44c1F8B047b79cF8674e78FEcaba7',
@@ -55,7 +55,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
-      onEnv: ['beta'],
+      // onEnv: ['beta'],
     },
     {
       vault: '0xF778D2B9E0238D385008e916D7245F51959Ba279',
@@ -66,7 +66,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       yTokenSymbol: 'yHONEY-BERA',
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
-      onEnv: ['beta'],
+      // onEnv: ['beta'],
     },
     // new
     {
@@ -90,6 +90,28 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       protocolAddress: ZooProtocolAddress,
       protocolSettingsAddress: ZooProtocolSettingsAddress,
       onEnv: ['beta', 'test'],
+    },
+    {
+      vault: '0x90e0A49726c2fF0fa6e4382446688AF883d10133',
+      asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
+      assetSymbol: 'HONEY-WBERA',
+      pToken: '0xEA45BD60bc0f7848759ACaE9B938c24D2Ea7481c',
+      pTokenSymbol: 'pHONEY-BERA',
+      yTokenSymbol: 'yHONEY-BERA',
+      protocolAddress: ZooProtocolAddress,
+      protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
+    },
+    {
+      vault: '0x9700FEa232560E4048DD924623491926282125bE',
+      asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
+      assetSymbol: 'HONEY-WBERA',
+      pToken: '0x575287Cd8CB9A49e0EE00Bf0C71Eac337Ab8FeBa',
+      pTokenSymbol: 'pHONEY-BERA',
+      yTokenSymbol: 'yHONEY-BERA',
+      protocolAddress: ZooProtocolAddress,
+      protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
     },
   ],
 }

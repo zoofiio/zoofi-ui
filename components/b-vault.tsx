@@ -390,11 +390,13 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   }, [bribes])
   const upForUserAction = useUpBVaultForUserAction(bvc)
   function rowRender({ key, style, index }: ListRowProps) {
+    const itemEpoch = epoches[index]
+    const fTime = `${fmtTime(itemEpoch.startTime * 1000n, 'date')}-${fmtTime((itemEpoch.startTime + itemEpoch.duration) * 1000n, 'date')}`
     return (
       <div key={key} style={style} className='cursor-pointer' onClick={() => onRowClick(index)}>
         <div className={cn('flex h-[56px] card !rounded-lg !p-5 justify-between items-center font-semibold', index < epoches.length - 1 ? 'mb-[20px]' : '')}>
           <div className='text-base'>Epoch {epoches[index].epochId.toString()}</div>
-          <div className='text-xs dark:text-white/60'>3/4/2024~4/4/2024</div>
+          <div className='text-xs dark:text-white/60'>{fTime}</div>
         </div>
       </div>
     )
@@ -418,7 +420,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
       </div>
       <div className='md:col-span-2 card !p-4 flex flex-col gap-2'>
         <div className='flex gap-6 items-end font-semibold'>
-          <span className='text-xl '>Accumulated bribes</span>
+          <span className='text-xl '>Accumulated Rewards</span>
           <span className='text-xs dark:text-white/60'>Epoch {(current?.epochId || 1n).toString()}</span>
         </div>
         <div className='flex-1 mt-3 rounded-lg border border-solid border-border p-4'>
@@ -443,7 +445,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             My Share: <span className={cn(valueClassname, 'text-2xl')}>{myShare}</span>
           </div>
         </div>
-        <span className='text-xs mx-auto'>You will receive {myShare} of total bribes</span>
+        <span className='text-xs mx-auto'>You can harvest at the end of Epoch</span>
         <ApproveAndTx
           className='mx-auto mt-4'
           tx='Harvest'

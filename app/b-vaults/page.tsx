@@ -101,6 +101,10 @@ export default function Vaults() {
       await useBoundStore.getState().sliceTokenStore.updateTokenPrices(tokens)
       return true
     },
+    throwOnError(error, query) {
+      console.error(error)
+      return false
+    },
   })
   useQuery({
     queryKey: ['UpdateUserBvautlsTokens', tokens, address],

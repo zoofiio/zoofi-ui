@@ -1,4 +1,4 @@
-import { Address, erc20Abi } from 'viem'
+import { Address, erc20Abi, formatEther } from 'viem'
 import { SliceFun } from './types'
 import { getPC } from './publicClient'
 import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
@@ -8,6 +8,7 @@ import { abiCrocQuery } from '@/config/abi'
 import { getCurrentChainId } from '@/config/network'
 import { CrocQueryAddress, HONEY_Address } from '@/config/bvaults'
 import { DECIMAL } from '@/constants'
+import BN from 'bignumber.js'
 
 export type TokenStore = {
   totalSupply: { [k: Address]: bigint }
@@ -67,6 +68,12 @@ export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
               functionName: 'queryLiquidity',
               args: [LP_TOKENS[lp].base, LP_TOKENS[lp].quote, BigInt(LP_TOKENS[lp].poolType)],
             }),
+            pc.readContract({
+              abi: abiCrocQuery,
+              address: CrocQueryAddress[getCurrentChainId()],
+              functionName: 'queryPoolParams',
+              args: [LP_TOKENS[lp].base, LP_TOKENS[lp].quote, BigInt(LP_TOKENS[lp].poolType)],
+            }),
           ]),
         ),
       )
@@ -78,15 +85,36 @@ export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
       mLps.forEach((lp, i) => {
         const base = LP_TOKENS[lp].base
         const quote = LP_TOKENS[lp].quote
-        map[quote] = (((lpPrices[i][0] * 10n ** 9n) / 18446744073709551616n) ** 2n * map[base]) / DECIMAL
-        // a/b = DECIMAL/map[quote]
+        const priceFixDecimals = quote == '0xd6d83af58a19cd14ef3cf6fe848c9a4d21e5727c' ? 10n ** 6n : 1n
+        map[quote] = (((lpPrices[i][0] * 10n ** 9n) / (18446744073709551616n * priceFixDecimals)) ** 2n * map[base]) / DECIMAL
+        //  a / b = map[quote] / map[base]
         //  a * b = lpPrices[i][1] ** 2n
+        //  a^2 = map[quote] * lpPrices[i][1] ** 2n / map[base]
+        //  b = a * map[base]/map[quote]
+
+        const baseNum = BigInt(
+          new BN(((map[quote] * lpPrices[i][1] ** 2n) / map[base]).toString())
+            .squareRoot()
+            .toFormat(0).replaceAll(',',''),
+        )
+        const quoteNum = (baseNum * map[base]) / map[quote]
+
+        const baseTvl = formatEther((baseNum * map[base]) / DECIMAL)
+        const qutoTvl = formatEther((quoteNum * map[quote]) / DECIMAL)
+        const tvl = formatEther((quoteNum * map[quote] + baseNum * map[quote]) / DECIMAL)
+
         // map[lp] = lpPrices[i][1]
-        console.info('lpData:', lp, lpPrices[i][0], lpPrices[i][1])
+        console.info('lpData:', {
+          lp: lp,
+          queryPrice: lpPrices[i][0],
+          queryLiquidity: lpPrices[i][1],
+          baseTvl,
+          qutoTvl,
+          tvl,
+        })
       })
-      const prices = mLps.map((lp, i) => [])
       console.info('lpPrics:', map)
-      set({ prices: { ...get().prices, ...prices } })
+      set({ prices: { ...get().prices, ...map } })
     }
     return {}
   }
