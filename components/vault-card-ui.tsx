@@ -14,7 +14,7 @@ export const renderToken = (symbol: string, amount: bigint, usd: bigint, borderL
         </div>
         <div className='flex mt-2 flex-col gap-1 pl-[1.375rem] text-xs font-medium'>
           <span className=''>{displayBalance(amount)}</span>
-          <span className=' text-[#64748B] dark:text-slate-50/60'>{`$${displayBalance(usd)}`}</span>
+          <span className=' text-[#64748B] dark:text-slate-50/60'>{`$${displayBalance(usd, 2)}`}</span>
         </div>
       </div>
     </div>

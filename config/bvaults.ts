@@ -115,3 +115,7 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
     },
   ],
 }
+
+export const CALC_LIQ: { [k: number]: Address } = {
+  [berachainTestnet.id]: '0xa6b985dDa4D24B66fd4Ac2041395a82DcAdfD877',
+}

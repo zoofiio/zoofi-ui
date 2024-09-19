@@ -16,6 +16,7 @@ import abiBVault from './BVault'
 import abiZooProtocol from './ZooProtocol'
 import abiRedeemPool from './RedeemPool'
 import abiCrocQuery from './CrocQuery'
+import abiCalcLiq from './CalcLiq'
 
 export {
   abiPriceFeed,
@@ -33,5 +34,6 @@ export {
   abiZooProtocol,
   abiRedeemPool,
 
-  abiCrocQuery
+  abiCrocQuery,
+  abiCalcLiq,
 }

@@ -1,10 +1,12 @@
-import { abiBVault, abiRedeemPool } from '@/config/abi'
-import { BVaultConfig } from '@/config/bvaults'
+import { abiBVault, abiCalcLiq, abiCrocQuery, abiRedeemPool } from '@/config/abi'
+import { BVaultConfig, CALC_LIQ, CrocQueryAddress } from '@/config/bvaults'
 import { Address, erc20Abi, stringToHex } from 'viem'
 import { getPC } from './publicClient'
 import _ from 'lodash'
 import { divMultipOtherBn } from '@/lib/utils'
 import { SliceFun } from './types'
+import { LP_TOKENS } from '@/config/tokens'
+import { getCurrentChainId } from '@/config/network'
 
 export type BVaultsStore = {
   bvaults: {
@@ -14,6 +16,9 @@ export type BVaultsStore = {
           pTokenTotal: bigint
           lockedAssetTotal: bigint
           f2: bigint
+          lpLiq?: bigint
+          lpBase?: bigint
+          lpQuote?: bigint
         }
       | undefined
   }
@@ -62,6 +67,30 @@ export type BVaultsStore = {
   updateEpochesYTprice: (bvc: BVaultConfig, epochId: bigint) => Promise<BVaultsStore['epochesYTprice'][`${Address}_${number}`]>
 }
 export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) => {
+  const getLpAmount = async (bvcs: BVaultConfig[], map: BVaultsStore['bvaults']) => {
+    const pc = getPC()
+    await Promise.all(
+      bvcs.map((bvc) => {
+        const lp = LP_TOKENS[bvc.asset]
+        if (!lp) return null
+        return Promise.all([
+          pc.readContract({ abi: abiCrocQuery, address: CrocQueryAddress[getCurrentChainId()], functionName: 'queryPrice', args: [lp.base, lp.quote, lp.poolType] }),
+          pc.readContract({ abi: abiCrocQuery, address: CrocQueryAddress[getCurrentChainId()], functionName: 'queryLiquidity', args: [lp.base, lp.quote, lp.poolType] }),
+          pc.readContract({ abi: erc20Abi, address: bvc.asset, functionName: 'totalSupply' }),
+        ]).then((data) => {
+          if (!data) return null
+          const bvd = map[bvc.vault]!
+          const [price, totalLiq, totalSupply] = data
+          const lpLiq = (totalLiq * bvd.lockedAssetTotal) / totalSupply
+          return pc.readContract({ abi: abiCalcLiq, address: CALC_LIQ[getCurrentChainId()], functionName: 'liqToTokens', args: [lpLiq, price] }).then(([base, quote]) => {
+            bvd.lpLiq = lpLiq
+            bvd.lpBase = base
+            bvd.lpQuote = quote
+          })
+        })
+      }),
+    )
+  }
   const updateBvaults = async (bvcs: BVaultConfig[]) => {
     const pc = getPC()
     const datas = await Promise.all(
@@ -75,11 +104,13 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'assetBalance' }),
           // fees f2
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'paramValue', args: [stringToHex('f2', { size: 32 })] }),
+          // lpAmount
         ]).then<BVaultsStore['bvaults'][Address]>(([epochCount, pTokenTotal, lockedAssetTotal, f2]) => ({ epochCount, pTokenTotal, lockedAssetTotal, f2 })),
       ),
     )
     const map = datas.reduce<BVaultsStore['bvaults']>((map, item, i) => ({ ...map, [bvcs[i].vault]: item }), {})
-    console.info('set:', map)
+    set({ bvaults: { ...get().bvaults, ...map } })
+    await getLpAmount(bvcs, map)
     set({ bvaults: { ...get().bvaults, ...map } })
     return map
   }
@@ -158,7 +189,7 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     const pc = getPC()
     pc.getBlock()
     pc.getBlockNumber()
-    
+
     const getPrice = (blockNumber: bigint) =>
       Promise.all([
         pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'Y', blockNumber }),

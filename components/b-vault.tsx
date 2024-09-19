@@ -3,15 +3,18 @@ import VenomLine from '@/components/icons/VenomLine'
 import { abiBVault, abiRedeemPool } from '@/config/abi'
 import { BVaultConfig } from '@/config/bvaults'
 import { getBexPoolURL } from '@/config/network'
+import { LP_TOKENS } from '@/config/tokens'
 import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
-import { aarToNumber, cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
+import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { useStoreShallow } from '@/providers/useBoundStore'
 import { useBVault, useBVaultApy, useBVaultBoost, useBVaultCurrentEpoch, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
+import { ProgressBar } from '@tremor/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { RiLoopLeftFill } from 'react-icons/ri'
 import { useMeasure, useToggle } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
@@ -24,8 +27,6 @@ import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
-import { RiLoopLeftFill } from 'react-icons/ri'
-import { ProgressBar } from '@tremor/react'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -42,7 +43,8 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const { address } = useAccount()
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
-  const isLP = bvc.assetSymbol.includes('-')
+  const lp = LP_TOKENS[bvc.asset]
+  const isLP = !!lp
   const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
   const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
   const [inputPToken, setInputPToken] = useState('')
@@ -490,10 +492,20 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const r = useRouter()
   const [token1, token2] = vc.assetSymbol.split('-')
   const bvd = useBVault(vc.vault)
-
+  const lp = LP_TOKENS[vc.asset]
+  const prices = useStoreShallow((s) => s.sliceTokenStore.prices)
+  const lpBasePrice = lp ? prices[lp.base] || 0n : 0n
+  const lpQuotePrice = lp ? prices[lp.quote] || 0n : 0n
+  const lpBase = bvd.lpBase || 0n
+  const lpQuote = bvd.lpQuote || 0n
+  const lpBaseTvlBn = (lpBase * lpBasePrice) / DECIMAL
+  const lpQuoteTvlBn = (lpQuote * lpQuotePrice) / DECIMAL
+  // console.info('lpTypes', lpBaseTvlBn, lpQuoteTvlBn , lpQuoteTvlBn == lpBaseTvlBn)
+  const lpTvlBn = lpBaseTvlBn + lpQuoteTvlBn
   const [fmtBoost] = useBVaultBoost(vc.vault)
   const [fmtApy] = useBVaultApy(vc.vault)
   const epochName = `Epoch ${(bvd?.epochCount || 0n).toString()}`
+
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
       <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
@@ -504,11 +516,11 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
         </div>
         <div className='ml-auto'>
           <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{'Total Value Locked'}</div>
-          <div className='text-sm font-medium'>{displayBalance(bvd?.lockedAssetTotal)}</div>
+          <div className='text-sm font-medium'>${displayBalance(lpTvlBn, 2)}</div>
         </div>
       </div>
-      {renderToken(token1, 0n, 0n)}
-      {renderToken(token2, 0n, 0n, true)}
+      {renderToken(token1, lpBase, lpBaseTvlBn)}
+      {renderToken(token2, lpQuote, lpQuoteTvlBn, true)}
       {renderStat('Status', 'status', epochName)}
       {renderStat('Reward', 'iBGT', 'iBGT', true)}
       {renderChoseSide('Panda', 'Principal Panda', fmtApy, 'Venom', 'Boost Venom', `${fmtBoost}x`)}
