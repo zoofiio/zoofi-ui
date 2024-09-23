@@ -1,12 +1,11 @@
 import { abiBVault, abiCalcLiq, abiCrocQuery, abiRedeemPool } from '@/config/abi'
 import { BVaultConfig, CALC_LIQ, CrocQueryAddress } from '@/config/bvaults'
+import { getCurrentChainId } from '@/config/network'
+import { LP_TOKENS } from '@/config/tokens'
+import _ from 'lodash'
 import { Address, erc20Abi, stringToHex } from 'viem'
 import { getPC } from './publicClient'
-import _ from 'lodash'
-import { divMultipOtherBn } from '@/lib/utils'
 import { SliceFun } from './types'
-import { LP_TOKENS } from '@/config/tokens'
-import { getCurrentChainId } from '@/config/network'
 
 export type BVaultsStore = {
   bvaults: {
@@ -16,6 +15,7 @@ export type BVaultsStore = {
           pTokenTotal: bigint
           lockedAssetTotal: bigint
           f2: bigint
+          closed?: boolean
           lpLiq?: bigint
           lpBase?: bigint
           lpQuote?: bigint
@@ -104,8 +104,9 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'assetBalance' }),
           // fees f2
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'paramValue', args: [stringToHex('f2', { size: 32 })] }),
-          // lpAmount
-        ]).then<BVaultsStore['bvaults'][Address]>(([epochCount, pTokenTotal, lockedAssetTotal, f2]) => ({ epochCount, pTokenTotal, lockedAssetTotal, f2 })),
+          // closed
+          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'closed' }).catch(() => false),
+        ]).then<BVaultsStore['bvaults'][Address]>(([epochCount, pTokenTotal, lockedAssetTotal, f2, closed]) => ({ epochCount, pTokenTotal, lockedAssetTotal, f2, closed })),
       ),
     )
     const map = datas.reduce<BVaultsStore['bvaults']>((map, item, i) => ({ ...map, [bvcs[i].vault]: item }), {})
@@ -130,13 +131,14 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenTotalSupply', args: [bvaults[vault]!.epochCount] }) : 0n,
           // yTokenTotal
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenTotalSupplySynthetic', args: [bvaults[vault]!.epochCount] }) : 0n,
+          bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'assetTotalSwapAmount', args: [bvaults[vault]!.epochCount] }) : 0n,
           // vaultYTokenBalance
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenUserBalance', args: [bvaults[vault]!.epochCount, vault] }) : 0n,
-        ]).then(([Y, yTokenTotalSupply, yTokenTotalSupplySynthetic, vaultYTokenBalance]) => ({
+        ]).then(([Y, yTokenTotalSupply, yTokenTotalSupplySynthetic, assetAmountForSwapYT, vaultYTokenBalance]) => ({
           Y,
           yTokenTotalSupply,
           yTokenTotalSupplySynthetic,
-          assetAmountForSwapYT: divMultipOtherBn(bvaults[vault]!.pTokenTotal - yTokenTotalSupply, bvaults[vault]!.f2),
+          assetAmountForSwapYT: assetAmountForSwapYT,
           yTokenAmountForSwapYT: yTokenTotalSupply - vaultYTokenBalance,
         })),
       ),
@@ -156,8 +158,8 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'epochInfoById', args: [epochId] }),
           // yTokenTotalSupply
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenTotalSupply', args: [epochId] }),
-          // yTokenTotalSupplySynthetic
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenTotalSupplySynthetic', args: [epochId] }),
+
           // balance yToken
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epochId, bvc.vault] }),
         ]).then<BVaultsStore['epoches'][`${Address}_${number}`]>(([epochInfo, yTokenTotalSupply, yTokenTotalSupplySynthetic, vaultYTokenBalance]) => ({

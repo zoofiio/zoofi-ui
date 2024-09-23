@@ -27,6 +27,7 @@ import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
+import BvaultEpochYtPrices from './bvault-epoch-ytprices'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -468,12 +469,14 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
 }
 
 export function BVaultMint({ bvc }: { bvc: BVaultConfig }) {
+  const bvd = useBVault(bvc.vault)
   return (
     <>
       <BVaultP bvc={bvc} />
       <BVaultY bvc={bvc} />
       {/* <div className='page-title mt-8'>Bribes Pools</div> */}
       {/* <BVaultPools bvc={bvc} /> */}
+      {bvd.epochCount && <BvaultEpochYtPrices bvc={bvc} epochId={bvd.epochCount} />}
     </>
   )
 }

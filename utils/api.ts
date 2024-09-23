@@ -4,10 +4,10 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 let api: AxiosInstance
 
 const instance = () => {
-  if (!api || api.defaults.baseURL !== `https://earlyaccess-beta.${DomainRef.value}/api`) {
+  if (!api || api.defaults.baseURL !== `https://beta-api.${DomainRef.value}`) {
     api = axios.create({
       // baseURL: 'http://127.0.0.1:3001/api/',
-      baseURL: `https://earlyaccess-beta.${DomainRef.value}/api`,
+      baseURL: `https://beta-api.${DomainRef.value}`,
       timeout: 10000,
       headers: {
         'Content-Type': 'application/json',

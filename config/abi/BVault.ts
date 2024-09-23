@@ -55,8 +55,45 @@ export default [
         name: 'bribeToken',
         type: 'address',
       },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'source',
+        type: 'address',
+      },
     ],
     name: 'BribeTokenAdded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'epochId',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'bribeToken',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'source',
+        type: 'address',
+      },
+    ],
+    name: 'BribesAdded',
     type: 'event',
   },
   {
@@ -87,13 +124,7 @@ export default [
   {
     anonymous: false,
     inputs: [],
-    name: 'ClaimBribesPaused',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: 'ClaimBribesUnpaused',
+    name: 'Closed',
     type: 'event',
   },
   {
@@ -135,14 +166,33 @@ export default [
   },
   {
     anonymous: false,
-    inputs: [],
-    name: 'DepositPaused',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: 'DepositUnpaused',
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'epochId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'startTime',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'duration',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'redeemPool',
+        type: 'address',
+      },
+    ],
+    name: 'EpochStarted',
     type: 'event',
   },
   {
@@ -205,6 +255,44 @@ export default [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'Paused',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'user',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'pTokenAmount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'pTokenSharesAmount',
+        type: 'uint256',
+      },
+    ],
+    name: 'Redeem',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'uint256',
         name: 'epochId',
@@ -246,14 +334,34 @@ export default [
   },
   {
     anonymous: false,
-    inputs: [],
-    name: 'SwapPaused',
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'Unpaused',
     type: 'event',
   },
   {
     anonymous: false,
-    inputs: [],
-    name: 'SwapUnpaused',
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'briber',
+        type: 'bool',
+      },
+    ],
+    name: 'UpdateBriber',
     type: 'event',
   },
   {
@@ -326,6 +434,37 @@ export default [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'bribeToken',
+        type: 'address',
+      },
+    ],
+    name: 'addBribeToken',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'bribeToken',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'addBribes',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'assetBalance',
     outputs: [
@@ -346,6 +485,25 @@ export default [
         internalType: 'address',
         name: '',
         type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'epochId',
+        type: 'uint256',
+      },
+    ],
+    name: 'assetTotalSwapAmount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -487,6 +645,26 @@ export default [
   },
   {
     inputs: [],
+    name: 'close',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'closed',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'currentEpochId',
     outputs: [
       {
@@ -623,6 +801,57 @@ export default [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'getBriber',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getBribersCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'isBriber',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'owner',
     outputs: [
@@ -669,21 +898,20 @@ export default [
   },
   {
     inputs: [],
-    name: 'pauseClaimBribes',
+    name: 'pause',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'pauseDeposit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'pauseSwap',
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'epochId',
+        type: 'uint256',
+      },
+    ],
+    name: 'pauseRedeemPool',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -692,16 +920,6 @@ export default [
     inputs: [],
     name: 'paused',
     outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
       {
         internalType: 'bool',
         name: '',
@@ -722,6 +940,37 @@ export default [
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'redeem',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        internalType: 'bool',
+        name: 'briber',
+        type: 'bool',
+      },
+    ],
+    name: 'setBriber',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -765,21 +1014,20 @@ export default [
   },
   {
     inputs: [],
-    name: 'unpauseClaimBribes',
+    name: 'unpause',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'unpauseDeposit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'unpauseSwap',
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'epochId',
+        type: 'uint256',
+      },
+    ],
+    name: 'unpauseRedeemPool',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
