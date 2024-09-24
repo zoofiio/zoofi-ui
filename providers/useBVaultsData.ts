@@ -86,7 +86,7 @@ export function useBVaultBoost(vault: Address): [string, bigint] {
 
 export function useBVaultApy(vault: Address): [string, bigint] {
   const bce = useStoreShallow((s) => s.sliceBVaultsStore.bvaultsCurrentEpoch[vault])
-  const apy = bce && bce.yTokenTotalSupplySynthetic > 0n ? (bce.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / bce.yTokenTotalSupplySynthetic : 0n
+  const apy = bce && bce.pTokenSynthetic > 0n ? (bce.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / bce.pTokenSynthetic : 0n
   return [fmtPercent(apy, 10), apy]
 }
 

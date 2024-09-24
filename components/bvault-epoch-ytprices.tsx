@@ -16,6 +16,8 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
   })
   const data = prices.map((p) => [fmtTime(p.time * 1000, 'all'), _.round(parseFloat(formatEther(BigInt(p.price))), 5)])
   const options = {
+    animation: true,
+    animationDuration: 200,
     tooltip: {
       trigger: 'axis',
       valueFormatter: (value: number) => value.toString(),
@@ -36,6 +38,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
         type: 'inside',
         start: 0,
         end: 100,
+        minValueSpan: 10
       },
       {
         show: false,

@@ -6,6 +6,7 @@ import _ from 'lodash'
 import { Address, erc20Abi, stringToHex } from 'viem'
 import { getPC } from './publicClient'
 import { SliceFun } from './types'
+import { getBvaultPtSynthetic } from '@/config/api'
 
 export type BVaultsStore = {
   bvaults: {
@@ -27,7 +28,7 @@ export type BVaultsStore = {
       | {
           Y: bigint
           yTokenTotalSupply: bigint
-          yTokenTotalSupplySynthetic: bigint
+          pTokenSynthetic: bigint
           assetAmountForSwapYT: bigint
           yTokenAmountForSwapYT: bigint
         }
@@ -41,7 +42,7 @@ export type BVaultsStore = {
           duration: bigint
           redeemPool: Address
           yTokenTotal: bigint
-          yTokenTotalSupplySynthetic: bigint
+          pTokenSynthetic: bigint
           vaultYTokenBalance: bigint
         }
       | undefined
@@ -130,14 +131,14 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           // yTokenTotal
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenTotalSupply', args: [bvaults[vault]!.epochCount] }) : 0n,
           // yTokenTotal
-          bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenTotalSupplySynthetic', args: [bvaults[vault]!.epochCount] }) : 0n,
+          bvaults[vault]!.epochCount ? getBvaultPtSynthetic(vault, bvaults[vault]!.epochCount!).then((res) => BigInt(res)) : 0n,
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'assetTotalSwapAmount', args: [bvaults[vault]!.epochCount] }) : 0n,
           // vaultYTokenBalance
           bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenUserBalance', args: [bvaults[vault]!.epochCount, vault] }) : 0n,
-        ]).then(([Y, yTokenTotalSupply, yTokenTotalSupplySynthetic, assetAmountForSwapYT, vaultYTokenBalance]) => ({
+        ]).then(([Y, yTokenTotalSupply, pTokenSynthetic, assetAmountForSwapYT, vaultYTokenBalance]) => ({
           Y,
           yTokenTotalSupply,
-          yTokenTotalSupplySynthetic,
+          pTokenSynthetic,
           assetAmountForSwapYT: assetAmountForSwapYT,
           yTokenAmountForSwapYT: yTokenTotalSupply - vaultYTokenBalance,
         })),
@@ -158,14 +159,13 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'epochInfoById', args: [epochId] }),
           // yTokenTotalSupply
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenTotalSupply', args: [epochId] }),
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenTotalSupplySynthetic', args: [epochId] }),
-
+          getBvaultPtSynthetic(bvc.vault, epochId).then((res) => BigInt(res)),
           // balance yToken
           pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epochId, bvc.vault] }),
-        ]).then<BVaultsStore['epoches'][`${Address}_${number}`]>(([epochInfo, yTokenTotalSupply, yTokenTotalSupplySynthetic, vaultYTokenBalance]) => ({
+        ]).then<BVaultsStore['epoches'][`${Address}_${number}`]>(([epochInfo, yTokenTotalSupply, pTokenSynthetic, vaultYTokenBalance]) => ({
           ...epochInfo,
           yTokenTotal: yTokenTotalSupply,
-          yTokenTotalSupplySynthetic,
+          pTokenSynthetic,
           vaultYTokenBalance,
         })),
       ),
