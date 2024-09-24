@@ -40,10 +40,7 @@ function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
 
 const maxClassname = 'max-w-4xl mx-auto w-full'
 
-function BVaultP({ bvc }: { bvc: BVaultConfig }) {
-  const { address } = useAccount()
-  const [inputAsset, setInputAsset] = useState('')
-  const inputAssetBn = parseEthers(inputAsset)
+export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
   const lp = LP_TOKENS[bvc.asset]
   const isLP = !!lp
   const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
@@ -58,21 +55,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const claimableAssetBalance = claimable
   const redeemingBalance = epoch?.redeemingBalance || 0n
   const redeemInfo = `Your ${pTokenSymbolShort} can be claimed 1:1 for ${assetSymbolShort} at the end of this Epoch`
-  const [fmtApy] = useBVaultApy(bvc.vault)
-  const { data: walletClient } = useWalletClient()
   const upForUserAction = useUpBVaultForUserAction(bvc)
-  const onAddPToken = () => {
-    walletClient
-      ?.watchAsset({
-        type: 'ERC20',
-        options: {
-          address: bvc.pToken,
-          symbol: bvc.pTokenSymbol,
-          decimals: 18,
-        },
-      })
-      .catch(handleError)
-  }
   const renderClaimable = () => {
     return (
       <div className='flex text-xs items-center gap-5'>
@@ -96,6 +79,71 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
       </div>
     )
   }
+  return (
+    <div className='flex flex-col gap-1'>
+      <AssetInput asset={bvc.pTokenSymbol} assetIcon='Panda' amount={inputPToken} balance={pTokenBalance} setAmount={setInputPToken} />
+      {epoch && epoch.settled && (
+        <div className='flex flex-wrap justify-between items-center h-5'>
+          <div className='text-xs font-medium'>{redeemInfo}</div>
+          {renderClaimable()}
+        </div>
+      )}
+      <ApproveAndTx
+        className='mx-auto mt-6'
+        tx='Redeem'
+        spender={epoch?.redeemPool}
+        approves={{
+          [bvc.pToken]: inputPTokenBn,
+        }}
+        disabled={(epoch && inputPTokenBn <= 0n) || inputPTokenBn > pTokenBalance}
+        config={{
+          abi: abiRedeemPool,
+          address: epoch?.redeemPool || zeroAddress,
+          functionName: 'redeem',
+          args: [inputPTokenBn],
+        }}
+        onTxSuccess={() => {
+          setInputPToken('')
+          upForUserAction()
+        }}
+      />
+      {(!epoch || !epoch.settled) && (
+        <div className='flex flex-wrap justify-between items-center h-5 mt-5'>
+          <div className='text-xs font-medium'>
+            {`Redemption in transit: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
+          </div>
+          {renderClaimable()}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BVaultP({ bvc }: { bvc: BVaultConfig }) {
+  const [inputAsset, setInputAsset] = useState('')
+  const inputAssetBn = parseEthers(inputAsset)
+  const lp = LP_TOKENS[bvc.asset]
+  const isLP = !!lp
+  const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
+  const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
+  const bvd = useBVault(bvc.vault)
+  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
+  const [fmtApy] = useBVaultApy(bvc.vault)
+  const { data: walletClient } = useWalletClient()
+  const upForUserAction = useUpBVaultForUserAction(bvc)
+  const onAddPToken = () => {
+    walletClient
+      ?.watchAsset({
+        type: 'ERC20',
+        options: {
+          address: bvc.pToken,
+          symbol: bvc.pTokenSymbol,
+          decimals: 18,
+        },
+      })
+      .catch(handleError)
+  }
+  
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
@@ -161,44 +209,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
             },
             {
               tab: 'Redeem',
-              content: (
-                <div className='flex flex-col gap-1'>
-                  <AssetInput asset={bvc.pTokenSymbol} assetIcon='Panda' amount={inputPToken} balance={pTokenBalance} setAmount={setInputPToken} />
-                  {epoch && epoch.settled && (
-                    <div className='flex flex-wrap justify-between items-center h-5'>
-                      <div className='text-xs font-medium'>{redeemInfo}</div>
-                      {renderClaimable()}
-                    </div>
-                  )}
-                  <ApproveAndTx
-                    className='mx-auto mt-6'
-                    tx='Redeem'
-                    spender={epoch?.redeemPool}
-                    approves={{
-                      [bvc.pToken]: inputPTokenBn,
-                    }}
-                    disabled={(epoch && inputPTokenBn <= 0n) || inputPTokenBn > pTokenBalance}
-                    config={{
-                      abi: abiRedeemPool,
-                      address: epoch?.redeemPool || zeroAddress,
-                      functionName: 'redeem',
-                      args: [inputPTokenBn],
-                    }}
-                    onTxSuccess={() => {
-                      setInputPToken('')
-                      upForUserAction()
-                    }}
-                  />
-                  {(!epoch || !epoch.settled) && (
-                    <div className='flex flex-wrap justify-between items-center h-5 mt-5'>
-                      <div className='text-xs font-medium'>
-                        {`Redemption in transit: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
-                      </div>
-                      {renderClaimable()}
-                    </div>
-                  )}
-                </div>
-              ),
+              content: <BVaultRedeem bvc={bvc} />,
             },
           ]}
         />

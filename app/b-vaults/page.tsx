@@ -1,6 +1,6 @@
 'use client'
 
-import { BVaultCard, BVaultCardComming, BVaultHarvest, BVaultMint } from '@/components/b-vault'
+import { BVaultCard, BVaultCardComming, BVaultHarvest, BVaultMint, BVaultRedeem } from '@/components/b-vault'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
@@ -55,8 +55,8 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
       contentClassName='gap-5'
       data={[
         {
-          tab: 'Mint',
-          content: <BVaultMint bvc={bvc} />,
+          tab: bvd.closed ? 'Redeem' : 'Mint',
+          content: bvd.closed ? <BVaultRedeem bvc={bvc} /> : <BVaultMint bvc={bvc} />,
         },
         {
           tab: 'Harvest',

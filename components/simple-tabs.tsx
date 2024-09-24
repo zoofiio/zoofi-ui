@@ -7,6 +7,7 @@ export function SimpleTabs({
   listClassName,
   triggerClassName,
   contentClassName,
+  hiddenConetent = false,
   data,
   onTabChange,
 }: {
@@ -14,6 +15,7 @@ export function SimpleTabs({
   listClassName?: string
   triggerClassName?: string
   contentClassName?: string
+  hiddenConetent?: boolean
   data: { tab: string; content: React.ReactNode }[]
   onTabChange?: (tab: string) => void
 }) {
@@ -41,11 +43,12 @@ export function SimpleTabs({
           </Tabs.Trigger>
         ))}
       </Tabs.List>
-      {data.map((item) => (
-        <Tabs.Content key={item.tab} value={item.tab} className={cn('flex flex-col gap-6 outline-none', contentClassName)}>
-          {item.content}
-        </Tabs.Content>
-      ))}
+      {!hiddenConetent &&
+        data.map((item) => (
+          <Tabs.Content key={item.tab} value={item.tab} className={cn('flex flex-col gap-6 outline-none', contentClassName)}>
+            {item.content}
+          </Tabs.Content>
+        ))}
     </Tabs.Root>
   )
 }
