@@ -77,16 +77,26 @@ export function useCalcClaimable(vault: Address) {
   }, [epoches])
 }
 
-export function useBVaultBoost(vault: Address): [string, bigint] {
-  const bvd = useStoreShallow((s) => s.sliceBVaultsStore.bvaults[vault])
-  const bce = useStoreShallow((s) => s.sliceBVaultsStore.bvaultsCurrentEpoch[vault])
+export function calcBVaultBoost(vault: Address) {
+  const s = useBoundStore.getState()
+  const bvd = s.sliceBVaultsStore.bvaults[vault]
+  const bce = s.sliceBVaultsStore.bvaultsCurrentEpoch[vault]
   const boost = bvd && bce && bce.assetAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * 100n) / bce.assetAmountForSwapYT : 100000n
+  return boost
+}
+export function useBVaultBoost(vault: Address): [string, bigint] {
+  const boost = useStoreShallow(() => calcBVaultBoost(vault))
   return [displayBalance(boost, 0, 2), boost]
 }
 
-export function useBVaultApy(vault: Address): [string, bigint] {
-  const bce = useStoreShallow((s) => s.sliceBVaultsStore.bvaultsCurrentEpoch[vault])
+export function calcBVaultPTApy(vault: Address) {
+  const s = useBoundStore.getState()
+  const bce = s.sliceBVaultsStore.bvaultsCurrentEpoch[vault]
   const apy = bce && bce.pTokenSynthetic > 0n ? (bce.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / bce.pTokenSynthetic : 0n
+  return apy
+}
+export function useBVaultApy(vault: Address): [string, bigint] {
+  const apy = useStoreShallow(() => calcBVaultPTApy(vault))
   return [fmtPercent(apy, 10), apy]
 }
 

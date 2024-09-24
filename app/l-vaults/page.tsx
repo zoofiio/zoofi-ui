@@ -15,6 +15,7 @@ import { useSearchParams } from 'next/navigation'
 import { ReactNode, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { LVaultCard, LVaultComming, LVaultSimpleWrap } from '../../components/l-vault'
+import { useLoadLVaults } from '@/hooks/useLoads'
 
 function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
@@ -71,37 +72,7 @@ export default function Vaults() {
   const paramsTab = params.get('tab')
   const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : 'deposit'
   const currentVc = vcs.find((item) => item.vault == paramsVault)
-  const { address } = useAccount()
-  const tokens = useMemo(() => {
-    return _.chain(VAULTS_CONFIG[chainId])
-      .map((vc) => [vc.assetTokenAddress, vc.xTokenAddress])
-      .flatten()
-      .concat([USB_ADDRESS[chainId]])
-      .union()
-      .value()
-  }, [chainId])
-  useQuery({
-    queryKey: ['UpdateLvautlsTokens', tokens],
-    queryFn: async () => {
-      await useBoundStore.getState().sliceTokenStore.updateTokenTotalSupply(tokens)
-      return true
-    },
-  })
-  useQuery({
-    queryKey: ['UpdateUserLvautlsTokens', tokens, address],
-    queryFn: async () => {
-      if (!address) return false
-      await useBoundStore.getState().sliceTokenStore.updateTokensBalance(tokens, address)
-      return true
-    },
-  })
-  useQuery({
-    queryKey: ['UpdateLVautls', vcs],
-    queryFn: async () => {
-      await useBoundStore.getState().sliceLVaultsStore.updateLVaults(vcs)
-      return true
-    },
-  })
+  useLoadLVaults()
 
   useQuery
   return (

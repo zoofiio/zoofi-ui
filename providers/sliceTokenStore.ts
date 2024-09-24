@@ -80,6 +80,7 @@ export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
         const quote = LP_TOKENS[lp].quote
         const price = lpPrices[i][0]
         const priceFixDecimals = quote == '0xd6d83af58a19cd14ef3cf6fe848c9a4d21e5727c' ? 10n ** 6n : 1n
+        map[lp] = price / priceFixDecimals ** 2n
         map[quote] = (((price * 10n ** 9n) / (18446744073709551616n * priceFixDecimals)) ** 2n * map[base]) / DECIMAL
       })
       console.info('lpPrics:', map)

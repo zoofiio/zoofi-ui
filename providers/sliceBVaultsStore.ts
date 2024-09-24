@@ -111,7 +111,7 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
       ),
     )
     const map = datas.reduce<BVaultsStore['bvaults']>((map, item, i) => ({ ...map, [bvcs[i].vault]: item }), {})
-    set({ bvaults: { ...get().bvaults, ...map } })
+    // set({ bvaults: { ...get().bvaults, ...map } })
     await getLpAmount(bvcs, map)
     set({ bvaults: { ...get().bvaults, ...map } })
     return map

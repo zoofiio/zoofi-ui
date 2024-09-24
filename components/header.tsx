@@ -73,7 +73,7 @@ export function Header() {
       { href: '/b-vaults', label: 'B-Vaults', icon: LuBox },
       // { href: '/earn', label: 'Earn', icon: LuDollarSign },
       // { href: '/discount', label: 'Discount Offer', icon: LuTag },
-      // { href: '/dashboard', label: 'Dashboard', icon: LuLineChart },
+      { href: '/dashboard', label: 'Dashboard', icon: LuLineChart },
     ]
     showAdmin && links.push({ href: '/admin', label: 'Admin', icon: LuSettings })
     showTester && links.push({ href: '/tester', label: 'Tester', icon: LuSettings2 })
@@ -81,8 +81,7 @@ export function Header() {
   }, [showAdmin, showTester])
 
   const { chain, address } = useAccount()
-  const showDefNet =
-    !chain || SUPPORT_CHAINS.findIndex((item) => item.id == chain.id) == -1 || SUPPORT_CHAINS.length <= 1
+  const showDefNet = !chain || SUPPORT_CHAINS.findIndex((item) => item.id == chain.id) == -1 || SUPPORT_CHAINS.length <= 1
   const social_networks = useMemo(
     () => [
       { name: 'doc', url: DOC_LINK(), icon: TbBook2 },
@@ -96,7 +95,7 @@ export function Header() {
       <header className='h-[72px] w-full max-w-[1300px] inset-0 mx-auto flex items-center justify-between px-4   z-30 ml-[calc(100vw - 100%)] '>
         <div className='flex items-center'>
           <Link href={'/'} className='font-semibold flex pr-1 items-center text-base leading-7'>
-            <CoinIcon symbol='logo-alt' size={90}/>
+            <CoinIcon symbol='logo-alt' size={90} />
           </Link>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger

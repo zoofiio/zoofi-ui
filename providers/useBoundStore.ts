@@ -35,12 +35,6 @@ export type BoundStoreType = ReturnType<typeof wrapDevtools>
 
 export const useBoundStore = create<BoundStoreType>(wrapDevtools as any)
 
-type KeyOF<T> = Exclude<keyof T, symbol>
-type SubKeys<T> = { [k in KeyOF<T>]: `${k}.${KeyOF<T[k]>}` }[KeyOF<T>]
-
-type DeepKeys<T> = KeyOF<T> | SubKeys<T>
-
-export type DependsType = DeepKeys<BoundStoreType>
 export function useStoreShallow<T>(s: (data: BoundStoreType) => T, depends: any[] = []) {
   const store = useBoundStore()
   return useMemo(() => s(store), [store, ...depends])
