@@ -30,7 +30,6 @@ export function useBVaultCurrentEpoch(vault: Address) {
   )
 }
 
-useBoundStore.subscribe(s => s.sliceBVaultsStore.bvaults)
 export function useBVaultEpoches(vault: Address) {
   const bvd = useBVault(vault)
   const selector = useMemo(() => {
@@ -93,6 +92,7 @@ export function calcBVaultPTApy(vault: Address) {
   const s = useBoundStore.getState()
   const bce = s.sliceBVaultsStore.bvaultsCurrentEpoch[vault]
   const apy = bce && bce.pTokenSynthetic > 0n ? (bce.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / bce.pTokenSynthetic : 0n
+  console.info('vaultPTApy:', vault, fmtPercent(apy, 10), bce?.pTokenSynthetic, bce?.assetAmountForSwapYT)
   return apy
 }
 export function useBVaultApy(vault: Address): [string, bigint] {

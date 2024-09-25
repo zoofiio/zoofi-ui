@@ -14,7 +14,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useMemo } from 'react'
-import { LuBox, LuDollarSign, LuLineChart, LuPaperclip, LuSettings, LuSettings2, LuTag } from 'react-icons/lu'
+import { LuBox, LuDollarSign, LuLineChart, LuPaperclip, LuSettings, LuSettings2, LuTag, LuUserCircle } from 'react-icons/lu'
 import { TbBook2, TbBrandDiscordFilled, TbBrandX, TbChevronDown } from 'react-icons/tb'
 import { useWindowSize } from 'react-use'
 import { useAccount } from 'wagmi'
@@ -73,6 +73,7 @@ export function Header() {
       { href: '/b-vaults', label: 'B-Vaults', icon: LuBox },
       // { href: '/earn', label: 'Earn', icon: LuDollarSign },
       // { href: '/discount', label: 'Discount Offer', icon: LuTag },
+      { href: '/portfolio', label: 'Portfolio', icon: LuUserCircle },
       { href: '/dashboard', label: 'Dashboard', icon: LuLineChart },
     ]
     showAdmin && links.push({ href: '/admin', label: 'Admin', icon: LuSettings })

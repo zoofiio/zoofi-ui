@@ -110,7 +110,7 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
       {(!epoch || !epoch.settled) && (
         <div className='flex flex-wrap justify-between items-center h-5 mt-5'>
           <div className='text-xs font-medium'>
-            {`Redemption in transit: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
+            {`In Redemption: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
           </div>
           {renderClaimable()}
         </div>
@@ -143,7 +143,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
       })
       .catch(handleError)
   }
-  
+
   return (
     <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
@@ -317,8 +317,8 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
               </div>
               <ProgressBar value={calcProgress(epoch)} className='mt-2 rounded-full overflow-hidden' />
               <div className='flex justify-between items-center'>
-                <span className='scale-90'>{fmtTime(epoch.startTime * 1000n, 'all')}</span>
-                <span className='scale-90'>{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'all')}</span>
+                <span className='scale-90'>{fmtTime(epoch.startTime * 1000n, 'all-s')}</span>
+                <span className='scale-90'>{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'all-s')}</span>
               </div>
             </div>
           )}

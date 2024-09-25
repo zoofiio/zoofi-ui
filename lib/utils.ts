@@ -60,7 +60,6 @@ export function parseEthers(num: string, unit?: Parameters<typeof _parseEther>[1
   return parseUnits(num, decimal)
 }
 
-
 export function fmtPercent(percent: bigint, decimals: number | bigint, showDecimals: number = 2) {
   const _decimals = typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals
   const _percent = formatUnits(percent * 100n, _decimals)
@@ -115,7 +114,7 @@ export const shortStr = (v?: string, count = 6, endCount = 5) => {
   return `${v.toString().substring(0, count)}...${v.toString().substring(v.length - endCount)}`
 }
 
-export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 'all' = 'all', locale: 'zh' | 'en' = 'en', split: string = '/') => {
+export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 'all' | 'all-s' = 'all', locale: 'zh' | 'en' = 'en', split: string = '/') => {
   const date = new Date(typeof time == 'number' ? time : typeof time == 'bigint' ? parseInt(time.toString()) : time + ' UTC')
   let res = ''
   switch (type) {
@@ -127,6 +126,10 @@ export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 
       break
     case 'all':
       res = date.toLocaleString(locale)
+      break
+    case 'all-s':
+      const time = date.toLocaleTimeString(locale)
+      res = date.toLocaleDateString(locale) + ' ' + time.slice(0, 5) + time.slice(8)
       break
   }
   if (split !== '/') {

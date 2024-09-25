@@ -98,31 +98,42 @@ function LVaultsItem() {
 }
 function BVaultsItem() {
   const chainId = useCurrentChainId()
-  const bvcs = BVAULTS_CONFIG[chainId].filter((item) => (item.onEnv || []).includes(ENV))
+  const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((item) => (item.onEnv || []).includes(ENV)), [chainId])
   const bvaults = useStoreShallow((s) => s.sliceBVaultsStore.bvaults)
   const prices = useStoreShallow((s) => s.sliceTokenStore.prices)
+
   const data: ReactNode[][] = useMemo(() => {
-    return bvcs.map((bvc) => [
+    const datas = bvcs.map((bvc) => {
+      const totalDeposit = getBigint(bvaults, [bvc.vault, 'lockedAssetTotal'])
+      const totalDepositUsd = (totalDeposit * getBigint(prices, [bvc.asset])) / DECIMAL
+      const lp = LP_TOKENS[bvc.asset]
+      const [baseSymbol, quoteSymbol] = lp ? bvc.assetSymbol.split('-') : ['', '']
+      const totalLeftWidth = Math.max(22 + displayBalance(totalDeposit).length * 5, displayBalance(totalDepositUsd).length * 5 + 5)
+      return { bvc, totalDeposit, totalDepositUsd, totalLeftWidth, lp, baseSymbol, quoteSymbol }
+    })
+    const totalLeftWidth = datas.reduce((max, item) => Math.max(max, item.totalLeftWidth), 0) + 20
+
+    return datas.map(({ bvc, totalDeposit, totalDepositUsd, lp, baseSymbol, quoteSymbol }) => [
       <div key='icon' className='flex gap-2 items-center'>
         {<CoinIcon symbol={bvc.assetSymbol} size={20} />}
         <span>{bvc.assetSymbol}</span>
       </div>,
       <div key='total' className='flex gap-8 items-start'>
-        <div>
+        <div style={{ width: totalLeftWidth }}>
           <div key='icon' className='flex gap-2 items-center'>
             {<CoinIcon symbol={bvc.assetSymbol} size={14} />}
-            <span>{displayBalance(getBigint(bvaults, [bvc.vault, 'lockedAssetTotal']))}</span>
+            <span>{displayBalance(totalDeposit)}</span>
           </div>
-          <div className='opacity-60'>~{displayBalance((getBigint(bvaults, [bvc.vault, 'lockedAssetTotal']) * getBigint(prices, [bvc.asset])) / DECIMAL)}</div>
+          <div className='opacity-60'>~{displayBalance(totalDepositUsd)}</div>
         </div>
-        {!!LP_TOKENS[bvc.asset] && (
+        {lp && (
           <div>
             <div key='icon' className='flex gap-2 items-center'>
-              {<CoinIcon symbol={bvc.assetSymbol.split('-')[0]} size={14} />}
+              {<CoinIcon symbol={baseSymbol} size={14} />}
               <span>{displayBalance(getBigint(bvaults, [bvc.vault, 'lpBase']))}</span>
             </div>
             <div key='icon' className='flex gap-2 items-center'>
-              {<CoinIcon symbol={bvc.assetSymbol.split('-')[1]} size={14} />}
+              {<CoinIcon symbol={quoteSymbol} size={14} />}
               <span>{displayBalance(getBigint(bvaults, [bvc.vault, 'lpQuote']))}</span>
             </div>
           </div>

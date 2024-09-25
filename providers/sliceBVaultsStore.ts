@@ -56,16 +56,10 @@ export type BVaultsStore = {
       | undefined
   }
 
-  epochesYTprice: {
-    [vaultEpocheId: `${Address}_${number}`]: { time: number; price: number }[]
-  }
-
   updateBvaults: (bvcs: BVaultConfig[]) => Promise<BVaultsStore['bvaults']>
   updateBvaultsCurrentEpoch: (bvaults?: BVaultsStore['bvaults']) => Promise<BVaultsStore['bvaultsCurrentEpoch']>
   updateEpoches: (bvc: BVaultConfig, ids?: bigint[]) => Promise<BVaultsStore['epoches']>
   updateEpochesRedeemPool: (bvc: BVaultConfig, epoches?: BVaultsStore['epoches']) => Promise<BVaultsStore['epochesRedeemPool']>
-
-  updateEpochesYTprice: (bvc: BVaultConfig, epochId: bigint) => Promise<BVaultsStore['epochesYTprice'][`${Address}_${number}`]>
 }
 export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) => {
   const getLpAmount = async (bvcs: BVaultConfig[], map: BVaultsStore['bvaults']) => {
@@ -176,7 +170,9 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
   }
 
   const updateEpochesRedeemPool = async (bvc: BVaultConfig, epoches: BVaultsStore['epoches'] = get().epoches) => {
-    const mepoches = _.keys(epoches).map((key) => ({ vault: key.split('_')[0], epochId: BigInt(key.split('_')[1]), epoch: epoches[key as any]! }))
+    const mepoches = _.keys(epoches)
+      .map((key) => ({ vault: key.split('_')[0], epochId: BigInt(key.split('_')[1]), epoch: epoches[key as any]! }))
+      .filter((item) => item.vault == bvc.vault)
     if (mepoches.length == 0) return {}
     const pc = getPC()
     const datas = await Promise.all(
@@ -187,18 +183,6 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     return map
   }
 
-  const updateEpochesYTprice = async (bvc: BVaultConfig, epochId: bigint) => {
-    const pc = getPC()
-    pc.getBlock()
-    pc.getBlockNumber()
-
-    const getPrice = (blockNumber: bigint) =>
-      Promise.all([
-        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'Y', blockNumber }),
-        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epochId, bvc.vault], blockNumber }),
-      ]).then(([Y, yTokenUserBalance]) => ({}))
-    return []
-  }
   // init
   return {
     bvaults: {},
@@ -211,6 +195,5 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     updateBvaultsCurrentEpoch,
     updateEpoches,
     updateEpochesRedeemPool,
-    updateEpochesYTprice,
   }
 }

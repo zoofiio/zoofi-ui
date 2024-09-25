@@ -25,7 +25,7 @@ const SupportTabs = ['deposit', 'yield', 'discount'] as const
 
 function LVaultPage({ vc }: { vc: VaultConfig }) {
   const { address } = useAccount()
-  
+
   useQuery({
     queryKey: ['UpdateUserLVault', vc, address],
     queryFn: async () => {
@@ -73,8 +73,6 @@ export default function Vaults() {
   const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : 'deposit'
   const currentVc = vcs.find((item) => item.vault == paramsVault)
   useLoadLVaults()
-
-  useQuery
   return (
     <PageWrap>
       <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
