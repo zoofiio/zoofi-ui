@@ -92,6 +92,17 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       onEnv: ['beta', 'test'],
     },
     {
+      vault: '0xF4396DEe48A44A2191ec5763Fc4b6E5aDE7e41e7',
+      asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
+      assetSymbol: 'HONEY-WBERA',
+      pToken: '0xb6fa36aEF82BaF2589Cc31c69A33624612c95Ed9',
+      pTokenSymbol: 'pHONEY-BERA',
+      yTokenSymbol: 'yHONEY-BERA',
+      protocolAddress: ZooProtocolAddress,
+      protocolSettingsAddress: ZooProtocolSettingsAddress,
+      onEnv: ['beta'],
+    },
+    {
       vault: '0x90e0A49726c2fF0fa6e4382446688AF883d10133',
       asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
       assetSymbol: 'HONEY-WBERA',

@@ -342,6 +342,7 @@ export default function AdminPage() {
                 <GeneralAction key={`b-vault-${functionName}`} abi={abiBVault} functionName={functionName} address={current.data.vault} />
               ))}
               <GeneralAction tit='transferOwnership' abi={abiZooProtocol} functionName='transferOwnership' address={current.data.protocolAddress} />
+              <GeneralAction tit='upsertParamConfig' abi={abiProtocolSettings} functionName='upsertParamConfig' address={current.data.protocolSettingsAddress} />
             </>
           )}
         </div>
