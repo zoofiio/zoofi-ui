@@ -30,9 +30,7 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
     queryKey: ['UpdateVaultDetails', bvc, bvd],
     queryFn: async () => {
       if (bvd.epochCount == 0n) return false
-      const bs = useBoundStore.getState().sliceBVaultsStore
-      await bs.updateEpoches(bvc)
-      await bs.updateEpochesRedeemPool(bvc)
+      await useBoundStore.getState().sliceBVaultsStore.updateEpoches(bvc)
       return true
     },
   })

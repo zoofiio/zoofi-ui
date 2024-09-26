@@ -1,145 +1,65 @@
-import { abiBVault, abiCalcLiq, abiCrocQuery, abiRedeemPool } from '@/config/abi'
-import { BVaultConfig, CALC_LIQ, CrocQueryAddress } from '@/config/bvaults'
-import { getCurrentChainId } from '@/config/network'
-import { LP_TOKENS } from '@/config/tokens'
+import { abiBQuery } from '@/config/abi'
+import { BVaultConfig } from '@/config/bvaults'
 import _ from 'lodash'
-import { Address, erc20Abi, stringToHex } from 'viem'
+import { Address } from 'viem'
 import { getPC } from './publicClient'
 import { SliceFun } from './types'
-import { getBvaultPtSynthetic } from '@/config/api'
+import { getBvaultPtSynthetic, getBvaultsPtSynthetic } from '@/config/api'
+import { error } from 'console'
 
+export type BVaultEpochDTO = {
+  epochId: bigint
+  startTime: bigint
+  duration: bigint
+  redeemPool: Address
+  yTokenTotal: bigint
+  vaultYTokenBalance: bigint
+  assetTotalSwapAmount: bigint
+  yTokenAmountForSwapYT: bigint
+  settled: boolean
+}
+
+export type BVaultDTO = {
+  epochCount: bigint
+  pTokenTotal: bigint
+  lockedAssetTotal: bigint
+  f2: bigint
+  closed: boolean
+  lpLiq: bigint
+  lpBase: bigint
+  lpQuote: bigint
+  Y: bigint
+  current: BVaultEpochDTO
+}
 export type BVaultsStore = {
   bvaults: {
-    [vault: Address]:
-      | {
-          epochCount: bigint
-          pTokenTotal: bigint
-          lockedAssetTotal: bigint
-          f2: bigint
-          closed?: boolean
-          lpLiq?: bigint
-          lpBase?: bigint
-          lpQuote?: bigint
-        }
-      | undefined
-  }
-  bvaultsCurrentEpoch: {
-    [vault: Address]:
-      | {
-          Y: bigint
-          yTokenTotalSupply: bigint
-          pTokenSynthetic: bigint
-          assetAmountForSwapYT: bigint
-          yTokenAmountForSwapYT: bigint
-        }
-      | undefined
+    [vault: Address]: BVaultDTO | undefined
   }
   epoches: {
-    [vaultEpocheId: `${Address}_${number}`]:
-      | {
-          epochId: bigint
-          startTime: bigint
-          duration: bigint
-          redeemPool: Address
-          yTokenTotal: bigint
-          pTokenSynthetic: bigint
-          vaultYTokenBalance: bigint
-        }
-      | undefined
+    [vaultEpocheId: `${Address}_${number}`]: BVaultEpochDTO | undefined
   }
-
-  epochesRedeemPool: {
-    [vaultEpocheId: `${Address}_${number}`]:
-      | {
-          settled: boolean
-        }
-      | undefined
+  yTokenSythetic: {
+    [k: Address]: bigint
   }
 
   updateBvaults: (bvcs: BVaultConfig[]) => Promise<BVaultsStore['bvaults']>
-  updateBvaultsCurrentEpoch: (bvaults?: BVaultsStore['bvaults']) => Promise<BVaultsStore['bvaultsCurrentEpoch']>
   updateEpoches: (bvc: BVaultConfig, ids?: bigint[]) => Promise<BVaultsStore['epoches']>
-  updateEpochesRedeemPool: (bvc: BVaultConfig, epoches?: BVaultsStore['epoches']) => Promise<BVaultsStore['epochesRedeemPool']>
+
+  updateYTokenSythetic: (bvcs?: BVaultConfig[]) => Promise<BVaultsStore['yTokenSythetic']>
 }
 export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) => {
-  const getLpAmount = async (bvcs: BVaultConfig[], map: BVaultsStore['bvaults']) => {
-    const pc = getPC()
-    await Promise.all(
-      bvcs.map((bvc) => {
-        const lp = LP_TOKENS[bvc.asset]
-        if (!lp) return null
-        return Promise.all([
-          pc.readContract({ abi: abiCrocQuery, address: CrocQueryAddress[getCurrentChainId()], functionName: 'queryPrice', args: [lp.base, lp.quote, lp.poolType] }),
-          pc.readContract({ abi: abiCrocQuery, address: CrocQueryAddress[getCurrentChainId()], functionName: 'queryLiquidity', args: [lp.base, lp.quote, lp.poolType] }),
-          pc.readContract({ abi: erc20Abi, address: bvc.asset, functionName: 'totalSupply' }),
-        ]).then((data) => {
-          if (!data) return null
-          const bvd = map[bvc.vault]!
-          const [price, totalLiq, totalSupply] = data
-          const lpLiq = (totalLiq * bvd.lockedAssetTotal) / totalSupply
-          return pc.readContract({ abi: abiCalcLiq, address: CALC_LIQ[getCurrentChainId()], functionName: 'liqToTokens', args: [lpLiq, price] }).then(([base, quote]) => {
-            bvd.lpLiq = lpLiq
-            bvd.lpBase = base
-            bvd.lpQuote = quote
-          })
-        })
-      }),
-    )
-  }
   const updateBvaults = async (bvcs: BVaultConfig[]) => {
     const pc = getPC()
     const datas = await Promise.all(
       bvcs.map((bvc) =>
-        Promise.all([
-          // epochCount
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'epochIdCount' }),
-          // pTokenTotal
-          pc.readContract({ abi: erc20Abi, address: bvc.pToken, functionName: 'totalSupply' }),
-          // lockedAssetTotal,
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'assetBalance' }),
-          // fees f2
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'paramValue', args: [stringToHex('f2', { size: 32 })] }),
-          // closed
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'closed' }).catch(() => false),
-        ]).then<BVaultsStore['bvaults'][Address]>(([epochCount, pTokenTotal, lockedAssetTotal, f2, closed]) => ({ epochCount, pTokenTotal, lockedAssetTotal, f2, closed })),
+        pc
+          .readContract({ abi: abiBQuery, address: bvc.bQueryAddres, functionName: 'queryBVault', args: [bvc.vault] })
+          .then((item) => ({ vault: bvc.vault, item }))
+          .catch((e) => null),
       ),
     )
-    const map = datas.reduce<BVaultsStore['bvaults']>((map, item, i) => ({ ...map, [bvcs[i].vault]: item }), {})
-    // set({ bvaults: { ...get().bvaults, ...map } })
-    await getLpAmount(bvcs, map)
+    const map = _.filter(datas, (item) => item != null).reduce<BVaultsStore['bvaults']>((map, item) => ({ ...map, [item.vault]: item.item }), {})
     set({ bvaults: { ...get().bvaults, ...map } })
-    return map
-  }
-
-  const updateBvaultsCurrentEpoch = async (bvaults: BVaultsStore['bvaults'] = get().bvaults) => {
-    const pc = getPC()
-    const vaults = _.keys(bvaults).map((vault) => vault as Address)
-    if (vaults.length == 0) return {}
-    const datas = await Promise.all(
-      vaults.map((vault) =>
-        Promise.all([
-          // Y  虚拟交易对的asset amount
-          bvaults[vault]!.epochCount && vault !== '0xF778D2B9E0238D385008e916D7245F51959Ba279'
-            ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'Y' })
-            : Promise.resolve(0n),
-          // yTokenTotal
-          bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenTotalSupply', args: [bvaults[vault]!.epochCount] }) : 0n,
-          // yTokenTotal
-          bvaults[vault]!.epochCount ? getBvaultPtSynthetic(vault, bvaults[vault]!.epochCount!).then((res) => BigInt(res)) : 0n,
-          bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'assetTotalSwapAmount', args: [bvaults[vault]!.epochCount] }) : 0n,
-          // vaultYTokenBalance
-          bvaults[vault]!.epochCount ? pc.readContract({ abi: abiBVault, address: vault, functionName: 'yTokenUserBalance', args: [bvaults[vault]!.epochCount, vault] }) : 0n,
-        ]).then(([Y, yTokenTotalSupply, pTokenSynthetic, assetAmountForSwapYT, vaultYTokenBalance]) => ({
-          Y,
-          yTokenTotalSupply,
-          pTokenSynthetic,
-          assetAmountForSwapYT: assetAmountForSwapYT,
-          yTokenAmountForSwapYT: yTokenTotalSupply - vaultYTokenBalance,
-        })),
-      ),
-    )
-    const map = datas.reduce<BVaultsStore['bvaultsCurrentEpoch']>((map, item, i) => ({ ...map, [vaults[i]]: item }), {})
-    set({ bvaultsCurrentEpoch: { ...get().bvaultsCurrentEpoch, ...map } })
     return map
   }
 
@@ -148,52 +68,32 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     if (mIds.length == 0) return {}
     const pc = getPC()
     const datas = await Promise.all(
-      mIds.map((epochId) =>
-        Promise.all([
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'epochInfoById', args: [epochId] }),
-          // yTokenTotalSupply
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenTotalSupply', args: [epochId] }),
-          getBvaultPtSynthetic(bvc.vault, epochId).then((res) => BigInt(res)),
-          // balance yToken
-          pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'yTokenUserBalance', args: [epochId, bvc.vault] }),
-        ]).then<BVaultsStore['epoches'][`${Address}_${number}`]>(([epochInfo, yTokenTotalSupply, pTokenSynthetic, vaultYTokenBalance]) => ({
-          ...epochInfo,
-          yTokenTotal: yTokenTotalSupply,
-          pTokenSynthetic,
-          vaultYTokenBalance,
-        })),
-      ),
+      mIds.map((epochId) => pc.readContract({ abi: abiBQuery, address: bvc.bQueryAddres, functionName: 'queryBVaultEpoch', args: [bvc.vault, epochId] })),
     )
     const map = datas.reduce<BVaultsStore['epoches']>((map, item) => ({ ...map, [`${bvc.vault}_${item!.epochId.toString()}`]: item }), {})
     set({ epoches: { ...get().epoches, ...map } })
     return map
   }
 
-  const updateEpochesRedeemPool = async (bvc: BVaultConfig, epoches: BVaultsStore['epoches'] = get().epoches) => {
-    const mepoches = _.keys(epoches)
-      .map((key) => ({ vault: key.split('_')[0], epochId: BigInt(key.split('_')[1]), epoch: epoches[key as any]! }))
-      .filter((item) => item.vault == bvc.vault)
-    if (mepoches.length == 0) return {}
-    const pc = getPC()
-    const datas = await Promise.all(
-      mepoches.map((epoch) => pc.readContract({ abi: abiRedeemPool, address: epoch.epoch.redeemPool, functionName: 'settled' }).then((settled) => ({ settled }))),
-    )
-    const map = datas.reduce<BVaultsStore['epochesRedeemPool']>((map, item, i) => ({ ...map, [`${bvc.vault}_${mepoches[i].epochId.toString()}`]: item }), {})
-    set({ epochesRedeemPool: { ...get().epochesRedeemPool, ...map } })
-    return map
+  const updateYTokenSythetic = async (bvcs?: BVaultConfig[]) => {
+    const vaults = bvcs?.map((b) => b.vault) || (_.keys(get().bvaults) as Address[])
+    // const data = await Promise.all(vaults.map((vault) => getBvaultPtSynthetic(vault, 100n))).then((data) =>
+    //   data.reduce<{ [k: Address]: bigint }>((map, item, i) => ({ ...map, [vaults[i]]: BigInt(item) }), {}),
+    // )
+    const data = await getBvaultsPtSynthetic(vaults)
+    const datas = _.mapValues(data, (v) => BigInt(v))
+    set({ yTokenSythetic: { ...get().yTokenSythetic, ...datas } })
+    return datas
   }
 
   // init
   return {
     bvaults: {},
-    bvaultsCurrentEpoch: {},
     epoches: {},
-    epochesRedeemPool: {},
-    epochesYTprice: {},
+    yTokenSythetic: {},
     ...init,
     updateBvaults,
-    updateBvaultsCurrentEpoch,
     updateEpoches,
-    updateEpochesRedeemPool,
+    updateYTokenSythetic,
   }
 }

@@ -1,13 +1,14 @@
 import { BVaultConfig } from '@/config/bvaults'
 import { YEAR_SECONDS } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { fmtPercent, proxyGetDef, retry } from '@/lib/utils'
+import { fmtPercent, getBigint, proxyGetDef, retry } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
 import _ from 'lodash'
 import { useEffect, useMemo } from 'react'
 import { Address } from 'viem'
 import { useAccount } from 'wagmi'
 import { BoundStoreType, useBoundStore, useStoreShallow } from './useBoundStore'
+import { BVaultEpochDTO } from './sliceBVaultsStore'
 
 export function useResetBVaultsData() {
   const chainId = useCurrentChainId()
@@ -21,13 +22,12 @@ export function useResetBVaultsData() {
 }
 
 export function useBVault(vault: Address) {
-  const bvd = useStoreShallow((s) => s.sliceBVaultsStore.bvaults[vault] || proxyGetDef<Exclude<BoundStoreType['sliceBVaultsStore']['bvaults'][Address], undefined>>({} as any, 0n))
-  return bvd
-}
-export function useBVaultCurrentEpoch(vault: Address) {
-  return useStoreShallow(
-    (s) => s.sliceBVaultsStore.bvaultsCurrentEpoch[vault] || proxyGetDef<Exclude<BoundStoreType['sliceBVaultsStore']['bvaultsCurrentEpoch'][Address], undefined>>({} as any, 0n),
+  const bvd = useStoreShallow(
+    (s) =>
+      s.sliceBVaultsStore.bvaults[vault] ||
+      proxyGetDef<Exclude<BoundStoreType['sliceBVaultsStore']['bvaults'][Address], undefined>>({ current: proxyGetDef<BVaultEpochDTO>({}, 0n) }, 0n),
   )
+  return bvd
 }
 
 export function useBVaultEpoches(vault: Address) {
@@ -38,15 +38,7 @@ export function useBVaultEpoches(vault: Address) {
       if (bvd.epochCount <= 0n) return []
       const ids = _.range(1, parseInt((bvd.epochCount + 1n).toString())).reverse()
       const epochesMap = s.sliceBVaultsStore.epoches
-      const epochesRPMap = s.sliceBVaultsStore.epochesRedeemPool
-      return ids
-        .map((eppchId) => {
-          const epoch = epochesMap[`${vault}_${eppchId}`]
-          const epochRP = epochesRPMap[`${vault}_${eppchId}`]
-          if (epoch && epochRP) return proxyGetDef({ ...epoch, ...epochRP }, 0n)
-          return null
-        })
-        .filter((item) => item != null)
+      return ids.map((eppchId) => epochesMap[`${vault}_${eppchId}`]).filter((item) => item != null)
     }
   }, [bvd])
   return useStoreShallow(selector)
@@ -79,8 +71,8 @@ export function useCalcClaimable(vault: Address) {
 export function calcBVaultBoost(vault: Address) {
   const s = useBoundStore.getState()
   const bvd = s.sliceBVaultsStore.bvaults[vault]
-  const bce = s.sliceBVaultsStore.bvaultsCurrentEpoch[vault]
-  const boost = bvd && bce && bce.assetAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * 100n) / bce.assetAmountForSwapYT : 100000n
+  // bvd?.current.
+  const boost = bvd && bvd.current.assetTotalSwapAmount > 0n ? (bvd.lockedAssetTotal * 100n) / bvd.current.assetTotalSwapAmount : 100000n
   return boost
 }
 export function useBVaultBoost(vault: Address): [string, bigint] {
@@ -90,9 +82,9 @@ export function useBVaultBoost(vault: Address): [string, bigint] {
 
 export function calcBVaultPTApy(vault: Address) {
   const s = useBoundStore.getState()
-  const bce = s.sliceBVaultsStore.bvaultsCurrentEpoch[vault]
-  const apy = bce && bce.pTokenSynthetic > 0n ? (bce.assetAmountForSwapYT * YEAR_SECONDS * BigInt(1e10)) / bce.pTokenSynthetic : 0n
-  console.info('vaultPTApy:', vault, fmtPercent(apy, 10), bce?.pTokenSynthetic, bce?.assetAmountForSwapYT)
+  const bvd = s.sliceBVaultsStore.bvaults[vault]
+  const pTokenSynthetic = getBigint(s.sliceBVaultsStore.yTokenSythetic, [vault])
+  const apy = bvd && bvd.current.assetTotalSwapAmount && pTokenSynthetic ? (bvd.current.assetTotalSwapAmount * YEAR_SECONDS * BigInt(1e10)) / pTokenSynthetic : 0n
   return apy
 }
 export function useBVaultApy(vault: Address): [string, bigint] {
@@ -110,20 +102,16 @@ export function useUpBVaultForUserAction(bvc: BVaultConfig) {
           useBoundStore.getState().sliceTokenStore.updateTokensBalance([bvc.asset, bvc.pToken], address),
           useBoundStore.getState().sliceTokenStore.updateTokenTotalSupply([bvc.asset, bvc.pToken]),
           useBoundStore.getState().sliceBVaultsStore.updateBvaults([bvc]),
+          useBoundStore.getState().sliceBVaultsStore.updateYTokenSythetic([bvc]),
         ])
 
         const bvd = useBoundStore.getState().sliceBVaultsStore.bvaults[bvc.vault]!
+        await useBoundStore.getState().sliceBVaultsStore.updateEpoches(bvc, bvd.epochCount > 1n ? [bvd.epochCount, bvd.epochCount - 1n] : [bvd.epochCount])
 
-        await Promise.all([
-          await useBoundStore.getState().sliceBVaultsStore.updateBvaultsCurrentEpoch({ [bvc.vault]: bvd }),
-          await useBoundStore.getState().sliceBVaultsStore.updateEpoches(bvc, bvd.epochCount > 1n ? [bvd.epochCount, bvd.epochCount - 1n] : [bvd.epochCount]),
-        ])
-        await useBoundStore.getState().sliceBVaultsStore.updateEpochesRedeemPool(bvc)
-        const epoches: { epochId: bigint; redeemPool: Address; settled: boolean }[] = []
+        const epoches: BVaultEpochDTO[] = []
         for (let epocheId = parseInt(bvd.epochCount.toString()); epocheId > 0; epocheId--) {
           const epoch = useBoundStore.getState().sliceBVaultsStore.epoches[`${bvc.vault}_${epocheId}`]!
-          const settled = useBoundStore.getState().sliceBVaultsStore.epochesRedeemPool[`${bvc.vault}_${epocheId}`]!.settled
-          epoches.push({ epochId: BigInt(epocheId), redeemPool: epoch.redeemPool, settled })
+          epoches.push(epoch)
         }
         console.info('onUserAction:epoches', epoches)
         await useBoundStore.getState().sliceUserBVaults.updateEpoches(bvc, address, epoches)

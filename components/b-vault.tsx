@@ -8,7 +8,7 @@ import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
 import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { useStoreShallow } from '@/providers/useBoundStore'
-import { useBVault, useBVaultApy, useBVaultBoost, useBVaultCurrentEpoch, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
+import { useBVault, useBVaultApy, useBVaultBoost, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import { ProgressBar } from '@tremor/react'
 import Link from 'next/link'
@@ -21,13 +21,13 @@ import { zeroAddress } from 'viem'
 import { useAccount, useReadContract, useWalletClient } from 'wagmi'
 import { ApproveAndTx } from './approve-and-tx'
 import { AssetInput } from './asset-input'
+import BvaultEpochYtPrices from './bvault-epoch-ytprices'
 import { CoinIcon } from './icons/coinicon'
 import STable from './simple-table'
 import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
-import BvaultEpochYtPrices from './bvault-epoch-ytprices'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -227,7 +227,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const inputAssetBn = parseEthers(inputAsset)
   const { address } = useAccount()
   const bvd = useBVault(bvc.vault)
-  const bvCurentEpoch = useBVaultCurrentEpoch(bvc.vault)
+
   const epoch = useEpochesData(bvc.vault)[0]
   const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
   const { data: result, refetch: reFetchCalcSwap } = useReadContract({
@@ -246,17 +246,17 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const [priceSwap, togglePriceSwap] = useToggle(false)
   const vualtYTokenBalance = epoch?.vaultYTokenBalance || 0n
   const outputYTokenForInput = getBigint(result, '1')
-  const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvCurentEpoch.Y * DECIMAL) / vualtYTokenBalance : 0n
+  const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
   const ytAssetPriceBnReverse = ytAssetPriceBn > 0n ? (DECIMAL * DECIMAL) / ytAssetPriceBn : 0n
   const priceStr = priceSwap
     ? `1 ${assetSymbolShort}=${displayBalance(ytAssetPriceBnReverse)} ${yTokenSymbolShort}`
     : `1 ${yTokenSymbolShort}=${displayBalance(ytAssetPriceBn)} ${assetSymbolShort}`
 
-  const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvCurentEpoch.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
+  const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
-  const oneYoutAsset = bvCurentEpoch.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvCurentEpoch.yTokenAmountForSwapYT : 0n
+  const oneYoutAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvc.vault)
   const upForUserAction = useUpBVaultForUserAction(bvc)
   const calcProgress = (ep: typeof epoch) => {
@@ -285,7 +285,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
             tit='Total Minted'
             sub={
               <>
-                {displayBalance(bvCurentEpoch.yTokenAmountForSwapYT)}
+                {displayBalance(bvd.current.yTokenAmountForSwapYT)}
                 <span className='text-xs ml-auto'>
                   1{yTokenSymbolShort} = Yield of <br />
                   {displayBalance(oneYoutAsset, 2)} {assetSymbolShort}
@@ -399,8 +399,8 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const bribes = current?.bribes || []
   const myShare = useMemo(() => {
     const fb = bribes.find((b) => b.bribeAmount > 0n)
-    if (!fb) return fmtPercent(0n, 0n)
-    return fmtPercent((fb.bribeAmount * DECIMAL) / fb.totalRewards, 18)
+    if (!fb || fb.bribeTotalAmount == 0n) return fmtPercent(0n, 0n)
+    return fmtPercent((fb.bribeAmount * DECIMAL) / fb.bribeTotalAmount, 18)
   }, [bribes])
   const upForUserAction = useUpBVaultForUserAction(bvc)
   function rowRender({ key, style, index }: ListRowProps) {
@@ -443,7 +443,7 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
             rowClassName='text-center'
             header={['', '', 'Total', 'Mine', '']}
             span={{ 1: 2, 2: 1, 3: 1 }}
-            data={bribes.map((item) => ['', <BribeTit name={item.bribeSymbol} key={'1'} />, displayBalance(item.totalRewards), displayBalance(item.bribeAmount), ''])}
+            data={bribes.map((item) => ['', <BribeTit name={item.bribeSymbol} key={'1'} />, displayBalance(item.bribeTotalAmount), displayBalance(item.bribeAmount), ''])}
           />
         </div>
         <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>

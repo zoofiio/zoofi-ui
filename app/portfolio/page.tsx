@@ -200,11 +200,10 @@ function BoostItem() {
   const data: ReactNode[][] = useMemo(() => {
     const s = useBoundStore.getState()
     const epochInfo = (vault: Address, id: number) => s.sliceBVaultsStore.epoches[`${vault}_${id}`]
-    const epochSetteld = (vault: Address, id: number) => s.sliceBVaultsStore.epochesRedeemPool[`${vault}_${id}`]
     const myShare = (bribes: Exclude<UserBVaultsStore['epoches'][Address], undefined>[number]['bribes']) => {
       const fb = bribes.find((b) => b.bribeAmount > 0n)
-      if (!fb) return fmtPercent(0n, 0n)
-      return fmtPercent((fb.bribeAmount * DECIMAL) / fb.totalRewards, 18)
+      if (!fb || fb.bribeTotalAmount == 0n) return fmtPercent(0n, 0n)
+      return fmtPercent((fb.bribeAmount * DECIMAL) / fb.bribeTotalAmount, 18)
     }
     const datas = bvcs.map((bvc) => {
       const epochs = s.sliceUserBVaults.epoches[bvc.vault] || []
@@ -213,7 +212,7 @@ function BoostItem() {
           ...epoch,
           myShare: myShare(epoch.bribes),
           epochInfo: epochInfo(bvc.vault, parseInt(epoch.epochId.toString())),
-          settled: epochSetteld(bvc.vault, parseInt(epoch.epochId.toString()))?.settled || false,
+          settled: s.sliceBVaultsStore.epoches[`${bvc.vault}_${parseInt(epoch.epochId.toString())}`]?.settled || false,
         }))
         .filter((item) => !!item.epochInfo)
       return { bvc, epochsData }

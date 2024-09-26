@@ -8,6 +8,7 @@ import _ from 'lodash'
 import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
 import { ENV } from '@/constants'
 import { Address } from 'viem'
+import { BVaultEpochDTO } from '@/providers/sliceBVaultsStore'
 
 export function useLoadLVaults() {
   const chainId = useCurrentChainId()
@@ -53,7 +54,7 @@ export function useLoadBVaults() {
     queryKey: [bvcs],
     queryFn: async () => {
       await useBoundStore.getState().sliceBVaultsStore.updateBvaults(bvcs)
-      await useBoundStore.getState().sliceBVaultsStore.updateBvaultsCurrentEpoch()
+      await useBoundStore.getState().sliceBVaultsStore.updateYTokenSythetic(bvcs)
       return true
     },
   })
@@ -116,14 +117,12 @@ export function useLoadUserBVaults() {
         if (!bvaults[bvc.vault]) return false
       }
       await Promise.all(bvcs.map((bvc) => useBoundStore.getState().sliceBVaultsStore.updateEpoches(bvc)))
-      await Promise.all(bvcs.map((bvc) => useBoundStore.getState().sliceBVaultsStore.updateEpochesRedeemPool(bvc)))
       const getEpochesParams = (bvc: BVaultConfig) => {
         const bvd = useBoundStore.getState().sliceBVaultsStore.bvaults[bvc.vault]!
-        const epoches: { epochId: bigint; redeemPool: Address; settled: boolean }[] = []
+        const epoches: BVaultEpochDTO[] = []
         for (let epocheId = parseInt(bvd.epochCount.toString()); epocheId > 0; epocheId--) {
           const epoch = useBoundStore.getState().sliceBVaultsStore.epoches[`${bvc.vault}_${epocheId}`]!
-          const settled = useBoundStore.getState().sliceBVaultsStore.epochesRedeemPool[`${bvc.vault}_${epocheId}`]!.settled
-          epoches.push({ epochId: BigInt(epocheId), redeemPool: epoch.redeemPool, settled })
+          epoches.push(epoch)
         }
         return epoches
       }
