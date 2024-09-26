@@ -52,10 +52,7 @@ export const sliceBVaultsStore: SliceFun<BVaultsStore> = (set, get, init = {}) =
     const pc = getPC()
     const datas = await Promise.all(
       bvcs.map((bvc) =>
-        pc
-          .readContract({ abi: abiBQuery, address: bvc.bQueryAddres, functionName: 'queryBVault', args: [bvc.vault] })
-          .then((item) => ({ vault: bvc.vault, item }))
-          .catch((e) => null),
+        pc.readContract({ abi: abiBQuery, address: bvc.bQueryAddres, functionName: 'queryBVault', args: [bvc.vault] }).then((item) => ({ vault: bvc.vault, item })),
       ),
     )
     const map = _.filter(datas, (item) => item != null).reduce<BVaultsStore['bvaults']>((map, item) => ({ ...map, [item.vault]: item.item }), {})
