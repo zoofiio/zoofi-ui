@@ -121,7 +121,7 @@ function LeverageItem() {
         '',
         'Balance',
         'Open Position',
-        <div>
+        <div key={'marginloan'}>
           Margin Loan
           <Tip>Repay your margin loan to redeem asset corresponding to your open position.</Tip>
         </div>,
