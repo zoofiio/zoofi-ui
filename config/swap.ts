@@ -43,7 +43,7 @@ export const VAULTS_CONFIG: { [k: number]: VaultConfig[] } = {
       vault: '0xBA7aab4bbb87c9499D062057937ab8797b8BfF4C',
       assetTokenSymbol: 'BERA',
       assetTokenAddress: NATIVE_TOKEN_ADDRESS,
-      assetTokenFeed: '0x9981fc983a63C8c43a78284a1dD9d2EfC5C6e52a',
+      assetTokenFeed: '0x223B18a4cF01cc0B7f39E7eaCCE8823075Ba6879',
       xTokenSymbol: 'xBERA',
       xTokenAddress: '0x94CB06fBd2c8Ae161d8b3871C090cb4bF0785492',
       ptyPoolBelowAddress: '0x5841b2119fF4f30021a8A21cC1a826DEcf1ed953',
