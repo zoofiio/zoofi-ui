@@ -1,11 +1,10 @@
 import { abiBQuery } from '@/config/abi'
+import { getBvaultsPtSynthetic } from '@/config/api'
 import { BVaultConfig } from '@/config/bvaults'
 import _ from 'lodash'
 import { Address } from 'viem'
 import { getPC } from './publicClient'
 import { SliceFun } from './types'
-import { getBvaultPtSynthetic, getBvaultsPtSynthetic } from '@/config/api'
-import { error } from 'console'
 
 export type BVaultEpochDTO = {
   epochId: bigint

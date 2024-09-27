@@ -24,7 +24,7 @@ export const HONEY_Address: { [k: number]: Address } = {
   [berachainTestnet.id]: '0x0e4aaf1351de4c0264c5c7056ef3777b41bd8e03',
 }
 export const BQueryAddress: { [k: number]: Address } = {
-  [berachainTestnet.id]: '0xcb587a60A5e17fF64389021976848Ec1f030EeAd',
+  [berachainTestnet.id]: '0x51df85A9B3F33a02bD35f4AC319d9739835c1319',
 }
 
 export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
