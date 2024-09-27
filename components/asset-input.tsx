@@ -125,6 +125,7 @@ export function AssetInput({
         <input
           value={amount}
           onChange={(e) => {
+            if(readonly) return;
             const numstr = (e.target.value || '').replaceAll('-', '').replaceAll('+', '')
             setAmount(numstr)
           }}

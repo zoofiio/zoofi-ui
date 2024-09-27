@@ -177,16 +177,16 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
               content: (
                 <div className='flex flex-col gap-1'>
                   <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
-                  <div className='text-xs font-medium flex justify-between items-center'>
-                    <span>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</span>
+                  <div className='text-xs font-medium flex justify-end items-center'>
                     {isLP && (
                       <Link target='_blank' className='underline' href={getBexPoolURL(bvc.asset)}>
                         Get LP on BEX
                       </Link>
                     )}
                   </div>
+                  <div className='text-xs font-medium text-center'>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</div>
                   <ApproveAndTx
-                    className='mx-auto mt-6'
+                    className='mx-auto mt-4'
                     tx='Mint'
                     disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
                     spender={bvc.vault}
@@ -253,7 +253,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
     : `1 ${yTokenSymbolShort}=${displayBalance(ytAssetPriceBn)} ${assetSymbolShort}`
 
   const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
-  const outputYTokenFmt = fmtBn(outputYTokenForInput)
+  const outputYTokenFmt = fmtBn(outputYTokenForInput, undefined, true)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
   const oneYoutAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
@@ -327,7 +327,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
       <div className='md:col-span-2 card !p-4 flex flex-col gap-1'>
         <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
         <div className='text-base font-bold my-2'>Receive</div>
-        <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable amount={outputYTokenFmt} />
+        <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable checkBalance={false} amount={outputYTokenFmt} />
 
         <div className='text-xs font-medium  flex justify-between select-none'>
           <div className='flex items-center gap-2'>
@@ -387,14 +387,18 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const itemSpaceY = 20
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
-  const [current, setCurrent] = useState<(typeof epochesData)[number] | undefined | null>(epoches[0])
-  useEffect(() => {
-    setCurrent(epoches[0])
-  }, [epoches])
+  const [currentEpochId, setCurrentEpochId] = useState<bigint | undefined>(epoches[0]?.epochId)
+  const current = useMemo(() => epoches.find((e) => e.epochId == currentEpochId), [epoches, currentEpochId])
   const userBalanceYToken = current?.userBalanceYToken || 0n
+  const userBalanceYTokenSyntyetic = current?.userBalanceYTokenSyntyetic || 0n
   const onRowClick = (index: number) => {
-    setCurrent(epoches[index])
+    setCurrentEpochId(epoches[index]?.epochId)
   }
+  useEffect(() => {
+    if (!currentEpochId && epoches.length) {
+      onRowClick(0)
+    }
+  }, [epoches, currentEpochId])
 
   const bribes = current?.bribes || []
   const myShare = useMemo(() => {
@@ -452,7 +456,10 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
               My yToken: <span className={cn(valueClassname)}>{displayBalance(userBalanceYToken)}</span>
             </div>
             <div>
-              Time Weighted Points: <span className={cn(valueClassname)}>{displayBalance(current?.userBalanceYTokenSyntyetic)}</span>
+              Time Weighted Points:{' '}
+              <span className={cn(valueClassname)}>
+                {userBalanceYToken > 0n && userBalanceYTokenSyntyetic == 0n ? 'Reward received' : displayBalance(userBalanceYTokenSyntyetic)}
+              </span>
             </div>
           </div>
           <div>

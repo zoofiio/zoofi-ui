@@ -13,10 +13,10 @@ import { formatEther } from 'viem'
 const bnToNum = (bn: string) => _.round(parseFloat(formatEther(BigInt(bn))), 5)
 
 // const absLog10 = (num: number) => Math.abs(Math.log10(num))
-// const logTrans = (num: number) => (num > 1 ? _.round(1 + (num - 1) / absLog10(num), 5) : _.round(1 - (1 - num) / absLog10(num), 5))
-// const revertLog = (num: number) => (num > 1 ? _.round((num - 1) * absLog10(num) + 1, 5) : _.round(1 - (1 - num) * absLog10(num), 5))
-const logTrans = (num: number) => _.round(Math.log10(num * 10000), 5)
-const revertLog = (num: number) => _.round(Math.pow(10, num) / 10000, 5)
+const logTrans = (num: number) => (num >= 1 ? _.round(1 + Math.log10(num), 5) : _.round(Math.log10(num * 9 + 1), 5))
+const revertLog = (num: number) => (num >= 1 ? _.round(Math.pow(10, num - 1)) : _.round((Math.pow(10, num) - 1) / 9, 5))
+// const logTrans = (num: number) => _.round(Math.log10(num * 10000), 5)
+// const revertLog = (num: number) => _.round(Math.pow(10, num) / 10000, 5)
 export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfig; epochId: bigint }) {
   const { data: prices } = useQuery({
     queryKey: ['bvualt-epoch-yt-prices', bvc.vault, epochId],
@@ -44,6 +44,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
         type: 'value',
         boundaryGap: [0, '100%'],
         splitLine: { show: false },
+        max: (value: any) => value.max * 1.1,
         axisLabel: {
           formatter: valueFormater,
         },
@@ -98,6 +99,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
           LOG
         </span>
       </div>
+      
       <EChartsReact option={options} style={{ height: 240 }}></EChartsReact>
     </div>
   )

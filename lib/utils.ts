@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { formatUnits, parseUnits, parseEther as _parseEther, etherUnits, Address } from 'viem'
-import { get } from 'lodash'
+import _, { get } from 'lodash'
 import { toast } from 'sonner'
 import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
 
@@ -175,8 +175,26 @@ export const divMultipBn = (src: bigint, multip: bigint, multipDecimal?: bigint 
 export const divMultipOtherBn = (src: bigint, multip: bigint, multipDecimal?: bigint | number) =>
   decimalBn(multipDecimal || 10n) - multip > 0n ? (src * decimalBn(multipDecimal || 10n)) / (decimalBn(multipDecimal || 10n) - multip) : 0n
 
-export const fmtBn = (bn: bigint, decimals: bigint | number = 18) => {
-  return formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
+export const fmtBn = (bn: bigint, decimals: bigint | number = 18, autoDecimals?: boolean) => {
+  const res = formatUnits(bn, typeof decimals == 'bigint' ? parseInt(decimals.toString()) : decimals)
+  if (!autoDecimals) return res
+  if (res.includes('.')) {
+    const [l, r] = res.split('.')
+    if (r.length > 3) {
+      let end = ''
+      if (l == '0') {
+        const trim0 = _.trimStart(r, '0')
+        const trimd0Count = r.length - trim0.length
+        const sliced = _.trimEnd(trim0.slice(0, 3), '0')
+        end = '.' + sliced.padStart(trimd0Count + sliced.length, '0')
+      } else {
+        const trim0 = _.trimEnd(r.slice(0, 3), '0')
+        trim0 && (end = `.${trim0}`)
+      }
+      return `${l}${end}`
+    }
+  }
+  return res
 }
 
 export async function retry<T>(fn: () => Promise<T>, count: number = 3, wait: number = 2000) {

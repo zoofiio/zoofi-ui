@@ -147,21 +147,23 @@ function PrincipalItem() {
       const balance = s.sliceTokenStore.balances[bvc.pToken] || 0n
       return (calcBVaultPTApy(bvc.vault) * balance) / 10n ** 10n / 365n
     }
-    const datas = bvcs.map((bvc) => {
-      const pBalance = s.sliceTokenStore.balances[bvc.pToken] || 0n
-      const pRedeeming = inRedeem(bvc)
-      const pClaimAble = claimAble(bvc)
-      const pTotalUser = pBalance + pRedeeming + pClaimAble
-      const lp = LP_TOKENS[bvc.asset]
-      const [baseSymbol, quoteSymbol] = lp ? bvc.assetSymbol.split('-') : ['', '']
-      const totalLP = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpLiq || 0n
-      const totalLPBase = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpBase || 0n
-      const totalLPQuote = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpQuote || 0n
-      const uBase = lp && totalLP && totalLPBase && pTotalUser ? (pTotalUser * totalLPBase) / totalLP : 0n
-      const uQuote = lp && totalLP && totalLPQuote && pTotalUser ? (pTotalUser * totalLPQuote) / totalLP : 0n
-      const fmtTotalUser = displayBalance(pTotalUser)
-      return { bvc, pBalance, pRedeeming, pClaimAble, lp, baseSymbol, quoteSymbol, uBase, uQuote, fmtTotalUser }
-    })
+    const datas = bvcs
+      .map((bvc) => {
+        const pBalance = s.sliceTokenStore.balances[bvc.pToken] || 0n
+        const pRedeeming = inRedeem(bvc)
+        const pClaimAble = claimAble(bvc)
+        const pTotalUser = pBalance + pRedeeming + pClaimAble
+        const lp = LP_TOKENS[bvc.asset]
+        const [baseSymbol, quoteSymbol] = lp ? bvc.assetSymbol.split('-') : ['', '']
+        const totalLP = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpLiq || 0n
+        const totalLPBase = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpBase || 0n
+        const totalLPQuote = s.sliceBVaultsStore.bvaults[bvc.vault]?.lpQuote || 0n
+        const uBase = lp && totalLP && totalLPBase && pTotalUser ? (pTotalUser * totalLPBase) / totalLP : 0n
+        const uQuote = lp && totalLP && totalLPQuote && pTotalUser ? (pTotalUser * totalLPQuote) / totalLP : 0n
+        const fmtTotalUser = displayBalance(pTotalUser)
+        return { bvc, pBalance, pRedeeming, pClaimAble, lp, baseSymbol, quoteSymbol, uBase, uQuote, pTotalUser, fmtTotalUser }
+      })
+      .filter((item) => item.pTotalUser > 0n)
     const maxFmtTotalUserLength = datas.reduce((max, item) => Math.max(max, item.fmtTotalUser.length), 0)
     const fmtTotalUserWidth = Math.round(maxFmtTotalUserLength * 5 + 20)
     return datas.map(({ bvc, pBalance, pRedeeming, pClaimAble, lp, fmtTotalUser, baseSymbol, quoteSymbol, uBase, uQuote }) => {
@@ -202,21 +204,25 @@ function BoostItem() {
     const epochInfo = (vault: Address, id: number) => s.sliceBVaultsStore.epoches[`${vault}_${id}`]
     const myShare = (bribes: Exclude<UserBVaultsStore['epoches'][Address], undefined>[number]['bribes']) => {
       const fb = bribes.find((b) => b.bribeAmount > 0n)
-      if (!fb || fb.bribeTotalAmount == 0n) return fmtPercent(0n, 0n)
-      return fmtPercent((fb.bribeAmount * DECIMAL) / fb.bribeTotalAmount, 18)
+      if (!fb || fb.bribeTotalAmount == 0n) return { myShare: '0.0%', myShareBn: 0n }
+      const myShareBn = (fb.bribeAmount * DECIMAL) / fb.bribeTotalAmount
+      return { myShare: fmtPercent(myShareBn, 18), myShareBn }
     }
-    const datas = bvcs.map((bvc) => {
-      const epochs = s.sliceUserBVaults.epoches[bvc.vault] || []
-      const epochsData = epochs
-        .map((epoch) => ({
-          ...epoch,
-          myShare: myShare(epoch.bribes),
-          epochInfo: epochInfo(bvc.vault, parseInt(epoch.epochId.toString())),
-          settled: s.sliceBVaultsStore.epoches[`${bvc.vault}_${parseInt(epoch.epochId.toString())}`]?.settled || false,
-        }))
-        .filter((item) => !!item.epochInfo)
-      return { bvc, epochsData }
-    })
+    const datas = bvcs
+      .map((bvc) => {
+        const epochs = s.sliceUserBVaults.epoches[bvc.vault] || []
+        const epochsData = epochs
+
+          .map((epoch) => ({
+            ...epoch,
+            ...myShare(epoch.bribes),
+            epochInfo: epochInfo(bvc.vault, parseInt(epoch.epochId.toString())),
+            settled: s.sliceBVaultsStore.epoches[`${bvc.vault}_${parseInt(epoch.epochId.toString())}`]?.settled || false,
+          }))
+          .filter((item) => !!item.epochInfo && item.myShareBn > 0n)
+        return { bvc, epochsData }
+      })
+      .filter((item) => item.epochsData.length)
     return datas.map(({ bvc, epochsData }) => [
       <CoinText key={'coin'} symbol={bvc.assetSymbol} txt={bvc.yTokenSymbol} size={32} />,
       <div key={'epochs'}>
