@@ -97,14 +97,14 @@ export function GeneralAction({
       ))}
       {infos}
       <ApproveAndTx
-        {...(txProps || {})}
+        {...(txProps || { })}
         tx='Write'
         config={
           {
             abi,
             address,
             functionName,
-            args: convertArgs(args, abiItem.inputs, convertArg),
+            ...(args.length ? { args: convertArgs(args, abiItem.inputs, convertArg) } : {}),
           } as any
         }
         className={cn('!mt-0 btn-primary flex items-center justify-center gap-4', disableExpand ? 'max-w-[100px]' : 'w-full')}

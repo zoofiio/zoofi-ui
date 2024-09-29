@@ -235,7 +235,7 @@ export default function AdminPage() {
           {current.type == 'B-Vault' && (
             <>
               <UpdateVaultParams vault={current.data.vault} paramList={BVaultParams} protocoSettingAddress={current.data.protocolSettingsAddress} />
-              {['pause', 'unpause', 'pauseRedeemPool', 'unpauseRedeemPool', 'addBribeToken', 'addBribes', 'setBriber'].map((functionName) => (
+              {['close', 'pause', 'unpause', 'pauseRedeemPool', 'unpauseRedeemPool', 'addBribeToken', 'addBribes', 'setBriber'].map((functionName) => (
                 <GeneralAction key={`b-vault-${functionName}`} abi={abiBVault} functionName={functionName} address={current.data.vault} />
               ))}
               <GeneralAction tit='transferOwnership' abi={abiZooProtocol} functionName='transferOwnership' address={current.data.protocolAddress} />

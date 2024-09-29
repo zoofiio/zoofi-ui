@@ -1,13 +1,17 @@
 'use client'
 
 import { BVaultCard, BVaultCardComming, BVaultHarvest, BVaultMint, BVaultRedeem } from '@/components/b-vault'
+import { BVaultAddReward } from '@/components/bvault-add-reward'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
+import { abiBVault } from '@/config/abi'
 import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
 import { ENV } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useLoadBVaults } from '@/hooks/useLoads'
+import { useWandContractRead } from '@/hooks/useWand'
+import { getPC } from '@/providers/publicClient'
 import { useBoundStore } from '@/providers/useBoundStore'
 import { useBVault, useEpochesData } from '@/providers/useBVaultsData'
 import { useQuery } from '@tanstack/react-query'
@@ -44,13 +48,40 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
       return true
     },
   })
-
-  return (
-    <SimpleTabs
-      listClassName='flex-wrap p-0 mb-5 md:gap-14'
-      triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
-      contentClassName='gap-5'
-      data={[
+  const { data: showAddReward } = useQuery({
+    queryKey: ['checkIsBriber', address, bvc],
+    queryFn: async () => {
+      if (!address) return false
+      const pc = getPC()
+      const passes = await Promise.all([
+        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'isBriber', args: [address] }),
+        pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'owner' }).then((owner) => owner == address),
+      ])
+      return passes.includes(true)
+    },
+  })
+  const data = showAddReward
+    ? [
+        {
+          tab: bvd.closed ? 'Redeem' : 'Mint',
+          content: bvd.closed ? (
+            <div className='max-w-4xl mx-auto pt-8'>
+              <BVaultRedeem bvc={bvc} />
+            </div>
+          ) : (
+            <BVaultMint bvc={bvc} />
+          ),
+        },
+        {
+          tab: 'Harvest',
+          content: <BVaultHarvest bvc={bvc} />,
+        },
+        {
+          tab: 'Add Reward',
+          content: <BVaultAddReward bvc={bvc} />,
+        },
+      ]
+    : [
         {
           tab: bvd.closed ? 'Redeem' : 'Mint',
           content: bvd.closed ? <BVaultRedeem bvc={bvc} /> : <BVaultMint bvc={bvc} />,
@@ -59,7 +90,13 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
           tab: 'Harvest',
           content: <BVaultHarvest bvc={bvc} />,
         },
-      ]}
+      ]
+  return (
+    <SimpleTabs
+      listClassName='flex-wrap p-0 mb-5 md:gap-14'
+      triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
+      contentClassName='gap-5'
+      data={data}
     />
   )
 }

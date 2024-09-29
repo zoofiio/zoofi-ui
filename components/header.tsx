@@ -77,7 +77,7 @@ export function Header() {
       { href: '/dashboard', label: 'Dashboard', icon: LuLineChart },
     ]
     showAdmin && links.push({ href: '/admin', label: 'Admin', icon: LuSettings })
-    showTester && links.push({ href: '/tester', label: 'Tester', icon: LuSettings2 })
+    ;(showTester || showAdmin) && links.push({ href: '/tester', label: 'Tester', icon: LuSettings2 })
     return links
   }, [showAdmin, showTester])
 

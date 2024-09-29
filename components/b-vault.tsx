@@ -80,7 +80,7 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
     )
   }
   return (
-    <div className='flex flex-col gap-1'>
+    <div className={cn('flex flex-col gap-1')}>
       <AssetInput asset={bvc.pTokenSymbol} assetIcon='Panda' amount={inputPToken} balance={pTokenBalance} setAmount={setInputPToken} />
       {epoch && epoch.settled && (
         <div className='flex flex-wrap justify-between items-center h-5'>
