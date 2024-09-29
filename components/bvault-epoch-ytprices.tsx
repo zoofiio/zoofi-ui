@@ -13,8 +13,9 @@ import { formatEther } from 'viem'
 const bnToNum = (bn: string) => _.round(parseFloat(formatEther(BigInt(bn))), 5)
 
 // const absLog10 = (num: number) => Math.abs(Math.log10(num))
-const logTrans = (num: number) => _.round(Math.log10(num * 9 + 1), 5)
-const revertLog = (num: number) => _.round((Math.pow(10, num) - 1) / 9, 5)
+const multip = 90
+const logTrans = (num: number) => _.round(Math.log10(num * multip + 1), 5)
+const revertLog = (num: number) => _.round((Math.pow(10, num) - 1) / multip, 5)
 // const logTrans = (num: number) => _.round(Math.log10(num * 10000), 5)
 // const revertLog = (num: number) => _.round(Math.pow(10, num) / 10000, 5)
 export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfig; epochId: bigint }) {

@@ -1,29 +1,19 @@
 'use client'
 
 import { ApproveAndTx } from '@/components/approve-and-tx'
+import { Expandable, GeneralAction, inputClassname, selectClassNames } from '@/components/general-action'
 import { PageWrap } from '@/components/page-wrap'
 import { abiBVault, abiMockPriceFeed, abiPlainVault, abiProtocolSettings, abiPtyPool, abiVault, abiWandProtocol, abiZooProtocol } from '@/config/abi'
-import { BVAULTS_CONFIG, BVaultConfig } from '@/config/bvaults'
-import { PLAIN_VAULTS_CONFIG, PROTOCOL_SETTINGS_ADDRESS, PlainVaultConfig, VAULTS_CONFIG, VaultConfig, WAND_PROTOCOL_ADDRESS } from '@/config/swap'
-import { ENV } from '@/constants'
+import { PROTOCOL_SETTINGS_ADDRESS, VaultConfig, WAND_PROTOCOL_ADDRESS } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { useVaultsConfigs } from '@/hooks/useVaultsConfigs'
 import { useWandContractRead, useWandContractReads } from '@/hooks/useWand'
 import { cn } from '@/lib/utils'
-import { ReactNode, useMemo, useState } from 'react'
-import { Collapse } from 'react-collapse'
-import { FiArrowDown, FiArrowUp } from 'react-icons/fi'
+import { useMemo } from 'react'
 import Select from 'react-select'
 import { useMeasure, useSetState } from 'react-use'
-import { Abi, AbiFunction, AbiParameter, Address, formatEther, formatUnits, parseUnits, stringToHex } from 'viem'
+import { Address, formatEther, formatUnits, parseUnits, stringToHex } from 'viem'
 import { useAccount } from 'wagmi'
-
-const selectClassNames: Parameters<Select>[0]['classNames'] = {
-  menu: () => cn('bg-white dark:bg-black dark:border'),
-  option: (props) => cn({ '!bg-primary/50': props.isFocused, '!bg-primary': props.isSelected }),
-  control: () => 'bg-white dark:bg-black !min-h-[58px] !border-primary/70 !shadow-none',
-  singleValue: () => 'dark:text-white',
-}
-const inputClassname = 'bg-white dark:bg-transparent border-primary/70 w-full h-14 text-right pr-4 font-bold text-sm border focus:border-2  rounded-md outline-none '
 
 type ParamItem = { label: string; value: string; units?: number /** def 10 */ }
 
@@ -51,28 +41,6 @@ const BVaultParams: ParamItem[] = [
   { label: '赎回手续费', value: 'f1' },
   { label: '利息佣金', value: 'f2' },
 ]
-function Expandable({ children, tit, disable }: { tit: string; children?: ReactNode; disable?: boolean }) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className='flex flex-col w-full bg-white dark:bg-transparent rounded-lg overflow-hidden border border-solid border-primary/40'>
-      <div className='px-5 py-2 min-h-[58px] flex justify-between items-center text-sm'>
-        <div className='font-medium text-base'>{tit}</div>
-        {disable ? (
-          children
-        ) : (
-          <div className='px-2 py-1 rounded-full border border-solid border-primary flex items-center text-xs text-primary cursor-pointer ' onClick={() => setOpen(!open)}>
-            <span className='mr-[5px]'>{!open ? 'Expand' : 'Close'}</span>
-            {open ? <FiArrowUp /> : <FiArrowDown />}
-          </div>
-        )}
-      </div>
-      <Collapse isOpened={open} theme={{ content: 'bg-gray-200 dark:bg-transparent p-4 flex flex-col gap-2' }}>
-        {children}
-      </Collapse>
-    </div>
-  )
-}
 
 function UpdateVaultParams({ paramList, vault, protocoSettingAddress }: { paramList: ParamItem[]; vault: Address; protocoSettingAddress: Address }) {
   const params = useMemo(() => paramList.map((p) => ({ ...p, label: `${p.label}(${p.value})` })), [paramList])
@@ -159,48 +127,6 @@ function UpdateVaultPrice({ vc }: { vc: VaultConfig }) {
   )
 }
 
-const convertArgs = (args: string[], inputs: readonly AbiParameter[]) => {
-  return args.map((arg, i) => {
-    const input = inputs[i]
-    if (input.type.startsWith('uint')) return BigInt(arg)
-    if (input.type == 'bytes32') return stringToHex(arg, { size: 32 })
-    return arg
-  })
-}
-
-function GeneralAction({ abi, address, functionName, tit }: { abi: Abi; address: Address; functionName: string; tit?: string }) {
-  const abiItem = abi.find((item) => item.type == 'function' && item.name == functionName) as AbiFunction
-  const [{ args }, setState] = useSetState({ args: new Array(abiItem?.inputs?.length || 0).fill('') })
-  if (!abiItem) return
-  const disableExpand = !abiItem.inputs || abiItem.inputs.length == 0
-  return (
-    <Expandable tit={tit || functionName} disable={disableExpand}>
-      {abiItem.inputs?.map((item, index) => (
-        <input
-          key={`input_${index}`}
-          type='text'
-          placeholder={item.name}
-          value={args[index]}
-          onChange={(e) => setState({ args: args.map((arg, argIndex) => (index == argIndex ? e.target.value : arg)) })}
-          className={cn(inputClassname)}
-        />
-      ))}
-      <ApproveAndTx
-        tx='Write'
-        config={
-          {
-            abi,
-            address,
-            functionName,
-            args: convertArgs(args, abiItem.inputs),
-          } as any
-        }
-        className={cn('!mt-0 btn-primary flex items-center justify-center gap-4', disableExpand ? 'max-w-[100px]' : 'w-full')}
-      />
-    </Expandable>
-  )
-}
-
 function ClaimYieldsForBuyPool({ vc }: { vc: VaultConfig }) {
   const { data } = useWandContractRead({
     abi: abiPtyPool,
@@ -277,39 +203,10 @@ function SetTester({ vc }: { vc: VaultConfig }) {
 
 const PValutParams: ParamItem[] = [{ label: '赎回手续费', value: 'C' }]
 
-type OptionItem<T, type> = { label: string; value: Address; data: T; type: type }
-type OptionsItem = OptionItem<VaultConfig, 'L-Vault'> | OptionItem<PlainVaultConfig, 'P-Vault'> | OptionItem<BVaultConfig, 'B-Vault'>
 export default function AdminPage() {
   const chainId = useCurrentChainId()
-  const vcs = VAULTS_CONFIG[chainId] || []
-  const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
-  const bvcs = useMemo(() => (BVAULTS_CONFIG[chainId] || []).filter((vc) => vc.onEnv && vc.onEnv.includes(ENV)), [chainId])
+  const { current, setState, options } = useVaultsConfigs()
   const { chain } = useAccount()
-  const options: OptionsItem[] = useMemo(() => {
-    const vcsOpt = vcs.map<OptionItem<VaultConfig, 'L-Vault'>>((vc) => ({
-      label: vc.assetTokenSymbol,
-      value: vc.vault,
-      data: vc,
-      type: 'L-Vault',
-    }))
-    const pvcsOpt = pvcs.map<OptionItem<PlainVaultConfig, 'P-Vault'>>((pvc) => ({
-      label: pvc.assetTokenSymbol,
-      value: pvc.vault,
-      data: pvc,
-      type: 'P-Vault',
-    }))
-    const bvcsOpt = bvcs.map<OptionItem<BVaultConfig, 'B-Vault'>>((bvc) => ({
-      label: bvc.assetSymbol,
-      value: bvc.vault,
-      data: bvc,
-      type: 'B-Vault',
-    }))
-    return [...vcsOpt, ...pvcsOpt, ...bvcsOpt].map((item) => ({ ...item, label: `${item.label}(${item.type})` }))
-  }, [vcs, pvcs, bvcs])
-  const [{ current }, setState] = useSetState<{ current: OptionsItem }>({
-    current: options[0],
-  })
-
   return (
     <PageWrap>
       <div className='w-full flex'>
@@ -338,7 +235,7 @@ export default function AdminPage() {
           {current.type == 'B-Vault' && (
             <>
               <UpdateVaultParams vault={current.data.vault} paramList={BVaultParams} protocoSettingAddress={current.data.protocolSettingsAddress} />
-              {['pause', 'unpause', 'pauseRedeemPool', 'unpauseRedeemPool', 'addBribeToken', 'addBribes'].map((functionName) => (
+              {['pause', 'unpause', 'pauseRedeemPool', 'unpauseRedeemPool', 'addBribeToken', 'addBribes', 'setBriber'].map((functionName) => (
                 <GeneralAction key={`b-vault-${functionName}`} abi={abiBVault} functionName={functionName} address={current.data.vault} />
               ))}
               <GeneralAction tit='transferOwnership' abi={abiZooProtocol} functionName='transferOwnership' address={current.data.protocolAddress} />

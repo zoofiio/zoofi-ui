@@ -2,15 +2,7 @@ import { getErrorMsg } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import {
-  Abi,
-  Account,
-  Address,
-  Chain,
-  ContractFunctionArgs,
-  ContractFunctionName,
-  SimulateContractParameters,
-} from 'viem'
+import { Abi, Account, Address, Chain, ContractFunctionArgs, ContractFunctionName, SimulateContractParameters } from 'viem'
 import { useWalletClient } from 'wagmi'
 
 export function useWrapContractWrite<
@@ -24,6 +16,7 @@ export function useWrapContractWrite<
     | SimulateContractParameters<abi, functionName, args, Chain, chainOverride, accountOverride>
     | (() => Promise<SimulateContractParameters<abi, functionName, args, Chain, chainOverride, accountOverride>>),
   opts?: {
+    skipSimulate?: boolean
     autoToast?: boolean
     onSuccess?: () => void
   },
@@ -39,13 +32,14 @@ export function useWrapContractWrite<
     setIsLoading(true)
     setIsSuccess(false)
     try {
-      const mconfig: SimulateContractParameters<abi, functionName, args, Chain, chainOverride, accountOverride> = (
-        typeof config == 'function' ? await config() : config
-      ) as any
+      const mconfig: SimulateContractParameters<abi, functionName, args, Chain, chainOverride, accountOverride> = (typeof config == 'function' ? await config() : config) as any
       const pc = getPC()
-      const { request } = await pc.simulateContract({ account: wc.account, ...mconfig } as any)
-
-      const hash = await wc.writeContract(request)
+      let req: any = { account: wc.account, ...mconfig }
+      if (!opts?.skipSimulate) {
+        const res = await pc.simulateContract(req as any)
+        req = res.request as any
+      }
+      const hash = await wc.writeContract(req)
       const txr = await pc.waitForTransactionReceipt({ hash })
       if (txr.status !== 'success') {
         throw 'Transaction reverted'
