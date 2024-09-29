@@ -49,7 +49,7 @@ export function useShowTester() {
   const { address } = useAccount()
   const { data: isTester } = useWandContractRead({
     abi: abiMockPriceFeed,
-    address: VAULTS_CONFIG[chainId]?.[0]?.assetTokenFeed,
+    address: VAULTS_CONFIG[chainId]?.[1]?.assetTokenFeed,
     functionName: 'isTester',
     args: [address as any],
     query: { enabled: !!address },
