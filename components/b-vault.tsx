@@ -227,8 +227,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const inputAssetBn = parseEthers(inputAsset)
   const { address } = useAccount()
   const bvd = useBVault(bvc.vault)
-
-  const epoch = useEpochesData(bvc.vault)[0]
+  const epoch = bvd.current
   const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
   const { data: result, refetch: reFetchCalcSwap } = useReadContract({
     abi: abiBVault,
@@ -256,7 +255,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
   const outputYTokenFmt = fmtBn(outputYTokenForInput, undefined, true)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
-  const oneYoutAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
+  const oneYTYieldOfAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
   const [fmtBoost] = useBVaultBoost(bvc.vault)
   const upForUserAction = useUpBVaultForUserAction(bvc)
   const calcProgress = (ep: typeof epoch) => {
@@ -288,7 +287,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
                 {displayBalance(bvd.current.yTokenAmountForSwapYT)}
                 <span className='text-xs ml-auto'>
                   1{yTokenSymbolShort} = Yield of <br />
-                  {displayBalance(oneYoutAsset, 2)} {assetSymbolShort}
+                  {displayBalance(oneYTYieldOfAsset, 2)} {assetSymbolShort}
                 </span>
               </>
             }

@@ -1,5 +1,5 @@
 import { BVaultConfig } from '@/config/bvaults'
-import { YEAR_SECONDS } from '@/constants'
+import { DECIMAL, YEAR_SECONDS } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { fmtPercent, getBigint, proxyGetDef, retry } from '@/lib/utils'
 import { displayBalance } from '@/utils/display'
@@ -71,13 +71,23 @@ export function useCalcClaimable(vault: Address) {
 export function calcBVaultBoost(vault: Address) {
   const s = useBoundStore.getState()
   const bvd = s.sliceBVaultsStore.bvaults[vault]
+  const vualtYTokenBalance = bvd?.current.vaultYTokenBalance || 0n
+  const Y = bvd?.Y || 0n
+  const ytAssetPriceBnReverse = Y > 0n ? (vualtYTokenBalance * DECIMAL) / Y : 0n
+  // const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
+  const yTokenAmountForSwapYT = bvd?.current.yTokenAmountForSwapYT || 0n
+  const lockedAssetTotal = bvd?.lockedAssetTotal || 0n
+  const oneYTYieldOfAsset = yTokenAmountForSwapYT > 0n ? (lockedAssetTotal * DECIMAL) / yTokenAmountForSwapYT : 0n
   // bvd?.current.
-  const boost = bvd && bvd.current.assetTotalSwapAmount > 0n ? (bvd.lockedAssetTotal * 100n) / bvd.current.assetTotalSwapAmount : 100000n
+  // const boost = bvd && bvd.current.assetTotalSwapAmount > 0n ? (bvd.lockedAssetTotal * 100n) / bvd.current.assetTotalSwapAmount : 100000n
+  
+  console.info('calcBootst:', displayBalance(ytAssetPriceBnReverse), displayBalance(oneYTYieldOfAsset))
+  const boost = (oneYTYieldOfAsset * ytAssetPriceBnReverse) / DECIMAL
   return boost
 }
 export function useBVaultBoost(vault: Address): [string, bigint] {
   const boost = useStoreShallow(() => calcBVaultBoost(vault))
-  return [displayBalance(boost, 0, 2), boost]
+  return [displayBalance(boost, 2), boost]
 }
 
 export function calcBVaultPTApy(vault: Address) {

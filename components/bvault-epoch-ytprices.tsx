@@ -13,8 +13,8 @@ import { formatEther } from 'viem'
 const bnToNum = (bn: string) => _.round(parseFloat(formatEther(BigInt(bn))), 5)
 
 // const absLog10 = (num: number) => Math.abs(Math.log10(num))
-const logTrans = (num: number) => (num >= 1 ? _.round(1 + Math.log10(num), 5) : _.round(Math.log10(num * 9 + 1), 5))
-const revertLog = (num: number) => (num >= 1 ? _.round(Math.pow(10, num - 1)) : _.round((Math.pow(10, num) - 1) / 9, 5))
+const logTrans = (num: number) => _.round(Math.log10(num * 9 + 1), 5)
+const revertLog = (num: number) => _.round((Math.pow(10, num) - 1) / 9, 5)
 // const logTrans = (num: number) => _.round(Math.log10(num * 10000), 5)
 // const revertLog = (num: number) => _.round(Math.pow(10, num) / 10000, 5)
 export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfig; epochId: bigint }) {
@@ -27,6 +27,9 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
   const { options } = useMemo(() => {
     const data = prices.map((p) => [fmtTime(p.time * 1000, 'all'), isLOG ? logTrans(bnToNum(p.price)) : bnToNum(p.price)])
     const valueFormater = (value: number) => (isLOG ? revertLog(value).toString() : value.toString())
+    const calcMax = (v: any) => {
+    //    const max = value.max * 1.1
+    }
     const options = {
       animation: true,
       animationDuration: 200,
@@ -39,6 +42,9 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
       xAxis: {
         type: 'category',
         boundaryGap: false,
+        axisLine: {
+            onZero: false,
+        }
       },
       yAxis: {
         type: 'value',
@@ -63,13 +69,14 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
       series: [
         {
           name: 'YT Price',
-          type: 'line',
+          type: 'line', 
           symbol: 'none',
           sampling: 'lttb',
           itemStyle: {
             color: 'rgb(30, 202, 83)',
           },
           areaStyle: {
+            origin: 'start',
             color: new graphic.LinearGradient(0, 0, 0, 1, [
               {
                 offset: 0,
@@ -99,7 +106,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
           LOG
         </span>
       </div>
-      
+
       <EChartsReact option={options} style={{ height: 240 }}></EChartsReact>
     </div>
   )
