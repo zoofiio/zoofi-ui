@@ -31,12 +31,12 @@ export function CoinIcon({ symbol, size = 48, ...p }: { symbol: string; classNam
   if (!url && isError) {
     return (
       <svg {...p} width={size} height={size} viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
-        <text className='fill-primary' width='20' x='12' y='12' textAnchor='middle' dominantBaseline='middle'>
-          {symbol}
+        <text className='fill-primary' width='20' x='12' y='12' textAnchor='middle' fontSize={12} dominantBaseline='middle'>
+          {symbol.slice(0, 2)}
         </text>
         <circle className='stroke-primary' cx='12' cy='12' r='12' />
       </svg>
     )
   }
-  return <img {...p} width={size} height={size} src={url||src} alt={symbol} />
+  return <img {...p} width={size} height={size} src={url || src} alt={symbol} />
 }

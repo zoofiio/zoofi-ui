@@ -173,6 +173,11 @@ export default [
                 type: 'uint256',
               },
               {
+                internalType: 'uint256',
+                name: 'totalRedeemingBalance',
+                type: 'uint256',
+              },
+              {
                 internalType: 'bool',
                 name: 'settled',
                 type: 'bool',
@@ -246,6 +251,11 @@ export default [
           {
             internalType: 'uint256',
             name: 'yTokenAmountForSwapYT',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'totalRedeemingBalance',
             type: 'uint256',
           },
           {

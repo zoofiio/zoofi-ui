@@ -15,6 +15,7 @@ export type BVaultEpochDTO = {
   vaultYTokenBalance: bigint
   assetTotalSwapAmount: bigint
   yTokenAmountForSwapYT: bigint
+  totalRedeemingBalance: bigint
   settled: boolean
 }
 
