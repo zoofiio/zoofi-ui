@@ -1,4 +1,5 @@
 import { BASE_PATH } from '@/config/env'
+import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { CSSProperties } from 'react'
 
@@ -34,9 +35,9 @@ export function CoinIcon({ symbol, size = 48, ...p }: { symbol: string; classNam
         <text className='fill-primary' width='20' x='12' y='12' textAnchor='middle' fontSize={12} dominantBaseline='middle'>
           {symbol.slice(0, 2)}
         </text>
-        <circle className='stroke-primary' cx='12' cy='12' r='12' />
+        <circle className='stroke-primary' cx='12' cy='12' r='11.9' />
       </svg>
     )
   }
-  return <img {...p} width={size} height={size} src={url || src} alt={symbol} />
+  return <img {...p} className={cn(!url ? 'opacity-0' : '', p.className)} width={size} height={size} src={url || src} alt={symbol} />
 }

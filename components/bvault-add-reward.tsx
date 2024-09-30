@@ -1,5 +1,5 @@
 import { BVaultConfig } from '@/config/bvaults'
-import { cn } from '@/lib/utils'
+import { cn, parseEthers } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useRef, useState } from 'react'
@@ -43,7 +43,6 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
             pc.readContract({ abi: erc20Abi, address, functionName: 'symbol' }),
             pc.readContract({ abi: erc20Abi, address, functionName: 'totalSupply' }),
           ])
-
           return [{ symbol, address }]
         } else {
           return originTokens.filter((item) => {
@@ -68,19 +67,9 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
         user!,
       ),
   })
-  const triggerRef = useRef<HTMLDivElement>(null)
+
   return (
-    <SimpleDialog
-      triggerProps={{
-        asChild: false,
-      }}
-      trigger={
-        <div ref={triggerRef} className='flex cursor-pointer absolute justify-end items-center w-[6.25rem] py-4'>
-          <FiArrowDown />
-        </div>
-      }
-      className='flex flex-col gap-4'
-    >
+    <div className='flex flex-col gap-4 p-5'>
       <div className='page-sub text-center'>Select a token</div>
       <input
         className={cn(
@@ -96,10 +85,9 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
         {showTokens.map((t) => (
           <div
             key={t.address}
-            className='flex px-4 py-2 items-center gap-4 rounded-lg hover:bg-primary/20'
+            className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'
             onClick={() => {
               onSelect?.(t)
-              triggerRef?.current?.click()
             }}
           >
             <CoinIcon symbol={t.symbol} />
@@ -108,16 +96,41 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
           </div>
         ))}
       </div>
-    </SimpleDialog>
+    </div>
   )
 }
 
 export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
+  const balances = useBalances()
+  const [stoken, setStoken] = useState(defTokens[0])
+  const [input, setInput] = useState('')
+  const balance = balances[stoken.address]
+  const inputBn = parseEthers(input)
+  const disableAdd = inputBn == 0n || inputBn > balance
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const onAdd = () => {}
   return (
     <div className='max-w-4xl mx-auto mt-8 card'>
-      <div className='relative'>{
-        <AssetInput asset='WBERA' />
-        }</div>
+      <div className='relative'>
+        <AssetInput asset={stoken.symbol} balance={balances[stoken.address]} amount={input} setAmount={setInput} />
+        <SimpleDialog
+          trigger={
+            <div ref={triggerRef} className='absolute left-0 top-0 flex cursor-pointer justify-end items-center w-[6.25rem] py-4'>
+              <FiArrowDown />
+            </div>
+          }
+        >
+          <TokenSelect
+            onSelect={(t) => {
+              setStoken(t)
+              triggerRef.current?.click()
+            }}
+          />
+        </SimpleDialog>
+      </div>
+      <button className='btn-primary w-full' disabled={disableAdd} onClick={onAdd}>
+        Add
+      </button>
     </div>
   )
 }
