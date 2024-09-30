@@ -33,6 +33,7 @@ export const renderStat = (tit: string, icon: string, sub: string, borderL: bool
     </div>
   </div>
 )
+
 export const renderChoseSide = (
   leftSymbol: keyof typeof IconsMap,
   leftTitle: string,

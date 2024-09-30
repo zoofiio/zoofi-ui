@@ -90,6 +90,18 @@ export const BVAULTS_CONFIG: { [key: number]: BVaultConfig[] } = {
       bQueryAddres: BQueryAddress[berachainTestnet.id],
       onEnv: ['beta'],
     },
+    {
+      vault: '0xbADeC3498c5BEdCe16114cEF1CA15719c47dE5da',
+      asset: '0xd28d852cbcc68dcec922f6d5c7a8185dbaa104b7',
+      assetSymbol: 'HONEY-WBERA',
+      pToken: '0xb2bB5a2E87F2fb9A45E3cbDaB81B8308d04F51bd',
+      pTokenSymbol: 'pHONEY-BERA',
+      yTokenSymbol: 'yHONEY-BERA',
+      protocolAddress: ZooProtocolAddress,
+      protocolSettingsAddress: ZooProtocolSettingsAddress,
+      bQueryAddres: BQueryAddress[berachainTestnet.id],
+      onEnv: ['beta'],
+    },
   ],
 }
 

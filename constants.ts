@@ -16,5 +16,6 @@ const ENV: 'prod' | 'test' | 'beta' = (process.env.NEXT_PUBLIC_ENV as any) || 'p
 const isTEST = ENV == 'test'
 const isBETA = ENV == 'beta'
 const isPROD = !ENV
+const isLOCL = process.env.NODE_ENV == 'development'
 console.info(process.env.NODE_ENV)
-export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, DECIMAL_PRICE, Day1, ENV, isTEST, isBETA, isPROD, YEAR_SECONDS }
+export { TWITTER_LINK, DISCORD_LINK, DOC_LINK, DECIMAL, DECIMAL_PRICE, Day1, ENV, isTEST, isBETA, isPROD, isLOCL, YEAR_SECONDS }

@@ -7,7 +7,7 @@ import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
 import { abiBVault } from '@/config/abi'
 import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
-import { ENV } from '@/constants'
+import { ENV, isBETA, isLOCL } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useLoadBVaults } from '@/hooks/useLoads'
 import { getPC } from '@/providers/publicClient'
@@ -59,37 +59,38 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
       return passes.includes(true)
     },
   })
-  const data = showAddReward
-    ? [
-        {
-          tab: bvd.closed ? 'Redeem' : 'Mint',
-          content: bvd.closed ? (
-            <div className='max-w-4xl mx-auto pt-8'>
-              <BVaultRedeem bvc={bvc} />
-            </div>
-          ) : (
-            <BVaultMint bvc={bvc} />
-          ),
-        },
-        {
-          tab: 'Harvest',
-          content: <BVaultHarvest bvc={bvc} />,
-        },
-        {
-          tab: 'Add Reward',
-          content: <BVaultAddReward bvc={bvc} />,
-        },
-      ]
-    : [
-        {
-          tab: bvd.closed ? 'Redeem' : 'Mint',
-          content: bvd.closed ? <BVaultRedeem bvc={bvc} /> : <BVaultMint bvc={bvc} />,
-        },
-        {
-          tab: 'Harvest',
-          content: <BVaultHarvest bvc={bvc} />,
-        },
-      ]
+  const data =
+    showAddReward && isLOCL
+      ? [
+          {
+            tab: bvd.closed ? 'Redeem' : 'Mint',
+            content: bvd.closed ? (
+              <div className='max-w-4xl mx-auto pt-8'>
+                <BVaultRedeem bvc={bvc} />
+              </div>
+            ) : (
+              <BVaultMint bvc={bvc} />
+            ),
+          },
+          {
+            tab: 'Harvest',
+            content: <BVaultHarvest bvc={bvc} />,
+          },
+          {
+            tab: 'Add Reward',
+            content: <BVaultAddReward bvc={bvc} />,
+          },
+        ]
+      : [
+          {
+            tab: bvd.closed ? 'Redeem' : 'Mint',
+            content: bvd.closed ? <BVaultRedeem bvc={bvc} /> : <BVaultMint bvc={bvc} />,
+          },
+          {
+            tab: 'Harvest',
+            content: <BVaultHarvest bvc={bvc} />,
+          },
+        ]
   return (
     <SimpleTabs
       listClassName='flex-wrap p-0 mb-5 md:gap-14'

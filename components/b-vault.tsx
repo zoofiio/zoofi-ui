@@ -97,8 +97,8 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
         }}
         disabled={(epoch && inputPTokenBn <= 0n) || inputPTokenBn > pTokenBalance}
         config={{
-          abi: abiRedeemPool,
-          address: epoch?.redeemPool || zeroAddress,
+          abi: bvd.closed ? abiBVault : abiRedeemPool,
+          address: bvd.closed ? bvc.vault : epoch?.redeemPool || zeroAddress,
           functionName: 'redeem',
           args: [inputPTokenBn],
         }}
@@ -145,7 +145,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   }
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
+    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5')}>
       <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
         <div className='flex p-5 bg-[#A3D395] gap-5'>
           <PandaLine className='text-[3.375rem]' showBg />
@@ -541,7 +541,7 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
       </div>
       {renderToken(token1, lpBase, lpBaseTvlBn)}
       {renderToken(token2, lpQuote, lpQuoteTvlBn, true)}
-      {renderStat('Status', 'status', epochName)}
+      {renderStat('Status', bvd.closed ? 'status-red' : 'status-green', bvd.closed ? 'Closed' : epochName)}
       {renderStat('Reward', 'iBGT', 'iBGT', true)}
       {renderChoseSide('Panda', 'Principal Panda', fmtApy, 'Venom', 'Boost Venom', `${fmtBoost}x`)}
     </div>
