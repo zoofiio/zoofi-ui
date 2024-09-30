@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 import * as Tabs from '@radix-ui/react-tabs'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export function SimpleTabs({
   className,
@@ -20,6 +20,11 @@ export function SimpleTabs({
   onTabChange?: (tab: string) => void
 }) {
   const [tab, setTab] = useState(data[0].tab)
+  useEffect(() => {
+    if (!data.find((item) => item.tab == tab)) {
+      setTab(data[0].tab)
+    }
+  }, [tab, data])
   return (
     <Tabs.Root
       value={tab}

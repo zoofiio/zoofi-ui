@@ -55,11 +55,12 @@ function TVLItem() {
         {<CoinIcon symbol={item.symbol} size={20} />}
         <span>{item.symbol}</span>
       </div>,
-      `$${displayBalance(item.usdAmount)}`,
+      `$${displayBalance(item.price)}`,
       displayBalance(item.amount),
+      `$${displayBalance(item.usdAmount)}`,
     ])
   }, [tvl.tvlItems])
-  return <DashItem title='Total Value Locked' sub={`$${displayBalance(tvl.tvl)}`} tHeader={['Asset', 'NAV', 'Amount']} tData={data} />
+  return <DashItem title='Total Value Locked' sub={`$${displayBalance(tvl.tvl)}`} tHeader={['Asset', 'NAV', 'Amount', 'Total']} tData={data} />
 }
 function LVaultsItem() {
   const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
@@ -144,7 +145,7 @@ function BVaultsItem() {
         <span>Epoch {getBigint(bvaults, [bvc.vault, 'epochCount']).toString()}</span>
       </div>,
       fmtPercent(calcBVaultPTApy(bvc.vault), 10),
-      `${displayBalance(calcBVaultBoost(bvc.vault), 0, 2)}X`,
+      `${displayBalance(calcBVaultBoost(bvc.vault), 2)}X`,
     ])
   }, [bvcs, bvaults, prices])
   return <DashItem title='B-Vault' tHeader={['Vaults', 'Total Deposit', 'Status', 'PT APY', 'YT Boost']} tData={data} />
