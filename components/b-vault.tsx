@@ -145,7 +145,7 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   }
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5')}>
+    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
       <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
         <div className='flex p-5 bg-[#A3D395] gap-5'>
           <PandaLine className='text-[3.375rem]' showBg />
