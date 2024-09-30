@@ -84,7 +84,13 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
       : [
           {
             tab: bvd.closed ? 'Redeem' : 'Mint',
-            content: bvd.closed ? <BVaultRedeem bvc={bvc} /> : <BVaultMint bvc={bvc} />,
+            content: bvd.closed ? (
+              <div className='max-w-4xl mx-auto pt-8'>
+                <BVaultRedeem bvc={bvc} />
+              </div>
+            ) : (
+              <BVaultMint bvc={bvc} />
+            ),
           },
           {
             tab: 'Harvest',
