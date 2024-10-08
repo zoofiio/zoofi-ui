@@ -2,7 +2,7 @@ import { BVaultConfig } from '@/config/bvaults'
 import { cn, parseEthers } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowDown } from 'react-icons/fi'
 import { Address, erc20Abi, isAddress } from 'viem'
 import { AssetInput } from './asset-input'
@@ -31,31 +31,37 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
   const [input, setInput] = useState('')
   const balances = useBalances()
   const { address: user } = useAccount()
-  const queryFn = useMemo(
-    () =>
-      _.debounce(async () => {
-        if (isAddress(input)) {
-          const t = originTokens.find((item) => item.address == input)
-          if (t) return [t]
-          const pc = getPC()
-          const address = input as Address
-          const [symbol] = await Promise.all([
-            pc.readContract({ abi: erc20Abi, address, functionName: 'symbol' }),
-            pc.readContract({ abi: erc20Abi, address, functionName: 'totalSupply' }),
-          ])
-          return [{ symbol, address }]
-        } else {
-          return originTokens.filter((item) => {
-            const inputLow = input.toLowerCase()
-            const symbolMatched = !!item.symbol.toLowerCase().match(inputLow)
-            const nameMatched = !!item.name && !!item.name.toLowerCase().match(inputLow)
-            return symbolMatched || nameMatched
-          })
-        }
-      }, 300),
-    [],
-  )
-  const { data: searchdTokens } = useQuery({ initialData: originTokens, queryFn, queryKey: ['searchTokens', input, originTokens] })
+
+  const [queryKey,updateQueryKey] = useState(['searchTokens', input, originTokens])
+  const doUpQueryKey = useMemo(() => _.debounce((input: string, list: TokenItem[]) => {
+    updateQueryKey(['searchTokens', input, list])
+  }, 300, { leading: true, maxWait: 300 }), [])
+  useEffect(() => {doUpQueryKey(input, originTokens)},[input, originTokens])
+  const { data: searchdTokens } = useQuery({
+    initialData: originTokens,
+    queryFn: async () => {
+      if (isAddress(input)) {
+        const t = originTokens.find((item) => item.address == input)
+        if (t) return [t]
+        const pc = getPC()
+        const address = input as Address
+        const [symbol] = await Promise.all([
+          pc.readContract({ abi: erc20Abi, address, functionName: 'symbol' }),
+          pc.readContract({ abi: erc20Abi, address, functionName: 'totalSupply' }),
+        ])
+        return [{ symbol, address }]
+      } else {
+        if (!input) return originTokens
+        return originTokens.filter((item) => {
+          const inputLow = input.toLowerCase()
+          const symbolMatched = !!item.symbol.toLowerCase().match(inputLow)
+          const nameMatched = !!item.name && !!item.name.toLowerCase().match(inputLow)
+          return symbolMatched || nameMatched
+        })
+      }
+    },
+    queryKey: queryKey,
+  })
   const showTokens = searchdTokens || originTokens
 
   useQuery({
@@ -75,7 +81,7 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
         className={cn(
           'bg-white dark:bg-transparent',
           'border-slate-400  focus:border-primary',
-          'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-2xl border-[#4A5546] border focus:border-2 text-slate-700 rounded-lg outline-none dark:text-slate-50',
+          'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-base border-[#4A5546] border focus:border-2 text-slate-700 rounded-lg outline-none dark:text-slate-50',
         )}
         placeholder='Search by name, symbol or address'
         value={input}
@@ -115,8 +121,9 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
         <AssetInput asset={stoken.symbol} balance={balances[stoken.address]} amount={input} setAmount={setInput} />
         <SimpleDialog
           trigger={
-            <div ref={triggerRef} className='absolute left-0 top-0 flex cursor-pointer justify-end items-center w-[6.25rem] py-4'>
-              <FiArrowDown />
+            <div ref={triggerRef} className='absolute left-0 top-0 flex cursor-pointer justify-end items-center py-4'>
+              <span className='invisible pl-12'>{stoken.symbol}</span>
+              <FiArrowDown className='ml-2' />
             </div>
           }
         >

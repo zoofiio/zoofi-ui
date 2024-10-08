@@ -243,7 +243,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
     reFetchCalcSwap()
   }, [wt.time])
   const [priceSwap, togglePriceSwap] = useToggle(false)
-  const vualtYTokenBalance = bvd.pTokenTotal > bvd.current.totalRedeemingBalance ? bvd.pTokenTotal - bvd.current.totalRedeemingBalance : 0n
+  const vualtYTokenBalance = bvd.current.vaultYTokenBalance
   const outputYTokenForInput = getBigint(result, '1')
   const ytAssetPriceBn = vualtYTokenBalance > 0n ? (bvd.Y * DECIMAL) / vualtYTokenBalance : 0n
   const ytAssetPriceBnReverse = ytAssetPriceBn > 0n ? (DECIMAL * DECIMAL) / ytAssetPriceBn : 0n
