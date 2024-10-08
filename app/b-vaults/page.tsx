@@ -7,7 +7,7 @@ import { PageWrap } from '@/components/page-wrap'
 import { SimpleTabs } from '@/components/simple-tabs'
 import { abiBVault } from '@/config/abi'
 import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
-import { ENV, isBETA, isLOCL } from '@/constants'
+import { ENV, isBETA } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useLoadBVaults } from '@/hooks/useLoads'
 import { getPC } from '@/providers/publicClient'
@@ -60,7 +60,7 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
     },
   })
   const data =
-    showAddReward && isLOCL
+    showAddReward && isBETA
       ? [
           {
             tab: bvd.closed ? 'Redeem' : 'Mint',

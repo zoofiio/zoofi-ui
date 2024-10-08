@@ -1,18 +1,21 @@
+import { abiBVault } from '@/config/abi'
 import { BVaultConfig } from '@/config/bvaults'
-import { cn, parseEthers } from '@/lib/utils'
+import { cn, handleError, parseEthers } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
-import { useQuery } from '@tanstack/react-query'
+import { useBoundStore } from '@/providers/useBoundStore'
+import { useBVault } from '@/providers/useBVaultsData'
+import { useBalances } from '@/providers/useTokenStore'
+import { displayBalance } from '@/utils/display'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import _ from 'lodash'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowDown } from 'react-icons/fi'
 import { Address, erc20Abi, isAddress } from 'viem'
+import { useAccount, useWalletClient } from 'wagmi'
 import { AssetInput } from './asset-input'
-import { SimpleDialog } from './simple-dialog'
-import _ from 'lodash'
 import { CoinIcon } from './icons/coinicon'
-import { displayBalance } from '@/utils/display'
-import { useBalances } from '@/providers/useTokenStore'
-import { useBoundStore } from '@/providers/useBoundStore'
-import { useAccount } from 'wagmi'
+import { SimpleDialog } from './simple-dialog'
+import { Spinner } from './spinner'
 export type TokenItem = { address: Address; symbol: string; name?: string }
 
 const defTokens: TokenItem[] = [
@@ -32,12 +35,22 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
   const balances = useBalances()
   const { address: user } = useAccount()
 
-  const [queryKey,updateQueryKey] = useState(['searchTokens', input, originTokens])
-  const doUpQueryKey = useMemo(() => _.debounce((input: string, list: TokenItem[]) => {
-    updateQueryKey(['searchTokens', input, list])
-  }, 300, { leading: true, maxWait: 300 }), [])
-  useEffect(() => {doUpQueryKey(input, originTokens)},[input, originTokens])
-  const { data: searchdTokens } = useQuery({
+  const [queryKey, updateQueryKey] = useState(['searchTokens', input, originTokens])
+  const doUpQueryKey = useMemo(
+    () =>
+      _.debounce(
+        (input: string, list: TokenItem[]) => {
+          updateQueryKey(['searchTokens', input, list])
+        },
+        300,
+        { leading: true, maxWait: 300 },
+      ),
+    [],
+  )
+  useEffect(() => {
+    doUpQueryKey(input, originTokens)
+  }, [input, originTokens])
+  const { data: searchdTokens, isFetching } = useQuery({
     initialData: originTokens,
     queryFn: async () => {
       if (isAddress(input)) {
@@ -88,19 +101,41 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
         onChange={(e) => setInput(e.target.value)}
       />
       <div className='flex flex-col overflow-y-auto h-[18.75rem]'>
-        {showTokens.map((t) => (
-          <div
-            key={t.address}
-            className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'
-            onClick={() => {
-              onSelect?.(t)
-            }}
-          >
-            <CoinIcon symbol={t.symbol} />
-            <span>{t.symbol}</span>
-            <span className='ml-auto'>{displayBalance(balances[t.address])}</span>
+        {isFetching ? (
+          <div className='animate-pulse'>
+            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
+              <div className='rounded-full w-10 h-10 bg-slate-400' />
+              <div className='w-28 h-5 rounded-lg bg-slate-400' />
+              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
+            </div>
+            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
+              <div className='rounded-full w-10 h-10 bg-slate-400' />
+              <div className='w-28 h-5 rounded-lg bg-slate-400' />
+              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
+            </div>
+            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
+              <div className='rounded-full w-10 h-10 bg-slate-400' />
+              <div className='w-28 h-5 rounded-lg bg-slate-400' />
+              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
+            </div>
           </div>
-        ))}
+        ) : (
+          <>
+            {showTokens.map((t) => (
+              <div
+                key={t.address}
+                className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'
+                onClick={() => {
+                  onSelect?.(t)
+                }}
+              >
+                <CoinIcon size={40} symbol={t.symbol} />
+                <span>{t.symbol}</span>
+                <span className='ml-auto'>{displayBalance(balances[t.address])}</span>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   )
@@ -108,13 +143,29 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
 
 export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
   const balances = useBalances()
+  const bvd = useBVault(bvc.vault)
   const [stoken, setStoken] = useState(defTokens[0])
   const [input, setInput] = useState('')
   const balance = balances[stoken.address]
   const inputBn = parseEthers(input)
-  const disableAdd = inputBn == 0n || inputBn > balance
   const triggerRef = useRef<HTMLDivElement>(null)
-  const onAdd = () => {}
+  const wc = useWalletClient()
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      if (disableAdd) return
+      const pc = getPC()
+      const tokens = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'bribeTokens', args: [bvd.epochCount] })
+      if (!tokens.find((item) => item == stoken.address)) {
+        const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribeToken', args: [stoken.address] })
+        await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
+      }
+      const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribes', args: [stoken.address, inputBn] })
+      await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
+    },
+    mutationKey: ['addReward'],
+    onError: handleError,
+  })
+  const disableAdd = !wc.data || inputBn == 0n || inputBn > balance || isPending || bvd.epochCount == 0n
   return (
     <div className='max-w-4xl mx-auto mt-8 card'>
       <div className='relative'>
@@ -135,8 +186,8 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
           />
         </SimpleDialog>
       </div>
-      <button className='btn-primary w-full' disabled={disableAdd} onClick={onAdd}>
-        Add
+      <button className='btn-primary w-full flex justify-center items-center gap-2' disabled={disableAdd} onClick={() => mutate()}>
+        {isPending && <Spinner />} Add
       </button>
     </div>
   )

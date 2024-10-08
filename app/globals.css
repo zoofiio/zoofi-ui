@@ -100,9 +100,6 @@
   transition: height 250ms;
 }
 
-/* HTML: <div class="loader"></div> */
-/* HTML: <div class="loader"></div> */
-/* HTML: <div class="loader"></div> */
 .top-loader {
   width: 100%;
   height: 1px;
