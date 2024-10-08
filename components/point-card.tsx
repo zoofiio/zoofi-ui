@@ -1,5 +1,4 @@
 import { fmtPercent } from '@/lib/utils'
-import { CoinIcon } from './icons/coinicon'
 
 import { isBerachain } from '@/config/network'
 import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, USBSymbol, VaultConfig } from '@/config/swap'
@@ -8,18 +7,19 @@ import { useElementSizeCheck } from '@/hooks/useElementSizeCheck'
 import { usePtypoolApy } from '@/hooks/usePtypoolApy'
 import { useTokenApys } from '@/hooks/useTokenApys'
 import { FetcherContext } from '@/providers/fetcher'
+import { useLVault, useValutsLeverageRatio } from '@/providers/useLVaultsData'
 import { displayBalance } from '@/utils/display'
 import { useContext, useMemo } from 'react'
 import { GoArrowUpRight } from 'react-icons/go'
 import { Pagination } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
+import { IconsMap } from './icons'
 import { useThemeState } from './theme-mode'
-import { useLVault, useValutsLeverageRatio } from '@/providers/useLVaultsData'
 
 type PointItem = {
   symbol: string
   symbolPrice?: string
-  iconSymbol: string
+  iconSymbol: keyof typeof IconsMap
   tit: string
   sub: string
   total: string
@@ -89,6 +89,7 @@ export function useVcPoints(vc: VaultConfig) {
 
 export function PointCard({ symbol, symbolPrice, iconSymbol, tit, sub, total, link }: PointItem) {
   const theme = useThemeState((s) => s.theme)
+  const MIcon = IconsMap[iconSymbol];
   return (
     <div
       style={
@@ -99,7 +100,7 @@ export function PointCard({ symbol, symbolPrice, iconSymbol, tit, sub, total, li
       className='card overflow-hidden !p-0 text-base flex flex-col'
     >
       <div className='flex md:flex-wrap items-center p-4 gap-2 dark:text-black' style={{ background: bgMap[`${symbol}_${theme}`] || bgMap[symbol] }}>
-        <CoinIcon symbol={iconSymbol} size={42} className='shrink-0' />
+        <MIcon showBg className='text-[2.625rem] shrink-0 dark:text-white text-black' />
         <div>
           <div className='font-semibold'>{symbol}</div>
           <div className='font-medium text-xs'>{symbolPrice}</div>
