@@ -17,6 +17,7 @@ import { CoinIcon } from './icons/coinicon'
 import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
 import { toast } from 'sonner'
+import { PulseTokenItem } from './pulse-ui'
 export type TokenItem = { address: Address; symbol: string; name?: string }
 
 const defTokens: TokenItem[] = [
@@ -63,6 +64,7 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
           pc.readContract({ abi: erc20Abi, address, functionName: 'symbol' }),
           pc.readContract({ abi: erc20Abi, address, functionName: 'totalSupply' }),
         ])
+        user && useBoundStore.getState().sliceTokenStore.updateTokensBalance([address], user)
         return [{ symbol, address }]
       } else {
         if (!input) return originTokens
@@ -95,7 +97,7 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
         className={cn(
           'bg-white dark:bg-transparent',
           'border-slate-400  focus:border-primary',
-          'w-full h-14 text-right pr-4 pl-[8rem] font-bold text-base border-[#4A5546] border focus:border-2 text-slate-700 rounded-lg outline-none dark:text-slate-50',
+          'w-full h-14 text-right px-4 font-bold text-base border-[#4A5546] border focus:border-2 text-slate-700 rounded-lg outline-none dark:text-slate-50',
         )}
         placeholder='Search by name, symbol or address'
         value={input}
@@ -103,23 +105,11 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
       />
       <div className='flex flex-col overflow-y-auto h-[18.75rem]'>
         {isFetching ? (
-          <div className='animate-pulse'>
-            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
-              <div className='rounded-full w-10 h-10 bg-slate-400' />
-              <div className='w-28 h-5 rounded-lg bg-slate-400' />
-              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
-            </div>
-            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
-              <div className='rounded-full w-10 h-10 bg-slate-400' />
-              <div className='w-28 h-5 rounded-lg bg-slate-400' />
-              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
-            </div>
-            <div className='flex px-4 py-2 items-center gap-4 rounded-lg cursor-pointer hover:bg-primary/20'>
-              <div className='rounded-full w-10 h-10 bg-slate-400' />
-              <div className='w-28 h-5 rounded-lg bg-slate-400' />
-              <div className='ml-auto w-12 h-5 rounded-lg bg-slate-400' />
-            </div>
-          </div>
+          <>
+            <PulseTokenItem />
+            <PulseTokenItem />
+            <PulseTokenItem />
+          </>
         ) : (
           <>
             {showTokens.map((t) => (
@@ -168,7 +158,7 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
       }
       const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribes', args: [stoken.address, inputBn] })
       await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
-      toast.success("Transaction success")
+      toast.success('Transaction success')
     },
     mutationKey: ['addReward'],
     onError: handleError,
