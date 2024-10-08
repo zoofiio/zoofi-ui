@@ -16,6 +16,7 @@ import { AssetInput } from './asset-input'
 import { CoinIcon } from './icons/coinicon'
 import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
+import { toast } from 'sonner'
 export type TokenItem = { address: Address; symbol: string; name?: string }
 
 const defTokens: TokenItem[] = [
@@ -150,6 +151,7 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
   const inputBn = parseEthers(input)
   const triggerRef = useRef<HTMLDivElement>(null)
   const wc = useWalletClient()
+  const { address } = useAccount()
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       if (disableAdd) return
@@ -159,13 +161,19 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
         const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribeToken', args: [stoken.address] })
         await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
       }
+      const allownce = await pc.readContract({ abi: erc20Abi, address: stoken.address, functionName: 'allowance', args: [address, bvc.vault] })
+      if (allownce < inputBn) {
+        const hash = await wc.data.writeContract({ abi: erc20Abi, address: stoken.address, functionName: 'approve', args: [bvc.vault, inputBn - allownce] })
+        await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
+      }
       const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribes', args: [stoken.address, inputBn] })
       await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
+      toast.success("Transaction success")
     },
     mutationKey: ['addReward'],
     onError: handleError,
   })
-  const disableAdd = !wc.data || inputBn == 0n || inputBn > balance || isPending || bvd.epochCount == 0n
+  const disableAdd = !wc.data || !address || inputBn == 0n || inputBn > balance || isPending || bvd.epochCount == 0n
   return (
     <div className='max-w-4xl mx-auto mt-8 card'>
       <div className='relative'>
