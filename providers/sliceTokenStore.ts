@@ -9,6 +9,12 @@ import { Address, erc20Abi } from 'viem'
 import { getPC } from './publicClient'
 import { SliceFun } from './types'
 
+export type TokenItem = {
+  address: Address
+  symbol: string
+  name?: string
+  url?: string
+}
 export type TokenStore = {
   totalSupply: { [k: Address]: bigint }
   prices: { [k: Address]: bigint }
@@ -19,6 +25,10 @@ export type TokenStore = {
   // ---------------------- For current user ------------------------
   balances: { [k: Address]: bigint }
   updateTokensBalance: (tokens: Address[], user: Address) => Promise<TokenStore['balances']>
+
+  // tokenList
+  defTokenList: TokenItem[]
+  updateDefTokenList: () => Promise<TokenItem[]>
 }
 
 export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
@@ -88,6 +98,29 @@ export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
     }
     return {}
   }
+
+  const updateDefTokenList = async () => {
+    const list = await fetch('https://raw.githubusercontent.com/berachain/default-lists/main/src/tokens/bartio/defaultTokenList.json')
+      .then((res) => res.json())
+      .then((data) => {
+        return (data.tokens as any[]).map<TokenItem>((item) => ({
+          symbol: item.symbol as string,
+          address: item.address as Address,
+          name: item.name as string,
+          url: ((item.logoURI as string) || '').replace('https://https://', 'https://'),
+        }))
+      })
+    localStorage.setItem('catchedDefTokenList', JSON.stringify(list))
+    set({ defTokenList: list })
+    return list
+  }
+  const getCatchedDefTokenList = () => {
+    try {
+      return JSON.parse(localStorage.getItem('catchedDefTokenList') || '[]') as TokenItem[]
+    } catch (error) {
+      return []
+    }
+  }
   return {
     totalSupply: {},
     updateTokenTotalSupply,
@@ -97,6 +130,9 @@ export const sliceTokenStore: SliceFun<TokenStore> = (set, get, init = {}) => {
 
     prices: {},
     updateTokenPrices,
+
+    defTokenList: getCatchedDefTokenList(),
+    updateDefTokenList,
     ...init,
   }
 }

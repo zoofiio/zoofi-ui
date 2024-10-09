@@ -50,10 +50,10 @@ const SupportICONS: { [k: string]: string } = {
   ZUSD: 'ZUSD.svg',
 }
 
-export function CoinIcon({ symbol, size = 48, ...p }: { symbol: string; className?: string; style?: CSSProperties; size?: number }) {
+export function CoinIcon({ symbol, size = 48, url, ...p }: { symbol: string; className?: string; style?: CSSProperties; size?: number; url?: string }) {
   const supportIcon = SupportICONS[symbol]
   const src = `${BASE_PATH}/${supportIcon}`
-  if (!supportIcon) {
+  if (!supportIcon && !url) {
     return (
       <svg {...p} width={size} height={size} viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
         <text className='fill-primary/60' width='20' x='12' y='12' textAnchor='middle' fontSize={12} dominantBaseline='middle'>
@@ -63,5 +63,5 @@ export function CoinIcon({ symbol, size = 48, ...p }: { symbol: string; classNam
       </svg>
     )
   }
-  return <img {...p} className={cn(p.className)} width={size} height={size} src={src} alt={symbol} />
+  return <img {...p} className={cn(p.className)} width={size} height={size} src={supportIcon ? src : url} alt={symbol} />
 }

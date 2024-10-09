@@ -6,7 +6,9 @@ import { useEthersProvider } from '@/hooks/useEthersProvider'
 import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
 import { useUpdatePtypoolApy } from '@/hooks/usePtypoolApy'
 import { proxyGetDef } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
 import { ReactNode, createContext } from 'react'
+import { useBoundStore } from './useBoundStore'
 import { useResetBVaultsData } from './useBVaultsData'
 import { useSetLVaultPrices, useUSBApr } from './useLVaultsData'
 
@@ -36,7 +38,14 @@ export const FetcherProvider = ({ children }: { children: ReactNode }): JSX.Elem
   useSetLVaultPrices(prices)
   const usbApr = useUSBApr()
   useUpdatePtypoolApy(prices)
-
+  useQuery({
+    queryKey: ['updateDefTokenList'],
+    staleTime: 1000 * 60 * 60,
+    queryFn: async () => {
+      await useBoundStore.getState().sliceTokenStore.updateDefTokenList()
+      return true
+    },
+  })
   return (
     <FetcherContext.Provider
       value={{

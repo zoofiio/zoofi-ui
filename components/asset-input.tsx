@@ -12,6 +12,7 @@ import { useThemeState } from './theme-mode'
 export function AssetInput({
   asset = 'ETH',
   assetIcon,
+  assetURL,
   checkBalance = true,
   balance,
   balanceTit = 'Balance',
@@ -33,6 +34,7 @@ export function AssetInput({
 }: {
   asset: string
   assetIcon?: string
+  assetURL?: string
   checkBalance?: boolean
   balance?: bigint
   balanceTit?: string
@@ -80,7 +82,7 @@ export function AssetInput({
           )}
         </div>
         <div className='absolute flex items-center gap-2 w-fit top-1/2 left-4 -translate-y-1/2'>
-          <CoinIcon size={24} symbol={assetIcon || asset} />
+          <CoinIcon size={24} symbol={assetIcon || asset} url={assetURL} className='rounded-full' />
           <div className={clsx('relative', price || exchange ? '-top-[6px]' : '')}>
             {hasInput ? (
               <Select

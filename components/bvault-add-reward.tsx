@@ -2,7 +2,7 @@ import { abiBVault } from '@/config/abi'
 import { BVaultConfig } from '@/config/bvaults'
 import { cn, handleError, parseEthers } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
-import { useBoundStore } from '@/providers/useBoundStore'
+import { useBoundStore, useStoreShallow } from '@/providers/useBoundStore'
 import { useBVault } from '@/providers/useBVaultsData'
 import { useBalances } from '@/providers/useTokenStore'
 import { displayBalance } from '@/utils/display'
@@ -10,15 +10,16 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import _ from 'lodash'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowDown } from 'react-icons/fi'
-import { Address, erc20Abi, isAddress } from 'viem'
+import { toast } from 'sonner'
+import { Address, erc20Abi, isAddress, zeroAddress } from 'viem'
 import { useAccount, useWalletClient } from 'wagmi'
 import { AssetInput } from './asset-input'
 import { CoinIcon } from './icons/coinicon'
+import { PulseTokenItem } from './pulse-ui'
 import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
-import { toast } from 'sonner'
-import { PulseTokenItem } from './pulse-ui'
-export type TokenItem = { address: Address; symbol: string; name?: string }
+import { TokenItem } from '@/providers/sliceTokenStore'
+import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
 
 const defTokens: TokenItem[] = [
   { symbol: 'HONEY', name: 'HONEY Token', address: '0x0e4aaf1351de4c0264c5c7056ef3777b41bd8e03' },
@@ -31,8 +32,14 @@ const defTokens: TokenItem[] = [
   { symbol: 'WETH', name: 'Wrapped Ether', address: '0xE28AfD8c634946833e89ee3F122C06d7C537E8A8' },
 ]
 
-function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?: boolean; onSelect?: (item: TokenItem) => void }) {
-  const originTokens = tokens || defTokens
+function TokenSelect({ tokens, onSelect, hiddenNative }: { tokens?: TokenItem[]; hiddenNative?: boolean; onSelect?: (item: TokenItem) => void }) {
+  const defTokenList = useStoreShallow((s) => s.sliceTokenStore.defTokenList)
+  const originTokens = useMemo(() => {
+    const list = !_.isEmpty(tokens) ? tokens! : !_.isEmpty(defTokenList) ? defTokenList! : defTokens
+    if (hiddenNative) return list.filter((item) => item.address !== zeroAddress && item.address !== NATIVE_TOKEN_ADDRESS)
+    return list
+  }, [tokens, defTokenList, hiddenNative])
+
   const [input, setInput] = useState('')
   const balances = useBalances()
   const { address: user } = useAccount()
@@ -120,7 +127,7 @@ function TokenSelect({ tokens, onSelect }: { tokens?: TokenItem[]; hiddenNative?
                   onSelect?.(t)
                 }}
               >
-                <CoinIcon size={40} symbol={t.symbol} />
+                <CoinIcon className='rounded-full' size={40} symbol={t.symbol} url={t.url} />
                 <span>{t.symbol}</span>
                 <span className='ml-auto'>{displayBalance(balances[t.address])}</span>
               </div>
@@ -147,7 +154,8 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
       if (disableAdd) return
       const pc = getPC()
       const tokens = await pc.readContract({ abi: abiBVault, address: bvc.vault, functionName: 'bribeTokens', args: [bvd.epochCount] })
-      if (!tokens.find((item) => item == stoken.address)) {
+      console.info('tokens:', tokens, stoken.address)
+      if (!tokens.find((item) => item.toLowerCase() == stoken.address.toLowerCase())) {
         const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribeToken', args: [stoken.address] })
         await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
       }
@@ -158,6 +166,8 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
       }
       const hash = await wc.data.writeContract({ abi: abiBVault, address: bvc.vault, functionName: 'addBribes', args: [stoken.address, inputBn] })
       await pc.waitForTransactionReceipt({ hash, confirmations: 3 })
+      useBoundStore.getState().sliceTokenStore.updateTokensBalance([stoken.address], address)
+      setInput('')
       toast.success('Transaction success')
     },
     mutationKey: ['addReward'],
@@ -167,7 +177,7 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
   return (
     <div className='max-w-4xl mx-auto mt-8 card'>
       <div className='relative'>
-        <AssetInput asset={stoken.symbol} balance={balances[stoken.address]} amount={input} setAmount={setInput} />
+        <AssetInput asset={stoken.symbol} assetURL={stoken.url} balance={balances[stoken.address]} amount={input} setAmount={setInput} />
         <SimpleDialog
           trigger={
             <div ref={triggerRef} className='absolute left-0 top-0 flex cursor-pointer justify-end items-center py-4'>
@@ -177,6 +187,7 @@ export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
           }
         >
           <TokenSelect
+            hiddenNative
             onSelect={(t) => {
               setStoken(t)
               triggerRef.current?.click()
