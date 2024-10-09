@@ -365,7 +365,7 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
 
 function BribeTit(p: { name: string }) {
   return (
-    <div className='flex items-center justify-center gap-3'>
+    <div className='flex items-center justify-start pl-5 gap-3'>
       <CoinIcon symbol='GreenDot' size={14} />
       <span className='text-sm font-medium'>{p.name}</span>
     </div>
