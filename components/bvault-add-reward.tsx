@@ -142,7 +142,9 @@ function TokenSelect({ tokens, onSelect, hiddenNative }: { tokens?: TokenItem[];
 export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
   const balances = useBalances()
   const bvd = useBVault(bvc.vault)
-  const [stoken, setStoken] = useState(defTokens[0])
+  const defTokenList = useStoreShallow((s) => s.sliceTokenStore.defTokenList)
+  const defToken = !_.isEmpty(defTokenList) ? defTokenList[0] : defTokens[0]
+  const [stoken, setStoken] = useState(defToken)
   const [input, setInput] = useState('')
   const balance = balances[stoken.address]
   const inputBn = parseEthers(input)
