@@ -3,6 +3,7 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { useEffect, useState } from 'react'
 
 export function SimpleTabs({
+  currentTab,
   className,
   listClassName,
   triggerClassName,
@@ -16,10 +17,11 @@ export function SimpleTabs({
   triggerClassName?: string
   contentClassName?: string
   hiddenConetent?: boolean
+  currentTab?: string
   data: { tab: string; content: React.ReactNode }[]
   onTabChange?: (tab: string) => void
 }) {
-  const [tab, setTab] = useState(data[0].tab)
+  const [tab, setTab] = useState(currentTab || data[0].tab)
   useEffect(() => {
     if (!data.find((item) => item.tab == tab)) {
       setTab(data[0].tab)
@@ -27,7 +29,7 @@ export function SimpleTabs({
   }, [tab, data])
   return (
     <Tabs.Root
-      value={tab}
+      value={currentTab || tab}
       className={cn('w-full', className)}
       onValueChange={(e) => {
         setTab(e)

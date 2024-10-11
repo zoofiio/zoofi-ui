@@ -6,11 +6,12 @@ import { getBexPoolURL } from '@/config/network'
 import { LP_TOKENS } from '@/config/tokens'
 import { DECIMAL } from '@/constants'
 import { useWandTimestamp } from '@/hooks/useWand'
-import { cn, fmtBn, fmtDuration, fmtPercent, fmtTime, getBigint, handleError, parseEthers } from '@/lib/utils'
+import { cn, FMT, fmtBn, fmtDate, fmtDuration, fmtPercent, getBigint, handleError, parseEthers } from '@/lib/utils'
 import { useStoreShallow } from '@/providers/useBoundStore'
 import { useBVault, useBVaultApy, useBVaultBoost, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import { ProgressBar } from '@tremor/react'
+import _ from 'lodash'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
@@ -31,7 +32,7 @@ import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
-    <div className='flex flex-col gap-0.5'>
+    <div className='flex items-center gap-5'>
       <div className='text-xs dark:text-white/60 font-medium'>{p.tit}</div>
       <div className={cn('text-lg  font-medium flex items-center', p.subClassname)}>{p.sub}</div>
     </div>
@@ -41,53 +42,19 @@ function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
 const maxClassname = 'max-w-4xl mx-auto w-full'
 
 export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
-  const lp = LP_TOKENS[bvc.asset]
-  const isLP = !!lp
-  const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
-  const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
   const [inputPToken, setInputPToken] = useState('')
   const inputPTokenBn = parseEthers(inputPToken)
   const bvd = useBVault(bvc.vault)
   const epoch = useEpochesData(bvc.vault)[0]
-  const { ids, claimable } = useCalcClaimable(bvc.vault)
-  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
   const pTokenBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.pToken] || 0n)
-  const claimableAssetBalance = claimable
-  const redeemingBalance = epoch?.redeemingBalance || 0n
-  const redeemInfo = `Your ${pTokenSymbolShort} can be claimed 1:1 for ${assetSymbolShort} at the end of this Epoch`
   const upForUserAction = useUpBVaultForUserAction(bvc)
-  const renderClaimable = () => {
-    return (
-      <div className='flex text-xs items-center gap-5'>
-        {`Claimable: ${displayBalance(claimableAssetBalance)}`}
-        <ApproveAndTx
-          className=''
-          busyShowTxet={false}
-          txType='btn-link'
-          tx='Claim'
-          disabled={claimableAssetBalance <= 0n}
-          config={{
-            abi: abiBVault,
-            address: bvc.vault,
-            functionName: 'batchClaimRedeemAssets',
-            args: [ids.length > 40 ? ids.slice(ids.length - 40) : ids],
-          }}
-          onTxSuccess={() => {
-            upForUserAction()
-          }}
-        />
-      </div>
-    )
-  }
+  const waitTimeFmt = bvd.current.duration > 0n ? `Waiting Time: ~${fmtDuration((bvd.current.duration + bvd.current.startTime) * 1000n - BigInt(_.now()))}` : ''
   return (
     <div className={cn('flex flex-col gap-1')}>
       <AssetInput asset={bvc.pTokenSymbol} assetIcon='Panda' amount={inputPToken} balance={pTokenBalance} setAmount={setInputPToken} />
-      {epoch && epoch.settled && (
-        <div className='flex flex-wrap justify-between items-center h-5'>
-          <div className='text-xs font-medium'>{redeemInfo}</div>
-          {renderClaimable()}
-        </div>
-      )}
+      <div className='text-xs font-medium text-center'>
+        {waitTimeFmt} <Tip>Wait to claim after the Epoch ends.</Tip>
+      </div>
       <ApproveAndTx
         className='mx-auto mt-6'
         tx='Redeem'
@@ -107,19 +74,64 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
           upForUserAction()
         }}
       />
-      {(!epoch || !epoch.settled) && (
-        <div className='flex flex-wrap justify-between items-center h-5 mt-5'>
-          <div className='text-xs font-medium'>
-            {`In Redemption: ${displayBalance(redeemingBalance)}`} <Tip>Redemption will be completed at the end of an Epoch.</Tip>
-          </div>
-          {renderClaimable()}
-        </div>
-      )}
     </div>
   )
 }
 
-function BVaultP({ bvc }: { bvc: BVaultConfig }) {
+export function BVaultClaim({ bvc }: { bvc: BVaultConfig }) {
+  const bvd = useBVault(bvc.vault)
+  const epoch = useEpochesData(bvc.vault)[0]
+  const redeemingBalance = epoch?.redeemingBalance || 0n
+  const { ids, claimable } = useCalcClaimable(bvc.vault)
+  const upForUserAction = useUpBVaultForUserAction(bvc)
+  return (
+    <div>
+      <div className='flex justify-between text-base font-medium items-center gap-5 pt-4'>
+        <div>
+          <div className='text-black/60 dark:text-white/60 text-sm'>Available to Claim</div>
+          <div className='flex gap-4 items-center whitespace-nowrap mt-2'>
+            <CoinIcon symbol={bvc.assetSymbol} size={24} />
+            <span className='font-semibold'>{bvc.assetSymbol}</span>
+            <span className='text-black/60 dark:text-white/60 '>{displayBalance(claimable)}</span>
+          </div>
+        </div>
+
+        <ApproveAndTx
+          className='ml-auto w-1/3'
+          busyShowTxet={false}
+          tx='Claim'
+          disabled={claimable <= 0n}
+          config={{
+            abi: abiBVault,
+            address: bvc.vault,
+            functionName: 'batchClaimRedeemAssets',
+            args: [ids.length > 40 ? ids.slice(ids.length - 40) : ids],
+          }}
+          onTxSuccess={() => {
+            upForUserAction()
+          }}
+        />
+      </div>
+      <div className='h-[1px] bg-border my-4'></div>
+      <div>
+        <div className='text-black/60 dark:text-white/60 mb-4'>Pending Requests</div>
+        {
+          <div className='flex items-center gap-4'>
+            <PandaLine showBg className='text-2xl' />
+            <span className='font-semibold'>{bvc.assetSymbol}</span>
+            <span className='text-black/60 dark:text-white/60'>{displayBalance(redeemingBalance)}</span>
+            <div className='ml-auto text-xs text-black/60 dark:text-white/60 '>
+              Settlement Time : <span className='text-black dark:text-white font-semibold pr-2'>{fmtDate((bvd.current.duration + bvd.current.startTime) * 1000n, FMT.DATE2)}</span>{' '}
+              {fmtDuration((bvd.current.duration + bvd.current.startTime) * 1000n - BigInt(_.now()))}
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  )
+}
+
+export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
   const lp = LP_TOKENS[bvc.asset]
@@ -145,8 +157,8 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   }
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5', maxClassname)}>
-      <div className='card !p-0 overflow-hidden min-h-[16.875rem]'>
+    <div className={cn('flex flex-col gap-5', maxClassname, 'max-w-xl')}>
+      <div className='card !p-0 overflow-hidden w-full'>
         <div className='flex p-5 bg-[#A3D395] gap-5'>
           <PandaLine className='text-[3.375rem]' showBg />
           <div className='flex flex-col gap-2'>
@@ -154,26 +166,21 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
             <div className='text-xs text-black/60 font-medium'>Interest bearing rebase principal token</div>
           </div>
         </div>
-        <div className='flex flex-col p-5 gap-5'>
+        <div className='flex items-baseline justify-between px-5 pt-5 gap-5'>
           <TupleTxt tit='APY Est.' sub={fmtApy} />
-          <TupleTxt
-            tit='Total Minted'
-            sub={
-              <>
-                {displayBalance(bvd.pTokenTotal)}
-                <button className='btn-link ml-auto text-black/60 dark:text-white/60 text-xs' onClick={onAddPToken}>
-                  Add to wallet
-                </button>
-              </>
-            }
-          />
+          <TupleTxt tit='Total Minted' sub={<>{displayBalance(bvd.pTokenTotal)}</>} />
+        </div>
+        <div className='flex px-2 pb-5'>
+          <button className='btn-link ml-auto text-black/60 dark:text-white/60 text-xs' onClick={onAddPToken}>
+            Add to wallet
+          </button>
         </div>
       </div>
       <div className='md:col-span-2 card !p-4'>
         <SimpleTabs
           data={[
             {
-              tab: 'Mint',
+              tab: 'Buy',
               content: (
                 <div className='flex flex-col gap-1'>
                   <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
@@ -208,8 +215,12 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
               ),
             },
             {
-              tab: 'Redeem',
+              tab: 'Withdraw',
               content: <BVaultRedeem bvc={bvc} />,
+            },
+            {
+              tab: 'Claim',
+              content: <BVaultClaim bvc={bvc} />,
             },
           ]}
         />
@@ -218,7 +229,63 @@ function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   )
 }
 
-function BVaultY({ bvc }: { bvc: BVaultConfig }) {
+export function BVaultYInfo({ bvc }: { bvc: BVaultConfig }) {
+  const isLP = bvc.assetSymbol.includes('-')
+
+  const yTokenSymbolShort = isLP ? 'YT' : bvc.yTokenSymbol
+  const assetSymbolShort = isLP ? 'LP token' : bvc.assetSymbol
+
+  const bvd = useBVault(bvc.vault)
+  const epoch = bvd.current
+
+  const oneYTYieldOfAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
+  const [fmtBoost] = useBVaultBoost(bvc.vault)
+
+  const calcProgress = (ep: typeof epoch) => {
+    const now = BigInt(Math.floor(new Date().getTime() / 1000))
+    if (now < ep.startTime) return 0
+    if (now - epoch.startTime >= epoch.duration) return 100
+    const progress = ((now - epoch.startTime) * 100n) / ep.duration
+    return parseInt(progress.toString())
+  }
+  return (
+    <div className='card !p-0 overflow-hidden flex flex-col'>
+      <div className='flex p-5 bg-[#F0D187] gap-5'>
+        <VenomLine className='text-[3.375rem]' showBg />
+        <div className='flex flex-col gap-2'>
+          <div className='text-xl text-black font-semibold'>{bvc.yTokenSymbol}</div>
+          <div className='text-xs text-black/60 font-medium'>Yield token</div>
+        </div>
+      </div>
+      <div className='flex flex-col justify-between p-5 gap-5 flex-1'>
+        <div className='flex justify-between items-baseline gap-4 flex-wrap'>
+          <div className='text-base font-semibold flex gap-5 items-end'>
+            <span className='text-4xl font-medium'>{fmtBoost}x</span>
+            {'Yield Boosted'}
+          </div>
+          <span className='text-xs'>
+            1{yTokenSymbolShort} = Yield of {displayBalance(oneYTYieldOfAsset, 2)} {assetSymbolShort}
+          </span>
+        </div>
+        <TupleTxt tit='Circulation amount' sub={<>{displayBalance(bvd.current.yTokenAmountForSwapYT)}</>} />
+        {epoch && (
+          <div className='dark:text-white/60 text-xs whitespace-nowrap gap-1 flex w-full flex-col'>
+            <div className='flex justify-between items-center'>
+              <span>{`Epoch ${epoch.epochId.toString()}`}</span>
+              <span className='scale-90'>~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining</span>
+            </div>
+            <ProgressBar value={calcProgress(epoch)} className='mt-2 rounded-full overflow-hidden' />
+            <div className='flex justify-between items-center'>
+              <span className='scale-90'>{fmtDate(epoch.startTime * 1000n, FMT.ALL2)}</span>
+              <span className='scale-90'>{fmtDate((epoch.startTime + epoch.duration) * 1000n, FMT.ALL2)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const isLP = bvc.assetSymbol.includes('-')
   const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
   const yTokenSymbolShort = isLP ? 'YT' : bvc.yTokenSymbol
@@ -266,99 +333,39 @@ function BVaultY({ bvc }: { bvc: BVaultConfig }) {
     return parseInt(progress.toString())
   }
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
-      <div className='card !p-0 overflow-hidden'>
-        <div className='flex p-5 bg-[#F0D187] gap-5'>
-          <VenomLine className='text-[3.375rem]' showBg />
-          <div className='flex flex-col gap-2'>
-            <div className='text-xl text-black font-semibold'>{bvc.yTokenSymbol}</div>
-            <div className='text-xs text-black/60 font-medium'>Yield token</div>
-          </div>
+    <div className='card !p-4 flex flex-col h-[24.25rem] gap-1'>
+      <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
+      <div className='text-base font-bold my-2'>Receive</div>
+      <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable checkBalance={false} amount={outputYTokenFmt} />
+      <div className='text-xs font-medium  flex justify-between select-none'>
+        <div className='flex items-center gap-2'>
+          <RiLoopLeftFill className='text-sm text-primary cursor-pointer inline-block' onClick={() => togglePriceSwap()} />
+          <span>{`Price: ${priceStr}`}</span>
         </div>
-        <div className='flex flex-col p-5 gap-5'>
-          <div className='text-base font-semibold flex gap-5 items-end'>
-            <span className='text-4xl font-medium'>{fmtBoost}x</span>
-            {'Yield Boosted'}
-          </div>
-          <TupleTxt
-            tit='Total Minted'
-            sub={
-              <>
-                {displayBalance(bvd.current.yTokenAmountForSwapYT)}
-                <span className='text-xs ml-auto'>
-                  1{yTokenSymbolShort} = Yield of <br />
-                  {displayBalance(oneYTYieldOfAsset, 2)} {assetSymbolShort}
-                </span>
-              </>
-            }
-          />
-          {epoch && (
-            // <TupleTxt
-            //   tit={`Epoch ${epoch.epochId.toString()}`}
-            //   subClassname='text-xs'
-            //   sub={
-            //     <>
-            //       <span>
-            //         {fmtTime(epoch.startTime * 1000n, 'date')}-{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'date')}
-            //       </span>
-            //       <span className='ml-auto whitespace-nowrap'>
-            //         ~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))}
-            //         <br />
-            //         remaining
-            //       </span>
-            //     </>
-            //   }
-            // />
-            <div className='dark:text-white/60 text-xs whitespace-nowrap gap-1 flex w-full flex-col'>
-              <div className='flex justify-between items-center'>
-                <span>{`Epoch ${epoch.epochId.toString()}`}</span>
-                <span className='scale-90'>~{fmtDuration((epoch.startTime + epoch.duration) * 1000n - BigInt(new Date().getTime()))} remaining</span>
-              </div>
-              <ProgressBar value={calcProgress(epoch)} className='mt-2 rounded-full overflow-hidden' />
-              <div className='flex justify-between items-center'>
-                <span className='scale-90'>{fmtTime(epoch.startTime * 1000n, 'all-s')}</span>
-                <span className='scale-90'>{fmtTime((epoch.startTime + epoch.duration) * 1000n, 'all-s')}</span>
-              </div>
-            </div>
-          )}
-        </div>
+        <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
       </div>
-      <div className='md:col-span-2 card !p-4 flex flex-col gap-1'>
-        <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
-        <div className='text-base font-bold my-2'>Receive</div>
-        <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable checkBalance={false} amount={outputYTokenFmt} />
-
-        <div className='text-xs font-medium  flex justify-between select-none'>
-          <div className='flex items-center gap-2'>
-            <RiLoopLeftFill className='text-sm text-primary cursor-pointer inline-block' onClick={() => togglePriceSwap()} />
-            <span>{`Price: ${priceStr}`}</span>
-          </div>
-          <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
-        </div>
-        <div className='text-xs font-medium text-black/80 dark:text-white/80'>
-          1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1 {assetSymbolShort} until the end of Epoch.
-        </div>
-
-        <ApproveAndTx
-          className='mx-auto mt-6'
-          tx='Buy'
-          disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
-          config={{
-            abi: abiBVault,
-            address: bvc.vault,
-            functionName: 'swap',
-            args: [inputAssetBn],
-          }}
-          approves={{
-            [bvc.asset]: inputAssetBn,
-          }}
-          spender={bvc.vault}
-          onTxSuccess={() => {
-            setInputAsset('')
-            upForUserAction()
-          }}
-        />
+      <div className='text-xs font-medium text-black/80 dark:text-white/80'>
+        1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1 {assetSymbolShort} until the end of Epoch.
       </div>
+      <ApproveAndTx
+        className='mx-auto mt-auto'
+        tx='Buy'
+        disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
+        config={{
+          abi: abiBVault,
+          address: bvc.vault,
+          functionName: 'swap',
+          args: [inputAssetBn],
+        }}
+        approves={{
+          [bvc.asset]: inputAssetBn,
+        }}
+        spender={bvc.vault}
+        onTxSuccess={() => {
+          setInputAsset('')
+          upForUserAction()
+        }}
+      />
     </div>
   )
 }
@@ -408,103 +415,97 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const upForUserAction = useUpBVaultForUserAction(bvc)
   function rowRender({ key, style, index }: ListRowProps) {
     const itemEpoch = epoches[index]
-    const fTime = `${fmtTime(itemEpoch.startTime * 1000n, 'date')}-${fmtTime((itemEpoch.startTime + itemEpoch.duration) * 1000n, 'date')}`
+    const fTime = `${fmtDate(itemEpoch.startTime * 1000n)}-${fmtDate((itemEpoch.startTime + itemEpoch.duration) * 1000n)}`
     return (
       <div key={key} style={style} className='cursor-pointer' onClick={() => onRowClick(index)}>
-        <div className={cn('flex h-[56px] card !rounded-lg !p-5 justify-between items-center font-semibold', index < epoches.length - 1 ? 'mb-[20px]' : '')}>
-          <div className='text-base'>Epoch {epoches[index].epochId.toString()}</div>
-          <div className='text-xs dark:text-white/60'>{fTime}</div>
+        <div className={cn('h-[56px] card !rounded-lg !px-5 !py-2 font-semibold', index < epoches.length - 1 ? 'mb-[20px]' : '')}>
+          <div className='text-sm'>Epoch {epoches[index].epochId.toString()}</div>
+          <div className='text-xs dark:text-white/60 mt-1'>{fTime}</div>
         </div>
       </div>
     )
   }
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-3 gap-5 mt-5', maxClassname)}>
-      <div ref={mesRef}>
-        <div className='flex items-center gap-8 text-xl font-semibold mb-6'>
-          <span>My Pool Only</span>
-          <Switch checked={onlyMy} onChange={setOnlyMy as any} />
-        </div>
-        <List
-          className={epoches.length > viewMax ? 'pr-5' : ''}
-          width={mes.width}
-          height={mes.height - 52}
-          rowHeight={({ index }) => (index < epoches.length - 1 ? itemHeight + itemSpaceY : itemHeight)}
-          overscanRowCount={viewMax}
-          rowCount={epoches.length}
-          rowRenderer={rowRender}
-        />
-      </div>
-      <div className='md:col-span-2 card !p-4 flex flex-col gap-2'>
-        <div className='flex gap-6 items-end font-semibold'>
-          <span className='text-xl '>Accumulated Rewards</span>
-          <span className='text-xs dark:text-white/60'>Epoch {(current?.epochId || 1n).toString()}</span>
-        </div>
-        <div className='flex-1 mt-3 rounded-lg border border-solid border-border p-4'>
-          <STable
-            headerClassName='text-center text-black/60 dark:text-white/60 border-b-0'
-            rowClassName='text-center'
-            header={['', '', 'Total', 'Mine', '']}
-            span={{ 1: 2, 2: 1, 3: 1 }}
-            data={bribes.map((item) => ['', <BribeTit name={item.bribeSymbol} key={'1'} />, displayBalance(item.bribeTotalAmount), displayBalance(item.bribeAmount), ''])}
+    <div className='md:h-[24.25rem] card !p-4'>
+      <div className='font-bold text-base'>Harvest</div>
+      <div className={cn('flex flex-col md:flex-row gap-4 mt-2')}>
+        <div className='flex flex-col gap-4 shrink-0 w-full md:w-[14.375rem]' ref={mesRef}>
+          <div className='flex items-center gap-8 text-sm font-semibold'>
+            <span>My Pool Only</span>
+            <Switch checked={onlyMy} onChange={setOnlyMy as any} />
+          </div>
+          <List
+            className={epoches.length > viewMax ? 'pr-5' : ''}
+            width={mes.width}
+            height={280}
+            rowHeight={({ index }) => (index < epoches.length - 1 ? itemHeight + itemSpaceY : itemHeight)}
+            overscanRowCount={viewMax}
+            rowCount={epoches.length}
+            rowRenderer={rowRender}
           />
         </div>
-        <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>
-          <div className='font-semibold text-xs'>
-            <div>
-              My yToken: <span className={cn(valueClassname)}>{displayBalance(userBalanceYToken)}</span>
+        <div className='flex flex-col gap-2 w-full'>
+          <div className='flex gap-6 items-end font-semibold'>
+            <span className='text-sm'>Accumulated Rewards</span>
+            <span className='text-xs dark:text-white/60'>Epoch {(current?.epochId || 1n).toString()}</span>
+          </div>
+          <div className='mt-2 rounded-lg border border-solid border-border px-4 py-1 h-[8.125rem] overflow-auto'>
+            <STable
+              headerClassName='text-center text-black/60 dark:text-white/60 border-b-0'
+              headerItemClassName='py-1'
+              rowClassName='text-center'
+              cellClassName='py-0'
+              header={['', '', 'Total', 'Mine', '']}
+              span={{ 1: 2, 2: 1, 3: 1 }}
+              data={bribes.map((item) => ['', <BribeTit name={item.bribeSymbol} key={'1'} />, displayBalance(item.bribeTotalAmount), displayBalance(item.bribeAmount), ''])}
+            />
+          </div>
+          <div className='rounded-lg border border-solid border-border px-4 py-2 flex justify-between items-center'>
+            <div className='font-semibold text-xs'>
+              <div>
+                My yToken: <span className={cn(valueClassname)}>{displayBalance(userBalanceYToken)}</span>
+              </div>
+              <div>
+                Time Weighted Points:{' '}
+                <span className={cn(valueClassname)}>
+                  {userBalanceYToken > 0n && userBalanceYTokenSyntyetic == 0n ? 'Reward received' : displayBalance(userBalanceYTokenSyntyetic)}
+                </span>
+              </div>
             </div>
-            <div>
-              Time Weighted Points:{' '}
-              <span className={cn(valueClassname)}>
-                {userBalanceYToken > 0n && userBalanceYTokenSyntyetic == 0n ? 'Reward received' : displayBalance(userBalanceYTokenSyntyetic)}
-              </span>
+            <div className='text-sm'>
+              My Share: <span className={cn(valueClassname, 'text-xl')}>{myShare}</span>
             </div>
           </div>
-          <div>
-            My Share: <span className={cn(valueClassname, 'text-2xl')}>{myShare}</span>
-          </div>
+          <span className='text-xs mx-auto'>You can harvest at the end of Epoch</span>
+          <ApproveAndTx
+            className='mx-auto mt-4'
+            tx='Harvest'
+            disabled={!current || !current?.settled}
+            config={{
+              abi: abiBVault,
+              address: bvc.vault,
+              functionName: 'claimBribes',
+              args: [current?.epochId!],
+            }}
+            onTxSuccess={() => {
+              upForUserAction()
+            }}
+          />
         </div>
-        <span className='text-xs mx-auto'>You can harvest at the end of Epoch</span>
-        <ApproveAndTx
-          className='mx-auto mt-4'
-          tx='Harvest'
-          disabled={!current || !current?.settled}
-          config={{
-            abi: abiBVault,
-            address: bvc.vault,
-            functionName: 'claimBribes',
-            args: [current?.epochId!],
-          }}
-          onTxSuccess={() => {
-            upForUserAction()
-          }}
-        />
       </div>
     </div>
   )
 }
 
-export function BVaultMint({ bvc }: { bvc: BVaultConfig }) {
+export function BVaultB({ bvc }: { bvc: BVaultConfig }) {
   const bvd = useBVault(bvc.vault)
   return (
-    <>
-      <BVaultP bvc={bvc} />
-      <BVaultY bvc={bvc} />
-      {/* <div className='page-title mt-8'>Bribes Pools</div> */}
-      {/* <BVaultPools bvc={bvc} /> */}
-      {bvd.epochCount && <BvaultEpochYtPrices bvc={bvc} epochId={bvd.epochCount} />}
-    </>
-  )
-}
-export function BVaultHarvest({ bvc }: { bvc: BVaultConfig }) {
-  return (
-    <>
-      {/* <BVaultP bvc={bvc} />
-      <BVaultY bvc={bvc} /> */}
-      {/* <div className='page-title mt-8'>Bribes Pools</div> */}
+    <div className='grid grid-cols-1 md:grid-cols-[4fr_6fr] gap-5'>
+      <BVaultYInfo bvc={bvc} />
+      <BvaultEpochYtPrices bvc={bvc} epochId={bvd.epochCount} />
+      <BVaultYTrans bvc={bvc} />
       <BVaultPools bvc={bvc} />
-    </>
+    </div>
   )
 }
 
@@ -525,6 +526,8 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const [fmtBoost] = useBVaultBoost(vc.vault)
   const [fmtApy] = useBVaultApy(vc.vault)
   const epochName = `Epoch ${(bvd?.epochCount || 0n).toString()}`
+  const settleTime = bvd.epochCount == 0n ? '-- -- --' : fmtDate((bvd.current.startTime + bvd.current.duration) * 1000n, FMT.DATE2)
+  const settleDuration = bvd.epochCount == 0n ? '' : fmtDuration((bvd.current.startTime + bvd.current.duration) * 1000n - BigInt(_.now()))
 
   return (
     <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
@@ -541,9 +544,38 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
       </div>
       {renderToken(token1, lpBase, lpBaseTvlBn)}
       {renderToken(token2, lpQuote, lpQuoteTvlBn, true)}
-      {renderStat('Status', bvd.closed ? 'status-red' : 'status-green', bvd.closed ? 'Closed' : epochName)}
+      {renderStat(
+        'Settlement Time',
+        bvd.closed ? 'status-red' : 'status-green',
+        bvd.closed ? (
+          'Closed'
+        ) : (
+          <div className='relative'>
+            <div className='flex gap-2 items-end'>
+              <span>{settleTime}</span>
+              <span className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{settleDuration}</span>
+            </div>
+            {bvd.epochCount > 0n && <div className='absolute top-full mt-1 left-0 text-[#64748B] dark:text-slate-50/60 text-xs font-semibold whitespace-nowrap'>{epochName}</div>}
+          </div>
+        ),
+      )}
       {renderStat('Reward', 'iBGT', 'iBGT', true)}
-      {renderChoseSide('Panda', 'Principal Panda', fmtApy, 'Venom', 'Boost Venom', `${fmtBoost}x`)}
+      {renderChoseSide(
+        'Panda',
+        'Principal Panda',
+        fmtApy,
+        'Venom',
+        'Boost Venom',
+        `${fmtBoost}x`,
+        (e) => {
+          e.stopPropagation()
+          r.push(`/b-vaults?vault=${vc.vault}&tab=principal_panda`)
+        },
+        (e) => {
+          e.stopPropagation()
+          r.push(`/b-vaults?vault=${vc.vault}&tab=boost_venom`)
+        },
+      )}
     </div>
   )
 }

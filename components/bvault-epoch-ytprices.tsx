@@ -3,7 +3,7 @@ import { BVaultConfig } from '@/config/bvaults'
 import { useQuery } from '@tanstack/react-query'
 import EChartsReact from 'echarts-for-react'
 
-import { cn, fmtTime } from '@/lib/utils'
+import { cn, FMT, fmtDate } from '@/lib/utils'
 import { graphic } from 'echarts'
 import _ from 'lodash'
 import { useMemo } from 'react'
@@ -26,7 +26,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
   })
   const [isLOG, togLOG] = useToggle(true)
   const { options } = useMemo(() => {
-    const data = prices.map((p) => [fmtTime(p.time * 1000, 'all'), isLOG ? logTrans(bnToNum(p.price)) : bnToNum(p.price)])
+    const data = prices.map((p) => [fmtDate(p.time * 1000, FMT.ALL), isLOG ? logTrans(bnToNum(p.price)) : bnToNum(p.price)])
     const valueFormater = (value: number) => (isLOG ? revertLog(value).toString() : value.toString())
     const calcMax = (v: any) => {
     //    const max = value.max * 1.1
@@ -97,7 +97,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
   }, [prices, isLOG])
 
   return (
-    <div className='card mx-auto max-w-4xl w-full'>
+    <div className='card p-4 mx-auto max-w-4xl w-full min-w-0'>
       <div className='flex justify-between gap-2 items-center'>
         <span className='text-base font-bold'>YT Price Chart</span>
         <span className='text-xs font-medium dark:text-[#FBECEC]'>The value of YT will become ZERO at the end of the Epoch.</span>

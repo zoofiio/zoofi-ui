@@ -8,11 +8,10 @@ export const IconsMap = {
   Bull: BullLine,
   Panda: PandaLine,
   Venom: VenomLine,
-}
-
-export default {
   BeraLine,
   BullLine,
   PandaLine,
   VenomLine,
 }
+
+export default IconsMap

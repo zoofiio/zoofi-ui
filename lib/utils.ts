@@ -4,6 +4,7 @@ import { formatUnits, parseUnits, parseEther as _parseEther, etherUnits, Address
 import _, { get } from 'lodash'
 import { toast } from 'sonner'
 import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
+import dayjs from 'dayjs'
 
 export type UnwrapPromise<T> = T extends Promise<infer S> ? S : T
 export type UnPromise<T> = T extends () => Promise<infer U> ? U : UnwrapPromise<T>
@@ -114,29 +115,19 @@ export const shortStr = (v?: string, count = 6, endCount = 5) => {
   return `${v.toString().substring(0, count)}...${v.toString().substring(v.length - endCount)}`
 }
 
-export const fmtTime = (time: number | string | bigint, type: 'date' | 'time' | 'all' | 'all-s' = 'all', locale: 'zh' | 'en' = 'en', split: string = '/') => {
-  const date = new Date(typeof time == 'number' ? time : typeof time == 'bigint' ? parseInt(time.toString()) : time + ' UTC')
-  let res = ''
-  switch (type) {
-    case 'date':
-      res = date.toLocaleDateString(locale)
-      break
-    case 'time':
-      res = date.toLocaleTimeString(locale)
-      break
-    case 'all':
-      res = date.toLocaleString(locale)
-      break
-    case 'all-s':
-      const time = date.toLocaleTimeString(locale)
-      res = date.toLocaleDateString(locale) + ' ' + time.slice(0, 5) + time.slice(8)
-      break
-  }
-  if (split !== '/') {
-    res = res.replaceAll('/', split)
-  }
-  return res
+export const FMT = {
+  DEF: 'YYYY/MM/DD',
+  DATE: 'DD/MM/YYYY',
+  DATE2: 'D MMM YYYY',
+  ALL: 'YYYY/MM/DD HH:mm:ss',
+  ALL2: 'YYYY/MM/DD hh:mm A',
+} as const
+
+export const fmtDate = (time: number | string | bigint | Date, fmt: string = FMT.DEF) => {
+  const mtime = typeof time == 'bigint' ? parseInt(time.toString()) : time
+  return dayjs(mtime).format(fmt)
 }
+
 // 'seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'
 const FMT_DURATION_TYPES = ['seconds', 'minutes', 'hours', 'days', 'months', 'years'] as const
 type FMT_DURATION_TYPE = (typeof FMT_DURATION_TYPES)[number]

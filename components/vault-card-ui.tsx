@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import { CoinIcon } from './icons/coinicon'
 import { displayBalance } from '@/utils/display'
 import { IconsMap } from './icons'
+import { MouseEventHandler, ReactNode } from 'react'
 
 export const itemClassname = 'py-5 flex flex-col items-center gap-2 relative dark:border-border border-solid'
 export const renderToken = (symbol: string, amount: bigint, usd: bigint, borderL: boolean = false) => {
@@ -20,15 +21,13 @@ export const renderToken = (symbol: string, amount: bigint, usd: bigint, borderL
     </div>
   )
 }
-export const renderStat = (tit: string, icon: string, sub: string, borderL: boolean = false) => (
-  <div className={cn(itemClassname, 'border-b', { 'border-l': borderL })}>
+export const renderStat = (tit: string, icon: string, sub: ReactNode, borderL: boolean = false) => (
+  <div className={cn(itemClassname, 'border-b pb-10', { 'border-l': borderL })}>
     <div>
-      <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-        {tit}
-      </div>
+      <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap text-center'>{tit}</div>
       <div className='flex mt-2 items-center gap-2 text-sm font-medium'>
         <CoinIcon symbol={icon} size={14} />
-        <span>{sub}</span>
+        {typeof sub == 'string' ? <span>{sub}</span> : sub}
       </div>
     </div>
   </div>
@@ -41,31 +40,31 @@ export const renderChoseSide = (
   rightSymbol: keyof typeof IconsMap,
   rightTitle: string,
   rightSub: string,
+  onClickLeft?: MouseEventHandler<HTMLDivElement>,
+  onClickRight?: MouseEventHandler<HTMLDivElement>,
 ) => {
   const LeftIcon = IconsMap[leftSymbol]
   const RightIcon = IconsMap[rightSymbol]
   return (
     <div className={cn(itemClassname, 'col-span-2 gap-4')}>
-      <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-        Choose your side
-      </div>
-      <div className='flex justify-between items-center gap-4 w-full px-4 md:px-5'>
-        <div className='flex gap-4 items-center'>
-          <LeftIcon className='text-4xl' showBg />
-          <div className='flex flex-col items-start gap-2'>
-            <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-              {leftTitle}
+      <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>Choose your side</div>
+      <div className='grid grid-cols-2 gap-4 w-full px-4'>
+        <div className='btn-primary h-auto w-full' onClick={onClickLeft}>
+          <div className='flex gap-2 items-center p-4'>
+            <LeftIcon className='text-4xl' showBg />
+            <div className='flex flex-col items-start gap-2'>
+              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>{leftTitle}</div>
+              <span className=' text-[14px] leading-[14px] font-medium'>{leftSub}</span>
             </div>
-            <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{leftSub}</span>
           </div>
         </div>
-        <div className='flex flex-row-reverse gap-4 items-center'>
-          <RightIcon className='text-4xl' showBg />
-          <div className='flex flex-col items-end gap-2'>
-            <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>
-              {rightTitle}
+        <div className='btn-primary h-auto w-full' onClick={onClickRight}>
+          <div className='flex flex-row-reverse gap-2 items-center p-4'>
+            <RightIcon className='text-4xl' showBg />
+            <div className='flex flex-col items-end gap-2'>
+              <div className='text-[#64748B] dark:text-slate-50/60 text-xs font-semibold leading-[12px] whitespace-nowrap'>{rightTitle}</div>
+              <span className=' text-[14px] leading-[14px] font-medium'>{rightSub}</span>
             </div>
-            <span className=' text-[14px] leading-[14px] font-medium ml-[5px]'>{rightSub}</span>
           </div>
         </div>
       </div>

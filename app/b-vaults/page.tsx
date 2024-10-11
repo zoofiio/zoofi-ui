@@ -1,6 +1,6 @@
 'use client'
 
-import { BVaultCard, BVaultCardComming, BVaultHarvest, BVaultMint, BVaultRedeem } from '@/components/b-vault'
+import { BVaultB, BVaultCard, BVaultCardComming, BVaultP, BVaultRedeem } from '@/components/b-vault'
 import { BVaultAddReward } from '@/components/bvault-add-reward'
 import { Noti } from '@/components/noti'
 import { PageWrap } from '@/components/page-wrap'
@@ -15,7 +15,7 @@ import { useBoundStore } from '@/providers/useBoundStore'
 import { useBVault, useEpochesData } from '@/providers/useBVaultsData'
 import { useQuery } from '@tanstack/react-query'
 import { Grid } from '@tremor/react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ReactNode, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 
@@ -23,9 +23,9 @@ function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
 }
 
-const SupportTabs = ['mint', 'harvest'] as const
+const SupportTabs = ['redeem', 'principal_panda', 'boost_venom'] as const
 
-function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
+function BVaultPage({ bvc, currentTab }: { bvc: BVaultConfig; currentTab?: string }) {
   const { address } = useAccount()
   const bvd = useBVault(bvc.vault)
 
@@ -59,46 +59,40 @@ function BVaultPage({ bvc }: { bvc: BVaultConfig }) {
       return passes.includes(true)
     },
   })
+  const odata = [
+    {
+      tab: bvd.closed ? 'Redeem' : 'Principal Panda',
+      content: bvd.closed ? (
+        <div className='max-w-4xl mx-auto pt-8'>
+          <BVaultRedeem bvc={bvc} />
+        </div>
+      ) : (
+        <BVaultP bvc={bvc} />
+      ),
+    },
+    {
+      tab: 'Boost Venom',
+      content: <BVaultB bvc={bvc} />,
+    },
+  ]
   const data =
     showAddReward && isBETA
       ? [
-          {
-            tab: bvd.closed ? 'Redeem' : 'Mint',
-            content: bvd.closed ? (
-              <div className='max-w-4xl mx-auto pt-8'>
-                <BVaultRedeem bvc={bvc} />
-              </div>
-            ) : (
-              <BVaultMint bvc={bvc} />
-            ),
-          },
-          {
-            tab: 'Harvest',
-            content: <BVaultHarvest bvc={bvc} />,
-          },
+          ...odata,
           {
             tab: 'Add Reward',
             content: <BVaultAddReward bvc={bvc} />,
           },
         ]
-      : [
-          {
-            tab: bvd.closed ? 'Redeem' : 'Mint',
-            content: bvd.closed ? (
-              <div className='max-w-4xl mx-auto pt-8'>
-                <BVaultRedeem bvc={bvc} />
-              </div>
-            ) : (
-              <BVaultMint bvc={bvc} />
-            ),
-          },
-          {
-            tab: 'Harvest',
-            content: <BVaultHarvest bvc={bvc} />,
-          },
-        ]
+      : odata
+  const tabToSearchParams = (tab: string) => tab.toLowerCase().replaceAll(' ', '_')
+  const ctab = data.find((item) => tabToSearchParams(item.tab) == currentTab)?.tab
+  const r = useRouter()
+
   return (
     <SimpleTabs
+      currentTab={ctab}
+      onTabChange={(tab) => r.push(`/b-vaults?vault=${bvc.vault}&tab=${tabToSearchParams(tab)}`)}
       listClassName='flex-wrap p-0 mb-5 md:gap-14'
       triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
       contentClassName='gap-5'
@@ -113,13 +107,13 @@ export default function Vaults() {
   const params = useSearchParams()
   const paramsVault = params.get('vault')
   const paramsTab = params.get('tab')
-  const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : 'deposit'
+  const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : ''
   const currentVc = bvcs.find((item) => item.vault == paramsVault)
   // useUpdateBVaultsData(bvcs)
   useLoadBVaults()
   return (
     <PageWrap>
-      <div className='w-full max-w-[1160px] px-4 mx-auto md:pb-8'>
+      <div className='w-full max-w-[1232px] px-4 mx-auto md:pb-8'>
         {!currentVc ? (
           <>
             <div className='page-title'>B-Vaults</div>
@@ -138,7 +132,7 @@ export default function Vaults() {
             </Grid>
           </>
         ) : (
-          <BVaultPage bvc={currentVc} />
+          <BVaultPage bvc={currentVc} currentTab={currentTab} />
         )}
       </div>
     </PageWrap>

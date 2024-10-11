@@ -10,7 +10,7 @@ import VenomLine from '@/components/icons/VenomLine'
 import { Tip } from '@/components/ui/tip'
 import { USB_ADDRESS, USBSymbol, VaultConfig, VAULTS_CONFIG } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { fmtPercent, fmtTime } from '@/lib/utils'
+import { fmtPercent, fmtDate } from '@/lib/utils'
 import { defLVault, useUSBApr } from '@/providers/useLVaultsData'
 import { useBalances } from '@/providers/useTokenStore'
 import { displayBalance } from '@/utils/display'
@@ -230,7 +230,7 @@ function BoostItem() {
           <div key={epoch.epochId.toString()} className='flex items-baseline'>
             <div className='w-[4rem]'>Epoch {epoch.epochId.toString()}</div>
             <div className='opacity-60 text-xs'>
-              {fmtTime(epoch.epochInfo!.startTime * 1000n, 'date')} - {fmtTime((epoch.epochInfo!.startTime + epoch.epochInfo!.duration) * 1000n, 'date')}
+              {fmtDate(epoch.epochInfo!.startTime * 1000n)} - {fmtDate((epoch.epochInfo!.startTime + epoch.epochInfo!.duration) * 1000n)}
             </div>
           </div>
         ))}

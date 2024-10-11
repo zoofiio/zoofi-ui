@@ -87,7 +87,7 @@ export function calcBVaultBoost(vault: Address) {
 }
 export function useBVaultBoost(vault: Address): [string, bigint] {
   const boost = useStoreShallow(() => calcBVaultBoost(vault))
-  return [displayBalance(boost, 2), boost]
+  return [displayBalance(boost, 0), boost]
 }
 
 export function calcBVaultPTApy(vault: Address) {
