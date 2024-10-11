@@ -23,6 +23,9 @@ import { calcBVaultPTApy } from '@/providers/useBVaultsData'
 import { UserBVaultsStore } from '@/providers/sliceUserBVaults'
 import { ReactNode, useMemo } from 'react'
 import _ from 'lodash'
+import { useRouter } from 'next/navigation'
+import { FiShare } from 'react-icons/fi'
+import { MdArrowOutward } from 'react-icons/md'
 
 function PortfolioItem({
   title,
@@ -132,6 +135,7 @@ function LeverageItem() {
 }
 
 function PrincipalItem() {
+  const r = useRouter()
   const chainId = useCurrentChainId()
   const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((bvc) => (bvc.onEnv || []).includes(ENV)), [chainId])
 
@@ -171,7 +175,14 @@ function PrincipalItem() {
         <CoinText key={'coin'} symbol={bvc.assetSymbol} txt={bvc.pTokenSymbol} size={32} />,
         displayBalance(pBalance),
         displayBalance(pRedeeming),
-        displayBalance(pClaimAble),
+        <div
+          key={'claim'}
+          className='flex w-fit cursor-pointer items-center gap-2 underline'
+          onClick={() => r.push(`/b-vaults?vault=${bvc.vault}&tab=principal_panda&subtab=claim`)}
+        >
+          {displayBalance(pClaimAble)}
+          <MdArrowOutward />
+        </div>,
         <div key={'total'} className='flex items-center gap-2'>
           <div style={{ width: fmtTotalUserWidth }}>{fmtTotalUser}</div>
           {lp && (
@@ -197,6 +208,7 @@ function PrincipalItem() {
 //
 
 function BoostItem() {
+  const r = useRouter()
   const chainId = useCurrentChainId()
   const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((bvc) => (bvc.onEnv || []).includes(ENV)), [chainId])
   const data: ReactNode[][] = useMemo(() => {
@@ -252,7 +264,16 @@ function BoostItem() {
       </div>,
       <div key={'status'}>
         {epochsData.map((epoch) => (
-          <div key={epoch.epochId.toString()}>{epoch.settled ? 'Mature' : 'Ongoing'}</div>
+          <div key={epoch.epochId.toString()}>
+            {epoch.settled ? (
+              <div key={'claim'} className='flex w-fit cursor-pointer items-center gap-2 underline' onClick={() => r.push(`/b-vaults?vault=${bvc.vault}&tab=boost_venom`)}>
+                {'Ready to Harvest'}
+                <MdArrowOutward />
+              </div>
+            ) : (
+              'Ongoing'
+            )}
+          </div>
         ))}
       </div>,
     ])

@@ -13,7 +13,7 @@ import { displayBalance } from '@/utils/display'
 import { ProgressBar } from '@tremor/react'
 import _ from 'lodash'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { RiLoopLeftFill } from 'react-icons/ri'
 import { useMeasure, useToggle } from 'react-use'
@@ -156,6 +156,55 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
       .catch(handleError)
   }
 
+  const params = useSearchParams()
+  const subtab = params.get('subtab') as string
+
+  const data = [
+    {
+      tab: 'Buy',
+      content: (
+        <div className='flex flex-col gap-1'>
+          <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
+          <div className='text-xs font-medium flex justify-end items-center'>
+            {isLP && (
+              <Link target='_blank' className='underline' href={getBexPoolURL(bvc.asset)}>
+                Get LP on BEX
+              </Link>
+            )}
+          </div>
+          <div className='text-xs font-medium text-center'>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</div>
+          <ApproveAndTx
+            className='mx-auto mt-4'
+            tx='Mint'
+            disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
+            spender={bvc.vault}
+            approves={{
+              [bvc.asset]: inputAssetBn,
+            }}
+            config={{
+              abi: abiBVault,
+              address: bvc.vault,
+              functionName: 'deposit',
+              args: [inputAssetBn],
+            }}
+            onTxSuccess={() => {
+              setInputAsset('')
+              upForUserAction()
+            }}
+          />
+        </div>
+      ),
+    },
+    {
+      tab: 'Withdraw',
+      content: <BVaultRedeem bvc={bvc} />,
+    },
+    {
+      tab: 'Claim',
+      content: <BVaultClaim bvc={bvc} />,
+    },
+  ]
+  const currentTab = data.find((item) => item.tab.toLowerCase() == subtab)?.tab
   return (
     <div className={cn('flex flex-col gap-5', maxClassname, 'max-w-xl')}>
       <div className='card !p-0 overflow-hidden w-full'>
@@ -177,53 +226,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
         </div>
       </div>
       <div className='md:col-span-2 card !p-4'>
-        <SimpleTabs
-          data={[
-            {
-              tab: 'Buy',
-              content: (
-                <div className='flex flex-col gap-1'>
-                  <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
-                  <div className='text-xs font-medium flex justify-end items-center'>
-                    {isLP && (
-                      <Link target='_blank' className='underline' href={getBexPoolURL(bvc.asset)}>
-                        Get LP on BEX
-                      </Link>
-                    )}
-                  </div>
-                  <div className='text-xs font-medium text-center'>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</div>
-                  <ApproveAndTx
-                    className='mx-auto mt-4'
-                    tx='Mint'
-                    disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
-                    spender={bvc.vault}
-                    approves={{
-                      [bvc.asset]: inputAssetBn,
-                    }}
-                    config={{
-                      abi: abiBVault,
-                      address: bvc.vault,
-                      functionName: 'deposit',
-                      args: [inputAssetBn],
-                    }}
-                    onTxSuccess={() => {
-                      setInputAsset('')
-                      upForUserAction()
-                    }}
-                  />
-                </div>
-              ),
-            },
-            {
-              tab: 'Withdraw',
-              content: <BVaultRedeem bvc={bvc} />,
-            },
-            {
-              tab: 'Claim',
-              content: <BVaultClaim bvc={bvc} />,
-            },
-          ]}
-        />
+        <SimpleTabs currentTab={currentTab} data={data} />
       </div>
     </div>
   )
