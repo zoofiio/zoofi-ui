@@ -100,7 +100,7 @@ export default function BvaultEpochYtPrices({ bvc, epochId }: { bvc: BVaultConfi
     <div className='card p-4 mx-auto max-w-4xl w-full min-w-0'>
       <div className='flex justify-between gap-2 items-center'>
         <span className='text-base font-bold'>YT Price Chart</span>
-        <span className='text-xs font-medium dark:text-[#FBECEC]'>The value of YT will become ZERO at the end of the Epoch.</span>
+        <span className='text-xs font-medium dark:text-[#FBECEC]'></span>
       </div>
       <div className='flex gap-2 justify-end items-center mt-2'>
         <span className={cn('cursor-pointer text-xs px-1 py-0 rounded border-primary border', isLOG ? 'bg-primary' : 'bg-transparent')} onClick={() => togLOG()}>

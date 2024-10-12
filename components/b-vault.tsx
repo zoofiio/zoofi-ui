@@ -57,7 +57,7 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
       </div>
       <ApproveAndTx
         className='mx-auto mt-6'
-        tx='Redeem'
+        tx='Request'
         spender={epoch?.redeemPool}
         approves={{
           [bvc.pToken]: inputPTokenBn,
@@ -118,7 +118,7 @@ export function BVaultClaim({ bvc }: { bvc: BVaultConfig }) {
         {
           <div className='flex items-center gap-4'>
             <PandaLine showBg className='text-2xl' />
-            <span className='font-semibold'>{bvc.assetSymbol}</span>
+            <span className='font-semibold'>{bvc.pTokenSymbol}</span>
             <span className='text-black/60 dark:text-white/60'>{displayBalance(redeemingBalance)}</span>
             <div className='ml-auto text-xs text-black/60 dark:text-white/60 '>
               Settlement Time : <span className='text-black dark:text-white font-semibold pr-2'>{fmtDate((bvd.current.duration + bvd.current.startTime) * 1000n, FMT.DATE2)}</span>{' '}
@@ -175,7 +175,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
           <div className='text-xs font-medium text-center'>{`Receive 1 ${pTokenSymbolShort} for every ${assetSymbolShort}`}</div>
           <ApproveAndTx
             className='mx-auto mt-4'
-            tx='Mint'
+            tx='Buy'
             disabled={inputAssetBn <= 0n || inputAssetBn > assetBalance}
             spender={bvc.vault}
             approves={{
@@ -217,7 +217,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
         </div>
         <div className='flex items-baseline justify-between px-5 pt-5 gap-5'>
           <TupleTxt tit='APY Est.' sub={fmtApy} />
-          <TupleTxt tit='Total Minted' sub={<>{displayBalance(bvd.pTokenTotal)}</>} />
+          <TupleTxt tit='Total Supply' sub={<>{displayBalance(bvd.pTokenTotal)}</>} />
         </div>
         <div className='flex px-2 pb-5'>
           <button className='btn-link ml-auto text-black/60 dark:text-white/60 text-xs' onClick={onAddPToken}>
@@ -295,7 +295,6 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const assetSymbolShort = isLP ? 'LP token' : bvc.assetSymbol
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
-  const { address } = useAccount()
   const bvd = useBVault(bvc.vault)
   const epoch = bvd.current
   const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
@@ -325,8 +324,6 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const outputYTokenFmt = fmtBn(outputYTokenForInput, undefined, true)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
   // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
-  const oneYTYieldOfAsset = bvd.current.yTokenAmountForSwapYT > 0n ? (bvd.lockedAssetTotal * DECIMAL) / bvd.current.yTokenAmountForSwapYT : 0n
-  const [fmtBoost] = useBVaultBoost(bvc.vault)
   const upForUserAction = useUpBVaultForUserAction(bvc)
   const calcProgress = (ep: typeof epoch) => {
     const now = BigInt(Math.floor(new Date().getTime() / 1000))
@@ -347,9 +344,9 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
         </div>
         <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
       </div>
-      <div className='text-xs font-medium text-black/80 dark:text-white/80'>
+      {/* <div className='text-xs font-medium text-black/80 dark:text-white/80'>
         1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1 {assetSymbolShort} until the end of Epoch.
-      </div>
+      </div> */}
       <ApproveAndTx
         className='mx-auto mt-auto'
         tx='Buy'
