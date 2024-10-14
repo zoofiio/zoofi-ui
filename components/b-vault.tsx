@@ -530,7 +530,7 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const settleDuration = bvd.epochCount == 0n ? '' : fmtDuration((bvd.current.startTime + bvd.current.duration) * 1000n - BigInt(_.now()))
 
   return (
-    <div className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {})} onClick={() => r.push(`/b-vaults?vault=${vc.vault}`)}>
+    <div className={cn('card !p-0 grid grid-cols-2 overflow-hidden', {})}>
       <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
         <CoinIcon symbol={vc.assetSymbol} size={44} />
         <div>
