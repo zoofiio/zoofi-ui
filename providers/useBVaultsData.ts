@@ -80,7 +80,7 @@ export function calcBVaultBoost(vault: Address) {
   const oneYTYieldOfAsset = yTokenAmountForSwapYT > 0n ? (lockedAssetTotal * DECIMAL) / yTokenAmountForSwapYT : 0n
   // bvd?.current.
   // const boost = bvd && bvd.current.assetTotalSwapAmount > 0n ? (bvd.lockedAssetTotal * 100n) / bvd.current.assetTotalSwapAmount : 100000n
-  
+
   console.info('calcBootst:', displayBalance(ytAssetPriceBnReverse), displayBalance(oneYTYieldOfAsset))
   const boost = (oneYTYieldOfAsset * ytAssetPriceBnReverse) / DECIMAL
   return boost
@@ -102,11 +102,12 @@ export function useBVaultApy(vault: Address): [string, bigint] {
   return [fmtPercent(apy, 10), apy]
 }
 
-export function useUpBVaultForUserAction(bvc: BVaultConfig) {
+export function useUpBVaultForUserAction(bvc: BVaultConfig, onUserAction?: () => void) {
   const { address } = useAccount()
   return () => {
     retry(
       async () => {
+        onUserAction?.()
         if (!address) return
         await Promise.all([
           useBoundStore.getState().sliceTokenStore.updateTokensBalance([bvc.asset, bvc.pToken], address),

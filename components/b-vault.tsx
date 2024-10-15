@@ -16,7 +16,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 import { RiLoopLeftFill } from 'react-icons/ri'
-import { useMeasure, useToggle } from 'react-use'
+import { useDebounce, useMeasure, useToggle } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
 import { useAccount, useReadContract, useWalletClient } from 'wagmi'
@@ -29,6 +29,10 @@ import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
+import { useQuery } from '@tanstack/react-query'
+import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { getPC } from '@/providers/publicClient'
+import { Spinner } from './spinner'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -298,19 +302,23 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const bvd = useBVault(bvc.vault)
   const epoch = bvd.current
   const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
-  const { data: result, refetch: reFetchCalcSwap } = useReadContract({
-    abi: abiBVault,
-    address: bvc.vault,
-    functionName: 'calcSwap',
-    args: [inputAssetBn],
-    query: {
-      retry: true,
-    },
+  // const { data: result, refetch: reFetchCalcSwap } = useReadContract({
+  //   abi: abiBVault,
+  //   address: bvc.vault,
+  //   functionName: 'calcSwap',
+  //   args: [inputAssetBn],
+  //   query: {
+  //     retry: true,
+  //   },
+  // })
+  const chainId = useCurrentChainId()
+  const [calcSwapKey, setCalcSwapKey] = useState(['calcSwap', bvc.vault, inputAssetBn, chainId])
+  useDebounce(() => setCalcSwapKey(['calcSwap', bvc.vault, inputAssetBn, chainId]), 300, ['calcSwap', bvc.vault, inputAssetBn, chainId])
+  const { data: result, isFetching: isFetchingSwap } = useQuery({
+    queryKey: calcSwapKey,
+    queryFn: () => getPC().readContract({ abi: abiBVault, address: bvc.vault, functionName: 'calcSwap', args: [inputAssetBn] }),
   })
-  const wt = useWandTimestamp()
-  useEffect(() => {
-    reFetchCalcSwap()
-  }, [wt.time])
+
   const [priceSwap, togglePriceSwap] = useToggle(false)
   const vualtYTokenBalance = bvd.current.vaultYTokenBalance
   const outputYTokenForInput = getBigint(result, '1')
@@ -323,26 +331,19 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput, undefined, true)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
-  // console.info('result:', result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
+  console.info('result:', inputAssetBn, result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
   const upForUserAction = useUpBVaultForUserAction(bvc)
-  const calcProgress = (ep: typeof epoch) => {
-    const now = BigInt(Math.floor(new Date().getTime() / 1000))
-    if (now < ep.startTime) return 0
-    if (now - epoch.startTime >= epoch.duration) return 100
-    const progress = ((now - epoch.startTime) * 100n) / ep.duration
-    return parseInt(progress.toString())
-  }
   return (
     <div className='card !p-4 flex flex-col h-[24.25rem] gap-1'>
       <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
       <div className='text-base font-bold my-2'>Receive</div>
-      <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' readonly disable checkBalance={false} amount={outputYTokenFmt} />
+      <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' loading={isFetchingSwap} readonly disable checkBalance={false} amount={outputYTokenFmt} />
       <div className='text-xs font-medium  flex justify-between select-none'>
         <div className='flex items-center gap-2'>
           <RiLoopLeftFill className='text-sm text-primary cursor-pointer inline-block' onClick={() => togglePriceSwap()} />
           <span>{`Price: ${priceStr}`}</span>
         </div>
-        <span>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</span>
+        <div className='flex gap-2 items-center'>{`Price Impact: ${fmtPercent(priceImpact, 10, 2)}`}</div>
       </div>
       {/* <div className='text-xs font-medium text-black/80 dark:text-white/80'>
         1 {yTokenSymbolShort} represents the yield {<span className='font-extrabold text-base'>at least</span>} 1 {assetSymbolShort} until the end of Epoch.

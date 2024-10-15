@@ -8,6 +8,7 @@ import Select from 'react-select'
 import { formatUnits } from 'viem'
 import { CoinIcon } from './icons/coinicon'
 import { useThemeState } from './theme-mode'
+import { Spinner } from './spinner'
 
 export function AssetInput({
   asset = 'ETH',
@@ -30,6 +31,7 @@ export function AssetInput({
   onChange = () => {},
   defaultValue,
   balanceClassName = '',
+  loading,
   disableNegative,
 }: {
   asset: string
@@ -51,15 +53,14 @@ export function AssetInput({
   options?: { value: any; label: string }[]
   onChange?: any
   defaultValue?: any
+  loading?: boolean
   balanceClassName?: string
   disableNegative?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const balanceInsufficient =
-    checkBalance &&
-    typeof balance !== 'undefined' &&
-    parseEthers(typeof amount == 'number' ? amount + '' : amount || '') > (typeof balance == 'bigint' ? balance : 0n)
+    checkBalance && typeof balance !== 'undefined' && parseEthers(typeof amount == 'number' ? amount + '' : amount || '') > (typeof balance == 'bigint' ? balance : 0n)
   const isDark = useThemeState((t) => t.theme == 'dark')
   const isError = balanceInsufficient
   return (
@@ -70,16 +71,9 @@ export function AssetInput({
       }}
     >
       <div className='relative'>
-        <div
-          className='absolute flex items-center h-fit gap-2 left-[48px] bottom-1 w-full  max-w-[calc(100%-56px)]'
-          style={{ pointerEvents: 'none' }}
-        >
-          {price && (
-            <div className='text-neutral-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>{price}</div>
-          )}
-          {exchange && (
-            <div className='text-slate-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>~${exchange}</div>
-          )}
+        <div className='absolute flex items-center h-fit gap-2 left-[48px] bottom-1 w-full  max-w-[calc(100%-56px)]' style={{ pointerEvents: 'none' }}>
+          {price && <div className='text-neutral-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>{price}</div>}
+          {exchange && <div className='text-slate-500 dark:text-slate-50/70 text-xs max-w-full overflow-hidden'>~${exchange}</div>}
         </div>
         <div className='absolute flex items-center gap-2 w-fit top-1/2 left-4 -translate-y-1/2'>
           <CoinIcon size={24} symbol={assetIcon || asset} url={assetURL} className='rounded-full' />
@@ -125,9 +119,9 @@ export function AssetInput({
           </div>
         </div>
         <input
-          value={amount}
+          value={loading ? '' : amount}
           onChange={(e) => {
-            if(readonly) return;
+            if (readonly) return
             const numstr = (e.target.value || '').replaceAll('-', '').replaceAll('+', '')
             setAmount(numstr)
           }}
@@ -150,6 +144,7 @@ export function AssetInput({
           title=''
           readOnly={readonly}
         />
+        {loading && <Spinner className='absolute right-24 top-[1.125rem]'/>}
       </div>
 
       {balance != undefined && (

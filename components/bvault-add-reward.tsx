@@ -20,6 +20,7 @@ import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
 import { TokenItem } from '@/providers/sliceTokenStore'
 import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
+import { useDebounce } from 'react-use'
 
 const defTokens: TokenItem[] = [
   { symbol: 'HONEY', name: 'HONEY Token', address: '0x0e4aaf1351de4c0264c5c7056ef3777b41bd8e03' },
@@ -43,22 +44,8 @@ function TokenSelect({ tokens, onSelect, hiddenNative }: { tokens?: TokenItem[];
   const [input, setInput] = useState('')
   const balances = useBalances()
   const { address: user } = useAccount()
-
   const [queryKey, updateQueryKey] = useState(['searchTokens', input, originTokens])
-  const doUpQueryKey = useMemo(
-    () =>
-      _.debounce(
-        (input: string, list: TokenItem[]) => {
-          updateQueryKey(['searchTokens', input, list])
-        },
-        300,
-        { leading: true, maxWait: 300 },
-      ),
-    [],
-  )
-  useEffect(() => {
-    doUpQueryKey(input, originTokens)
-  }, [input, originTokens])
+  useDebounce(() => updateQueryKey(['searchTokens', input, originTokens]), 300, [input, originTokens])
   const { data: searchdTokens, isFetching } = useQuery({
     initialData: originTokens,
     queryFn: async () => {
