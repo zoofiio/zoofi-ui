@@ -300,17 +300,7 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
   const bvd = useBVault(bvc.vault)
-  const epoch = bvd.current
   const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
-  // const { data: result, refetch: reFetchCalcSwap } = useReadContract({
-  //   abi: abiBVault,
-  //   address: bvc.vault,
-  //   functionName: 'calcSwap',
-  //   args: [inputAssetBn],
-  //   query: {
-  //     retry: true,
-  //   },
-  // })
   const chainId = useCurrentChainId()
   const [calcSwapKey, setCalcSwapKey] = useState(['calcSwap', bvc.vault, inputAssetBn, chainId])
   useDebounce(() => setCalcSwapKey(['calcSwap', bvc.vault, inputAssetBn, chainId]), 300, ['calcSwap', bvc.vault, inputAssetBn, chainId])
@@ -331,13 +321,13 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const afterYtAssetPrice = vualtYTokenBalance > outputYTokenForInput ? ((bvd.Y + inputAssetBn) * DECIMAL) / (vualtYTokenBalance - outputYTokenForInput) : 0n
   const outputYTokenFmt = fmtBn(outputYTokenForInput, undefined, true)
   const priceImpact = afterYtAssetPrice > ytAssetPriceBn && ytAssetPriceBn > 0n ? ((afterYtAssetPrice - ytAssetPriceBn) * BigInt(1e10)) / ytAssetPriceBn : 0n
-  console.info('result:', inputAssetBn, result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
+  // console.info('result:', inputAssetBn, result, fmtBn(afterYtAssetPrice), fmtBn(ytAssetPriceBn))
   const upForUserAction = useUpBVaultForUserAction(bvc)
   return (
     <div className='card !p-4 flex flex-col h-[24.25rem] gap-1'>
       <AssetInput asset={bvc.assetSymbol} amount={inputAsset} balance={assetBalance} setAmount={setInputAsset} />
       <div className='text-base font-bold my-2'>Receive</div>
-      <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' loading={isFetchingSwap} readonly disable checkBalance={false} amount={outputYTokenFmt} />
+      <AssetInput asset={bvc.yTokenSymbol} assetIcon='Venom' loading={isFetchingSwap && !!inputAsset} readonly disable checkBalance={false} amount={outputYTokenFmt} />
       <div className='text-xs font-medium  flex justify-between select-none'>
         <div className='flex items-center gap-2'>
           <RiLoopLeftFill className='text-sm text-primary cursor-pointer inline-block' onClick={() => togglePriceSwap()} />
