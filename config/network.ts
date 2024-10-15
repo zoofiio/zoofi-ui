@@ -10,7 +10,7 @@ export const berachainTestnet = defineChain({
     symbol: 'BERA',
   },
   rpcUrls: {
-    default: { http: ['https://bera-testnet.nodeinfra.com', 'https://bartio.rpc.berachain.com'] },
+    default: { http: ['https://berachain-bartio.g.alchemy.com/v2/YU6TIvn1RpD1wyHrDMpt4Yt6_bJYmOtk', 'https://bartio.rpc.berachain.com'] },
   },
   blockExplorers: {
     default: {
