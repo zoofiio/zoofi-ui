@@ -385,6 +385,9 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
   const [currentEpochId, setCurrentEpochId] = useState<bigint | undefined>(epoches[0]?.epochId)
+  useEffect(() => {
+    !currentEpochId && epoches.length && setCurrentEpochId(epoches[0].epochId)
+  }, [epoches])
   const current = useMemo(() => epoches.find((e) => e.epochId == currentEpochId), [epoches, currentEpochId])
   const userBalanceYToken = current?.userBalanceYToken || 0n
   const userBalanceYTokenSyntyetic = current?.userBalanceYTokenSyntyetic || 0n
