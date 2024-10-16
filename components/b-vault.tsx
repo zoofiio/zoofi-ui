@@ -371,11 +371,9 @@ function BribeTit(p: { name: string }) {
 }
 
 function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
-  const { address } = useAccount()
   const [onlyMy, setOnlyMy] = useState(false)
   const epochesData = useEpochesData(bvc.vault)
   const epoches = useMemo(() => {
-    // console.info('epchesDataChange:', epochesData.length)
     const myFilter = (item: (typeof epochesData)[number]) => item.bribes.reduce((sum, b) => sum + b.bribeAmount, 0n) > 0n
     return onlyMy ? epochesData.filter(myFilter) : epochesData
   }, [epochesData, onlyMy])
@@ -385,21 +383,12 @@ function BVaultPools({ bvc }: { bvc: BVaultConfig }) {
   const [mesRef, mes] = useMeasure<HTMLDivElement>()
   const valueClassname = 'text-black/60 dark:text-white/60 text-sm'
   const [currentEpochId, setCurrentEpochId] = useState<bigint | undefined>(epoches[0]?.epochId)
-  useEffect(() => {
-    !currentEpochId && epoches.length && setCurrentEpochId(epoches[0].epochId)
-  }, [epoches])
-  const current = useMemo(() => epoches.find((e) => e.epochId == currentEpochId), [epoches, currentEpochId])
+  const current = useMemo(() => (!currentEpochId ? epoches[0] : epoches.find((e) => e.epochId == currentEpochId)), [epoches, currentEpochId])
   const userBalanceYToken = current?.userBalanceYToken || 0n
   const userBalanceYTokenSyntyetic = current?.userBalanceYTokenSyntyetic || 0n
   const onRowClick = (index: number) => {
     setCurrentEpochId(epoches[index]?.epochId)
   }
-  useEffect(() => {
-    if (!currentEpochId && epoches.length) {
-      onRowClick(0)
-    }
-  }, [epoches, currentEpochId])
-
   const bribes = current?.bribes || []
   const myShare = useMemo(() => {
     const fb = bribes.find((b) => b.bribeAmount > 0n)
