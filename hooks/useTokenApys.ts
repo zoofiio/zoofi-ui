@@ -4,7 +4,7 @@ import { usePtypoolApy } from './usePtypoolApy'
 
 import { NATIVE_TOKEN_ADDRESS, USB_ADDRESS, VAULTS_CONFIG } from '@/config/swap'
 import { FetcherContext } from '@/providers/fetcher'
-import { useStoreShallow } from '@/providers/useBoundStore'
+import { useStore } from '@/providers/useBoundStore'
 import { useValutsLeverageRatio } from '@/providers/useLVaultsData'
 import { useContext, useMemo } from 'react'
 import { parseUnits } from 'viem'
@@ -16,7 +16,7 @@ export function useTokenApys() {
   const { prices, usbApr } = useContext(FetcherContext)
   const levrages = useValutsLeverageRatio()
   const apys = usePtypoolApy()
-  const lvaults = useStoreShallow(s => s.sliceLVaultsStore.lvaults)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults, ['sliceLVaultsStore.lvaults'])
   useMemo(() => {
     const vcs = VAULTS_CONFIG[chainId]
     const usbApyPoolBuy = getBigint(apys[vcs[0].ptyPoolBelowAddress as any], 'staking')
@@ -34,8 +34,8 @@ export function useTokenApys() {
         //     base * mDecimal) /
         //   mDecimal
         // console.info(vc.xTokenSymbol,levrageSub, base, stableVaultsState[vc.vault].Y, stableVaultsState[vc.vault].aar)
-        
-        tokenapys[vc.xTokenAddress] = (levrageSub * (base - lvd.Y * lvd.aar/ mDecimal) + base * mDecimal) / mDecimal
+
+        tokenapys[vc.xTokenAddress] = (levrageSub * (base - (lvd.Y * lvd.aar) / mDecimal) + base * mDecimal) / mDecimal
       }
     })
     return null

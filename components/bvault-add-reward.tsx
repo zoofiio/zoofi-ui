@@ -1,15 +1,18 @@
 import { abiBVault } from '@/config/abi'
 import { BVaultConfig } from '@/config/bvaults'
+import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
 import { cn, handleError, parseEthers } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
-import { useBoundStore, useStoreShallow } from '@/providers/useBoundStore'
+import { TokenItem } from '@/providers/sliceTokenStore'
+import { useBoundStore, useStore } from '@/providers/useBoundStore'
 import { useBVault } from '@/providers/useBVaultsData'
 import { useBalances } from '@/providers/useTokenStore'
 import { displayBalance } from '@/utils/display'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import _ from 'lodash'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { FiArrowDown } from 'react-icons/fi'
+import { useDebounce } from 'react-use'
 import { toast } from 'sonner'
 import { Address, erc20Abi, isAddress, zeroAddress } from 'viem'
 import { useAccount, useWalletClient } from 'wagmi'
@@ -18,9 +21,6 @@ import { CoinIcon } from './icons/coinicon'
 import { PulseTokenItem } from './pulse-ui'
 import { SimpleDialog } from './simple-dialog'
 import { Spinner } from './spinner'
-import { TokenItem } from '@/providers/sliceTokenStore'
-import { NATIVE_TOKEN_ADDRESS } from '@/config/swap'
-import { useDebounce } from 'react-use'
 
 const defTokens: TokenItem[] = [
   { symbol: 'HONEY', name: 'HONEY Token', address: '0x0e4aaf1351de4c0264c5c7056ef3777b41bd8e03' },
@@ -34,7 +34,7 @@ const defTokens: TokenItem[] = [
 ]
 
 function TokenSelect({ tokens, onSelect, hiddenNative }: { tokens?: TokenItem[]; hiddenNative?: boolean; onSelect?: (item: TokenItem) => void }) {
-  const defTokenList = useStoreShallow((s) => s.sliceTokenStore.defTokenList)
+  const defTokenList = useStore((s) => s.sliceTokenStore.defTokenList)
   const originTokens = useMemo(() => {
     const list = !_.isEmpty(tokens) ? tokens! : !_.isEmpty(defTokenList) ? defTokenList! : defTokens
     if (hiddenNative) return list.filter((item) => item.address !== zeroAddress && item.address !== NATIVE_TOKEN_ADDRESS)
@@ -129,7 +129,7 @@ function TokenSelect({ tokens, onSelect, hiddenNative }: { tokens?: TokenItem[];
 export function BVaultAddReward({ bvc }: { bvc: BVaultConfig }) {
   const balances = useBalances()
   const bvd = useBVault(bvc.vault)
-  const defTokenList = useStoreShallow((s) => s.sliceTokenStore.defTokenList)
+  const defTokenList = useStore((s) => s.sliceTokenStore.defTokenList)
   const defToken = !_.isEmpty(defTokenList) ? defTokenList[0] : defTokens[0]
   const [stoken, setStoken] = useState(defToken)
   const [input, setInput] = useState('')

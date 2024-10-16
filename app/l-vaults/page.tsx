@@ -5,25 +5,24 @@ import { PageWrap } from '@/components/page-wrap'
 import { PoolCard } from '@/components/pools'
 import { SimpleTabs } from '@/components/simple-tabs'
 import { LVaultsDiscount } from '@/components/vault-discount'
-import { USB_ADDRESS, VaultConfig, VAULTS_CONFIG } from '@/config/swap'
+import { VaultConfig, VAULTS_CONFIG } from '@/config/swap'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { useLoadLVaults } from '@/hooks/useLoads'
+import { tabToSearchParams } from '@/lib/utils'
 import { useBoundStore } from '@/providers/useBoundStore'
 import { useQuery } from '@tanstack/react-query'
 import { Grid } from '@tremor/react'
-import _ from 'lodash'
-import { useSearchParams } from 'next/navigation'
-import { ReactNode, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { ReactNode } from 'react'
 import { useAccount } from 'wagmi'
 import { LVaultCard, LVaultComming, LVaultSimpleWrap } from '../../components/l-vault'
-import { useLoadLVaults } from '@/hooks/useLoads'
+import { toLVault } from '../routes'
 
 function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
 }
 
-const SupportTabs = ['deposit', 'yield', 'discount'] as const
-
-function LVaultPage({ vc }: { vc: VaultConfig }) {
+function LVaultPage({ vc, tab }: { vc: VaultConfig; tab?: string }) {
   const { address } = useAccount()
 
   useQuery({
@@ -34,30 +33,35 @@ function LVaultPage({ vc }: { vc: VaultConfig }) {
       return true
     },
   })
+  const r = useRouter()
+  const data = [
+    {
+      tab: 'Deposit',
+      content: <LVaultSimpleWrap vc={vc} />,
+    },
+    {
+      tab: 'Price Trigger Yield',
+      content: (
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+          <PoolCard vc={vc} type='buy' />
+          <PoolCard vc={vc} type='sell' />
+        </div>
+      ),
+    },
+    {
+      tab: 'Discount Offer',
+      content: <LVaultsDiscount vc={vc} />,
+    },
+  ]
+  const currentTab = data.find((item) => tabToSearchParams(item.tab) == tab)?.tab || data[0].tab
   return (
     <SimpleTabs
       listClassName='flex-wrap p-0 mb-5 md:gap-14'
       triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
       contentClassName='gap-5'
-      data={[
-        {
-          tab: 'Deposit',
-          content: <LVaultSimpleWrap vc={vc} />,
-        },
-        {
-          tab: 'Price Trigger Yield',
-          content: (
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-              <PoolCard vc={vc} type='buy' />
-              <PoolCard vc={vc} type='sell' />
-            </div>
-          ),
-        },
-        {
-          tab: 'Discount Offer',
-          content: <LVaultsDiscount vc={vc} />,
-        },
-      ]}
+      currentTab={currentTab}
+      onTabChange={(tab) => toLVault(r, vc.vault, tab)}
+      data={data}
     />
   )
 }
@@ -70,7 +74,6 @@ export default function Vaults() {
   const params = useSearchParams()
   const paramsVault = params.get('vault')
   const paramsTab = params.get('tab')
-  const currentTab = SupportTabs.includes(paramsTab as any) ? (paramsTab as (typeof SupportTabs)[number]) : 'deposit'
   const currentVc = vcs.find((item) => item.vault == paramsVault)
   useLoadLVaults()
   return (
@@ -88,7 +91,7 @@ export default function Vaults() {
             </Grid>
           </>
         ) : (
-          <LVaultPage vc={currentVc} />
+          <LVaultPage vc={currentVc} tab={paramsTab as string} />
         )}
       </div>
     </PageWrap>

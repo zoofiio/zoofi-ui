@@ -4,18 +4,18 @@ import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useMemoOfChainId } from '@/hooks/useMemoOfChain'
 import { aarToNumber, proxyGetDef, retry } from '@/lib/utils'
 import { Address } from 'viem'
-import { BoundStoreType, useBoundStore, useStoreShallow } from './useBoundStore'
+import { BoundStoreType, useBoundStore, useStore } from './useBoundStore'
 import { useAccount } from 'wagmi'
 import { getCurrentChainId } from '@/config/network'
 
 export const defLVault = proxyGetDef<Exclude<BoundStoreType['sliceLVaultsStore']['lvaults'][Address], undefined>>({ vaultMode: 0, discountEnable: false }, 0n)
 export const defUserLVault = proxyGetDef<Exclude<BoundStoreType['sliceLVaultsStore']['user'][Address], undefined>>({}, 0n)
 export function useLVault(vault: Address) {
-  return useStoreShallow((s) => s.sliceLVaultsStore.lvaults[vault] || defLVault)
+  return useStore((s) => s.sliceLVaultsStore.lvaults[vault] || defLVault, [`sliceLVaultsStore.lvaults.${vault}`])
 }
 
 export function useUserLVault(vault: Address) {
-  return useStoreShallow((s) => s.sliceLVaultsStore.user[vault] || defUserLVault)
+  return useStore((s) => s.sliceLVaultsStore.user[vault] || defUserLVault, [`sliceLVaultsStore.user.${vault}`])
 }
 
 export function useVaultLeverageRatio(vc: VaultConfig) {
@@ -29,7 +29,7 @@ export function useValutsLeverageRatio() {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId]
   const leverageMap: { [k: Address]: number } = useMemoOfChainId(() => proxyGetDef({}, 0))
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults)
   vcs.forEach((vc) => {
     const vs = lvaults[vc.vault]
     const aarNum = vs ? aarToNumber(vs.aar, vs.AARDecimals) : 0
@@ -39,8 +39,8 @@ export function useValutsLeverageRatio() {
 }
 
 export function useSetLVaultPrices(prices: { [k: Address]: bigint }) {
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
-  const totalSupply = useStoreShallow((s) => s.sliceTokenStore.totalSupply)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults)
+  const totalSupply = useStore((s) => s.sliceTokenStore.totalSupply)
   const chainId = useCurrentChainId()
   VAULTS_CONFIG[chainId].forEach((vc) => {
     const lvd = lvaults[vc.vault] || defLVault
@@ -63,7 +63,7 @@ export function useSetLVaultPrices(prices: { [k: Address]: bigint }) {
 
 export function useUSBApr() {
   const chainId = useCurrentChainId()
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults)
   let enableCount = 0
   let multiTotal = 0n
   let total = 0n

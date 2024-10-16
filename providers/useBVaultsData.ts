@@ -7,8 +7,8 @@ import _ from 'lodash'
 import { useEffect, useMemo } from 'react'
 import { Address } from 'viem'
 import { useAccount } from 'wagmi'
-import { BoundStoreType, useBoundStore, useStoreShallow } from './useBoundStore'
 import { BVaultEpochDTO } from './sliceBVaultsStore'
+import { BoundStoreType, useBoundStore, useStore } from './useBoundStore'
 
 export function useResetBVaultsData() {
   const chainId = useCurrentChainId()
@@ -22,30 +22,29 @@ export function useResetBVaultsData() {
 }
 
 export function useBVault(vault: Address) {
-  const bvd = useStoreShallow(
+  return useStore(
     (s) =>
       s.sliceBVaultsStore.bvaults[vault] ||
       proxyGetDef<Exclude<BoundStoreType['sliceBVaultsStore']['bvaults'][Address], undefined>>({ current: proxyGetDef<BVaultEpochDTO>({}, 0n) }, 0n),
+    [`sliceBVaultsStore.bvaults.${vault}`],
   )
-  return bvd
 }
 
 export function useBVaultEpoches(vault: Address) {
-  const bvd = useBVault(vault)
-  const selector = useMemo(() => {
-    return (s: BoundStoreType) => {
-      // console.info('BVAultEpochesChanged')
-      if (bvd.epochCount <= 0n) return []
+  return useStore(
+    (s: BoundStoreType) => {
+      const bvd = s.sliceBVaultsStore.bvaults[vault]
+      if (!bvd || bvd.epochCount <= 0n) return []
       const ids = _.range(1, parseInt((bvd.epochCount + 1n).toString())).reverse()
       const epochesMap = s.sliceBVaultsStore.epoches
       return ids.map((eppchId) => epochesMap[`${vault}_${eppchId}`]).filter((item) => item != null)
-    }
-  }, [bvd])
-  return useStoreShallow(selector)
+    },
+    [`sliceBVaultsStore.bvaults.${vault}`, 'sliceBVaultsStore.epoches'],
+  )
 }
 
 export function useUserBVaultEpoches(vault: Address) {
-  return useStoreShallow((s) => s.sliceUserBVaults.epoches[vault] || [])
+  return useStore((s) => s.sliceUserBVaults.epoches[vault] || [], [`sliceUserBVaults.epoches.${vault}`])
 }
 
 export function useEpochesData(vault: Address) {
@@ -86,7 +85,7 @@ export function calcBVaultBoost(vault: Address) {
   return boost
 }
 export function useBVaultBoost(vault: Address): [string, bigint] {
-  const boost = useStoreShallow(() => calcBVaultBoost(vault))
+  const boost = useStore(() => calcBVaultBoost(vault), [`sliceBVaultsStore.bvaults.${vault}`])
   return [displayBalance(boost, 0), boost]
 }
 
@@ -98,7 +97,7 @@ export function calcBVaultPTApy(vault: Address) {
   return apy
 }
 export function useBVaultApy(vault: Address): [string, bigint] {
-  const apy = useStoreShallow(() => calcBVaultPTApy(vault))
+  const apy = useStore(() => calcBVaultPTApy(vault), [`sliceBVaultsStore.bvaults.${vault}`, `sliceBVaultsStore.yTokenSythetic.${vault}`])
   return [fmtPercent(apy, 10), apy]
 }
 

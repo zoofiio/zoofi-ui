@@ -1,14 +1,14 @@
+import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
 import { USB_ADDRESS, VAULTS_CONFIG } from '@/config/swap'
-import { useMemo } from 'react'
-import { useAccount } from 'wagmi'
-import { useCurrentChainId } from './useCurrentChainId'
-import { useBoundStore, useStoreShallow } from '@/providers/useBoundStore'
+import { ENV } from '@/constants'
+import { BVaultEpochDTO } from '@/providers/sliceBVaultsStore'
+import { useBoundStore, useStore } from '@/providers/useBoundStore'
 import { useQuery } from '@tanstack/react-query'
 import _ from 'lodash'
-import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
-import { ENV } from '@/constants'
+import { useMemo } from 'react'
 import { Address } from 'viem'
-import { BVaultEpochDTO } from '@/providers/sliceBVaultsStore'
+import { useAccount } from 'wagmi'
+import { useCurrentChainId } from './useCurrentChainId'
 
 export function useLoadLVaults() {
   const chainId = useCurrentChainId()
@@ -107,7 +107,7 @@ export function useLoadUserBVaults() {
   const { address } = useAccount()
   const chainId = useCurrentChainId()
   const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((vc) => (vc.onEnv || []).includes(ENV)), [chainId, ENV])
-  const bvaultsKeys = useStoreShallow((s) => _.keys(s.sliceBVaultsStore.bvaults).toString())
+  const bvaultsKeys = useStore((s) => _.keys(s.sliceBVaultsStore.bvaults).toString(), ['sliceBVaultsStore.bvaults'])
   useQuery({
     queryKey: ['UpdateAllUserBvaults', bvcs, chainId, address, bvaultsKeys],
     queryFn: async () => {

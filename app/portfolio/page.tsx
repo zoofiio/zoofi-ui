@@ -26,6 +26,7 @@ import _ from 'lodash'
 import { useRouter } from 'next/navigation'
 import { FiShare } from 'react-icons/fi'
 import { MdArrowOutward } from 'react-icons/md'
+import { toBVault } from '../routes'
 
 function PortfolioItem({
   title,
@@ -175,11 +176,7 @@ function PrincipalItem() {
         <CoinText key={'coin'} symbol={bvc.assetSymbol} txt={bvc.pTokenSymbol} size={32} />,
         displayBalance(pBalance),
         displayBalance(pRedeeming),
-        <div
-          key={'claim'}
-          className='flex w-fit cursor-pointer items-center gap-2 underline'
-          onClick={() => r.push(`/b-vaults?vault=${bvc.vault}&tab=principal_panda&subtab=claim`)}
-        >
+        <div key={'claim'} className='flex w-fit cursor-pointer items-center gap-2 underline' onClick={() => toBVault(r, bvc.vault, 'principal_panda', 'claim')}>
           {displayBalance(pClaimAble)}
           <MdArrowOutward />
         </div>,
@@ -266,7 +263,7 @@ function BoostItem() {
         {epochsData.map((epoch) => (
           <div key={epoch.epochId.toString()}>
             {epoch.settled ? (
-              <div key={'claim'} className='flex w-fit cursor-pointer items-center gap-2 underline' onClick={() => r.push(`/b-vaults?vault=${bvc.vault}&tab=boost_venom`)}>
+              <div key={'claim'} className='flex w-fit cursor-pointer items-center gap-2 underline' onClick={() => toBVault(r, bvc.vault, 'boost_venom')}>
                 {'Ready to Harvest'}
                 <MdArrowOutward />
               </div>

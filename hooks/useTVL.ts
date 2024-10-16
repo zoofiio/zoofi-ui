@@ -7,7 +7,7 @@ import { useWandContractReads } from './useWand'
 
 import { abiPtyPool, abiVaultQuery } from '@/config/abi'
 import { getBigint } from '@/lib/utils'
-import { useBoundStore, useStoreShallow } from '@/providers/useBoundStore'
+import { useBoundStore, useStore } from '@/providers/useBoundStore'
 import _ from 'lodash'
 import { BVAULTS_CONFIG } from '@/config/bvaults'
 import { LP_TOKENS } from '@/config/tokens'
@@ -51,11 +51,11 @@ export function useTVL() {
   const bvcs = BVAULTS_CONFIG[chainId].filter((item) => (item.onEnv || []).includes(ENV))
   // const pvcs = PLAIN_VAULTS_CONFIG[chainId] || []
   const { prices } = useContext(FetcherContext)
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
-  const totalSupply = useStoreShallow((s) => s.sliceTokenStore.totalSupply)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults)
+  const totalSupply = useStore((s) => s.sliceTokenStore.totalSupply)
   const vaultUsbTotal = vcs.map((v) => lvaults[v.vault]?.usbTotalSupply || 0n).reduce((a, b) => a + b, 0n)
-  const bvaults = useStoreShallow((s) => s.sliceBVaultsStore.bvaults)
-  const tprices = useStoreShallow((s) => s.sliceTokenStore.prices)
+  const bvaults = useStore((s) => s.sliceBVaultsStore.bvaults)
+  const tprices = useStore((s) => s.sliceTokenStore.prices)
 
   const tvlItems = [{ name: USBSymbol, symbol: USBSymbol, address: USB_ADDRESS[chainId] }]
     .concat(

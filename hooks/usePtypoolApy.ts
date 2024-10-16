@@ -1,6 +1,6 @@
 import { USB_ADDRESS, VAULTS_CONFIG } from '@/config/swap'
 import { DECIMAL } from '@/constants'
-import { useStoreShallow } from '@/providers/useBoundStore'
+import { useStore } from '@/providers/useBoundStore'
 import { useEffect } from 'react'
 import { Address, parseUnits } from 'viem'
 import { create } from 'zustand'
@@ -15,7 +15,7 @@ export const usePtypoolApy = create<Apys & { update: (data: Partial<Apys>) => vo
 export function useUpdatePtypoolApy(prices: { [k: Address]: bigint }) {
   const chainId = useCurrentChainId()
   const vcs = VAULTS_CONFIG[chainId]
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults, ['sliceLVaultsStore.lvaults'])
   useEffect(() => {
     console.info('updatePtypoolApy')
     vcs.forEach((vc) => {

@@ -29,6 +29,7 @@ import { SimpleDialog } from './simple-dialog'
 import { SimpleTabs } from './simple-tabs'
 import { StableLVaultAdvance } from './lvault-stable-advance'
 import { renderChoseSide } from './vault-card-ui'
+import { toLVault } from '@/app/routes'
 
 const arrowDown = (
   <svg xmlns='http://www.w3.org/2000/svg' width='14' height='8' viewBox='0 0 14 8' fill='none'>
@@ -349,7 +350,7 @@ export function LVaultCard({ vc }: { vc: VaultConfig }) {
       className={cn('card cursor-pointer !p-0 grid grid-cols-2 overflow-hidden', {
         'order-1': !vc.assetTokenSymbol.includes('ETH'),
       })}
-      onClick={() => r.push(`/l-vaults?vault=${vc.vault}`)}
+      onClick={() => toLVault(r, vc.vault)}
     >
       <div className={cn(itemClassname, 'border-b', 'bg-black/10 dark:bg-white/10 col-span-2 flex-row px-4 md:px-5 py-4 items-center')}>
         <CoinIcon symbol={vc.assetTokenSymbol} size={44} />

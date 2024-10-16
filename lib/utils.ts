@@ -204,3 +204,5 @@ export async function retry<T>(fn: () => Promise<T>, count: number = 3, wait: nu
     }
   }
 }
+
+export const tabToSearchParams = (tab: string) => tab.toLowerCase().replaceAll(' ', '_')

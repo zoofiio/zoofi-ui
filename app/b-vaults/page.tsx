@@ -10,6 +10,7 @@ import { BVaultConfig, BVAULTS_CONFIG } from '@/config/bvaults'
 import { ENV, isBETA } from '@/constants'
 import { useCurrentChainId } from '@/hooks/useCurrentChainId'
 import { useLoadBVaults } from '@/hooks/useLoads'
+import { tabToSearchParams } from '@/lib/utils'
 import { getPC } from '@/providers/publicClient'
 import { useBoundStore } from '@/providers/useBoundStore'
 import { useBVault, useEpochesData } from '@/providers/useBVaultsData'
@@ -18,6 +19,7 @@ import { Grid } from '@tremor/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ReactNode, useMemo } from 'react'
 import { useAccount } from 'wagmi'
+import { toBVault } from '../routes'
 
 function StrongSpan({ children }: { children: ReactNode }) {
   return <span className='font-extrabold'>{children}</span>
@@ -85,14 +87,13 @@ function BVaultPage({ bvc, currentTab }: { bvc: BVaultConfig; currentTab?: strin
           },
         ]
       : odata
-  const tabToSearchParams = (tab: string) => tab.toLowerCase().replaceAll(' ', '_')
   const ctab = data.find((item) => tabToSearchParams(item.tab) == currentTab)?.tab
   const r = useRouter()
 
   return (
     <SimpleTabs
       currentTab={ctab}
-      onTabChange={(tab) => r.push(`/b-vaults?vault=${bvc.vault}&tab=${tabToSearchParams(tab)}`)}
+      onTabChange={(tab) => toBVault(r, bvc.vault, tab)}
       listClassName='flex-wrap p-0 mb-5 md:gap-14'
       triggerClassName='text-lg sm:text-xl md:text-2xl py-0 data-[state="active"]:border-b border-b-black dark:border-b-white leading-[0.8] rounded-none whitespace-nowrap'
       contentClassName='gap-5'

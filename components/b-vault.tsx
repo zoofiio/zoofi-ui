@@ -5,21 +5,23 @@ import { BVaultConfig } from '@/config/bvaults'
 import { getBexPoolURL } from '@/config/network'
 import { LP_TOKENS } from '@/config/tokens'
 import { DECIMAL } from '@/constants'
-import { useWandTimestamp } from '@/hooks/useWand'
-import { cn, FMT, fmtBn, fmtDate, fmtDuration, fmtPercent, getBigint, handleError, parseEthers } from '@/lib/utils'
-import { useStoreShallow } from '@/providers/useBoundStore'
+import { useCurrentChainId } from '@/hooks/useCurrentChainId'
+import { cn, FMT, fmtBn, fmtDate, fmtDuration, fmtPercent, getBigint, handleError, parseEthers, tabToSearchParams } from '@/lib/utils'
+import { getPC } from '@/providers/publicClient'
+import { useStore } from '@/providers/useBoundStore'
 import { useBVault, useBVaultApy, useBVaultBoost, useCalcClaimable, useEpochesData, useUpBVaultForUserAction } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
+import { useQuery } from '@tanstack/react-query'
 import { ProgressBar } from '@tremor/react'
 import _ from 'lodash'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 import { RiLoopLeftFill } from 'react-icons/ri'
 import { useDebounce, useMeasure, useToggle } from 'react-use'
 import { List, ListRowProps } from 'react-virtualized'
 import { zeroAddress } from 'viem'
-import { useAccount, useReadContract, useWalletClient } from 'wagmi'
+import { useWalletClient } from 'wagmi'
 import { ApproveAndTx } from './approve-and-tx'
 import { AssetInput } from './asset-input'
 import BvaultEpochYtPrices from './bvault-epoch-ytprices'
@@ -29,10 +31,7 @@ import { SimpleTabs } from './simple-tabs'
 import { Switch } from './ui/switch'
 import { Tip } from './ui/tip'
 import { itemClassname, renderChoseSide, renderStat, renderToken } from './vault-card-ui'
-import { useQuery } from '@tanstack/react-query'
-import { useCurrentChainId } from '@/hooks/useCurrentChainId'
-import { getPC } from '@/providers/publicClient'
-import { Spinner } from './spinner'
+import { toBVault } from '@/app/routes'
 
 function TupleTxt(p: { tit: string; sub: ReactNode; subClassname?: string }) {
   return (
@@ -50,7 +49,7 @@ export function BVaultRedeem({ bvc }: { bvc: BVaultConfig }) {
   const inputPTokenBn = parseEthers(inputPToken)
   const bvd = useBVault(bvc.vault)
   const epoch = useEpochesData(bvc.vault)[0]
-  const pTokenBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.pToken] || 0n)
+  const pTokenBalance = useStore((s) => s.sliceTokenStore.balances[bvc.pToken] || 0n, [`sliceTokenStore.balances.${bvc.pToken}`])
   const upForUserAction = useUpBVaultForUserAction(bvc)
   const waitTimeFmt = bvd.current.duration > 0n ? `Waiting Time: ~${fmtDuration((bvd.current.duration + bvd.current.startTime) * 1000n - BigInt(_.now()))}` : ''
   return (
@@ -143,7 +142,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
   const pTokenSymbolShort = isLP ? 'PT' : bvc.pTokenSymbol
   const assetSymbolShort = isLP ? 'LP' : bvc.assetSymbol
   const bvd = useBVault(bvc.vault)
-  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
+  const assetBalance = useStore((s) => s.sliceTokenStore.balances[bvc.asset] || 0n, [`sliceTokenStore.balances.${bvc.asset}`])
   const [fmtApy] = useBVaultApy(bvc.vault)
   const { data: walletClient } = useWalletClient()
   const upForUserAction = useUpBVaultForUserAction(bvc)
@@ -162,7 +161,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
 
   const params = useSearchParams()
   const subtab = params.get('subtab') as string
-
+  const r = useRouter()
   const data = [
     {
       tab: 'Buy',
@@ -230,7 +229,7 @@ export function BVaultP({ bvc }: { bvc: BVaultConfig }) {
         </div>
       </div>
       <div className='md:col-span-2 card !p-4'>
-        <SimpleTabs currentTab={currentTab} data={data} />
+        <SimpleTabs currentTab={currentTab} data={data} onTabChange={(tab) => toBVault(r, bvc.vault, 'principal_panda', tab)} />
       </div>
     </div>
   )
@@ -300,7 +299,7 @@ function BVaultYTrans({ bvc }: { bvc: BVaultConfig }) {
   const [inputAsset, setInputAsset] = useState('')
   const inputAssetBn = parseEthers(inputAsset)
   const bvd = useBVault(bvc.vault)
-  const assetBalance = useStoreShallow((s) => s.sliceTokenStore.balances[bvc.asset] || 0n)
+  const assetBalance = useStore((s) => s.sliceTokenStore.balances[bvc.asset] || 0n, [`sliceTokenStore.balances.${bvc.asset}`])
   const chainId = useCurrentChainId()
   const [calcSwapKey, setCalcSwapKey] = useState(['calcSwap', bvc.vault, inputAssetBn, chainId])
   useDebounce(() => setCalcSwapKey(['calcSwap', bvc.vault, inputAssetBn, chainId]), 300, ['calcSwap', bvc.vault, inputAssetBn, chainId])
@@ -497,7 +496,7 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
   const [token1, token2] = vc.assetSymbol.split('-')
   const bvd = useBVault(vc.vault)
   const lp = LP_TOKENS[vc.asset]
-  const prices = useStoreShallow((s) => s.sliceTokenStore.prices)
+  const prices = useStore((s) => s.sliceTokenStore.prices, ['sliceTokenStore.prices'])
   const lpBasePrice = lp ? prices[lp.base] || 0n : 0n
   const lpQuotePrice = lp ? prices[lp.quote] || 0n : 0n
   const lpBase = bvd.lpBase || 0n
@@ -552,11 +551,11 @@ export function BVaultCard({ vc }: { vc: BVaultConfig }) {
         `${fmtBoost}x`,
         (e) => {
           e.stopPropagation()
-          r.push(`/b-vaults?vault=${vc.vault}&tab=principal_panda`)
+          toBVault(r, vc.vault, 'principal_panda')
         },
         (e) => {
           e.stopPropagation()
-          r.push(`/b-vaults?vault=${vc.vault}&tab=boost_venom`)
+          toBVault(r, vc.vault, 'boost_venom')
         },
       )}
     </div>

@@ -11,7 +11,7 @@ import { useLoadBVaults, useLoadLVaults } from '@/hooks/useLoads'
 import { useTVL } from '@/hooks/useTVL'
 import { fmtAAR, fmtPercent, getBigint } from '@/lib/utils'
 import { FetcherContext } from '@/providers/fetcher'
-import { useStoreShallow } from '@/providers/useBoundStore'
+import { useStore } from '@/providers/useBoundStore'
 import { calcBVaultBoost, calcBVaultPTApy } from '@/providers/useBVaultsData'
 import { displayBalance } from '@/utils/display'
 import { TableCell as _TableCell } from '@tremor/react'
@@ -63,7 +63,7 @@ function TVLItem() {
   return <DashItem title='Total Value Locked' sub={`$${displayBalance(tvl.tvl)}`} tHeader={['Asset', 'NAV', 'Amount', 'Total']} tData={data} />
 }
 function LVaultsItem() {
-  const lvaults = useStoreShallow((s) => s.sliceLVaultsStore.lvaults)
+  const lvaults = useStore((s) => s.sliceLVaultsStore.lvaults, ['sliceLVaultsStore.lvaults'])
   const chainId = useCurrentChainId()
   const lvcs = VAULTS_CONFIG[chainId]
   const { prices } = useContext(FetcherContext)
@@ -100,8 +100,8 @@ function LVaultsItem() {
 function BVaultsItem() {
   const chainId = useCurrentChainId()
   const bvcs = useMemo(() => BVAULTS_CONFIG[chainId].filter((item) => (item.onEnv || []).includes(ENV)), [chainId])
-  const bvaults = useStoreShallow((s) => s.sliceBVaultsStore.bvaults)
-  const prices = useStoreShallow((s) => s.sliceTokenStore.prices)
+  const bvaults = useStore((s) => s.sliceBVaultsStore.bvaults, ['sliceBVaultsStore.bvaults'])
+  const prices = useStore((s) => s.sliceTokenStore.prices, ['sliceTokenStore.prices'])
 
   const data: ReactNode[][] = useMemo(() => {
     const datas = bvcs.map((bvc) => {
