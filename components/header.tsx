@@ -67,7 +67,8 @@ export function useShowTester() {
 export function Header() {
   const pathname = usePathname()
   const { width } = useWindowSize(window.innerWidth, window.innerHeight)
-  const hiddenTitle = pathname !== '/' && width < 1024
+  const showLinks = pathname !== '/' && pathname !== '/lnt'
+  const hiddenTitle = showLinks && width < 1024
   // const modal = useModal()
   const chainId = useCurrentChainId()
   const { openChainModal } = useChainModal()
@@ -150,7 +151,7 @@ export function Header() {
         </div>
 
         {/* Render App routes */}
-        {pathname !== '/' ? (
+        {showLinks ? (
           <div className='hidden lg:flex flex-1 px-5 items-center gap-10'>
             {links.map(({ href, label, icon, disable }) => {
               const Icon = icon
@@ -196,7 +197,7 @@ export function Header() {
               )
             })}
           </div>
-          {showDefNet && pathname !== '/' && (
+          {showDefNet && showLinks && (
             <div
               className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-50 font-medium rounded-full cursor-pointer'
               onClick={() => openChainModal && openChainModal()}
@@ -205,7 +206,7 @@ export function Header() {
               <div className='hidden sm:block'>{NetName[chainId]}</div>
             </div>
           )}
-          {pathname !== '/' && <ConnectBtn />}
+          {showLinks && <ConnectBtn />}
         </div>
       </header>
     </div>
