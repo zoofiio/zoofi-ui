@@ -1,12 +1,12 @@
 'use client'
 
-import { HTMLAttributes, ReactNode } from "react"
-import { AnimSvg, NLUSvg, NLUSvg2 } from "./icons/LntSvgs"
-import { CoinIcon } from "./icons/coinicon"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { HTMLAttributes, ReactNode } from "react"
 import { FiChevronUp } from "react-icons/fi"
 import { useToggle } from "react-use"
-import { useRouter } from "next/navigation"
+import { AnimSvg, NLUSvg, NLUSvg2 } from "./icons/LntSvgs"
+import { CoinIcon } from "./icons/coinicon"
 
 function BtnB(p: HTMLAttributes<HTMLButtonElement>) {
     const { children, ...props } = p;
@@ -27,7 +27,7 @@ function Section1() {
                 Initial Node Offering
             </div>
             <div>
-                <BtnB onClick={() => r.push('/pre-deposit')}>Start</BtnB>
+                <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Start</BtnB>
             </div>
         </div>
         <AnimSvg />
@@ -47,6 +47,14 @@ const sectionTitClassName = 'text-[4em] font-semibold text-center';
 
 const partners: ({ name: string, icon: ReactNode })[] = [
     {
+        name: 'Aethir Network',
+        icon: <CoinIcon symbol="Aethir" className="object-contain" size='7.375em' />,
+    },
+    {
+        name: 'Nodeops Network',
+        icon: <CoinIcon symbol="Nodeops" className="object-contain" size='7.375em' />,
+    },
+    {
         name: 'Lnfi Network',
         icon: <CoinIcon symbol="Lnfi" className="object-contain" size='7.375em' />,
     },
@@ -62,10 +70,10 @@ const partners: ({ name: string, icon: ReactNode })[] = [
 function Section3() {
     return <section className="w-full py-[5.625em] px-[5.25em] flex flex-col items-center justify-center gap-[2em] z-10">
         <div className={sectionTitClassName}>Partners</div>
-        <div style={{ fontSize: 'min(1.6vw,16px)' }} className="flex flex-wrap justify-center gap-10">
+        <div style={{ fontSize: 'min(1.6vw,16px)' }} className="flex flex-wrap justify-center gap-8">
             {partners.map(p => <div key={p.name} className="flex flex-col gap-[1em] items-center ">
-                <div className="flex justify-center items-center rounded-[1.25em] border border-white w-[15em] h-[6.25em]">{p.icon}</div>
-                <div className="text-[.75em] text-center">{p.name}</div>
+                <div className="flex justify-center items-center rounded-[1.25em] border border-white w-[12.5rem] h-[5rem]">{p.icon}</div>
+                <div className="text-sm text-center">{p.name}</div>
             </div>)}
         </div>
     </section>
@@ -130,7 +138,7 @@ function Section5() {
 
 
 export function LntLandingPage() {
-    return <div className="w-screen h-screen overflow-y-auto bg-black">
+    return <div className="w-screen h-screen overflow-y-auto bg-black relative text-white">
         <div style={{ fontSize: 'min(1.11vw,16px)' }} className="w-full max-w-[1440px] overflow-hidden mx-auto relative">
             <Section1 />
             <Section2 />
