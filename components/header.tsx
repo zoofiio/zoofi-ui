@@ -15,7 +15,7 @@ import { useChainModal } from '@rainbow-me/rainbowkit'
 import clsx from 'clsx'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 import { LuBox, LuLineChart, LuSettings, LuSettings2, LuUserCircle } from 'react-icons/lu'
 import { TbBook2, TbBrandDiscordFilled, TbBrandX, TbChevronDown } from 'react-icons/tb'
@@ -27,6 +27,8 @@ import { ThemeMode } from './theme-mode'
 import { sepolia } from 'viem/chains'
 import { Tip } from './ui/tip'
 import { BVAULTS_CONFIG } from '@/config/bvaults'
+import { BBtn } from './ui/bbtn'
+import { toBVault, toLntVault } from '@/app/routes'
 
 const NetName: { [k: number]: string } = {
   [berachainTestnet.id]: 'Berachain Bartio',
@@ -101,6 +103,7 @@ export function Header() {
     ],
     [DomainRef.value],
   )
+  const r = useRouter()
   return (
     <div className='h-[72px] fixed w-full flex bg-slate-50/30 backdrop-blur-lg dark:text-slate-50 dark:bg-slate-900/30 z-30'>
       <header className='h-[72px] w-full max-w-[1300px] inset-0 mx-auto flex items-center justify-between px-4   z-30 ml-[calc(100vw - 100%)] '>
@@ -206,6 +209,9 @@ export function Header() {
               <div className='hidden sm:block'>{NetName[chainId]}</div>
             </div>
           )}
+          {!showLinks && <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => isLNT ? toLntVault(r) : toBVault(r)}>
+            Launch Dapp
+          </BBtn>}
           {showLinks && <ConnectBtn />}
         </div>
       </header>

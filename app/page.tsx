@@ -19,6 +19,7 @@ import { useHover } from 'react-use'
 import { toBVault, toLntVault, toLVault } from './routes'
 // import LntPage from './lnt-vaults/page'
 import { LntLandingPage } from '@/components/lnt-landing-page';
+import Link from 'next/link';
 // import { LntLandingPage } from '@/components/lnt-landing-page';
 
 type CardItemType = {
@@ -73,17 +74,17 @@ function MainUI() {
           Liquidity Utilization.
         </div>
         <div className='flex gap-5 mt-8 justify-start flex-wrap'>
-          <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => isLNT ? toLntVault(r) : toBVault(r)}>
+          {/* <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => isLNT ? toLntVault(r) : toBVault(r)}>
             Launch Dapp
-          </BBtn>
+          </BBtn> */}
           {/* <BBtn hiddenBorder className='text-sm h-10 !w-[193px] flex justify-center items-center gap-2' onClick={() => open('https://www.berachain.com', '_blank')}>
             <CoinIcon size={24} symbol='berachain' />
             Built on Berachain
           </BBtn> */}
-          {/* <div className='text-black/60 dark:text-white/60 flex items-center gap-2'>
+          <div className='text-black/60 dark:text-white/60 flex items-center gap-2'>
             <CoinIcon symbol='Fire' size={21} />
-            <span className='underline underline-offset-[3px]'>B-Vault is now live on Berachain</span>
-          </div> */}
+            <Link href={'/lnt'} className='underline underline-offset-[3px]'>Liquid Node Token</Link>
+          </div>
         </div>
         <div className='mt-8 text-xl font-semibold text-[#7B7B7B]'>Investors & Backers</div>
         <div className='mt-5 flex gap-y-5 gap-x-10 items-center flex-wrap max-w-[37.5rem]'>
