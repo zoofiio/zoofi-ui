@@ -70,6 +70,7 @@ export function Header() {
   const pathname = usePathname()
   const { width } = useWindowSize(window.innerWidth, window.innerHeight)
   const showLinks = pathname !== '/' && pathname !== '/lnt'
+  const showLanuchApp = pathname === '/'
   const hiddenTitle = showLinks && width < 1024
   // const modal = useModal()
   const chainId = useCurrentChainId()
@@ -209,10 +210,10 @@ export function Header() {
               <div className='hidden sm:block'>{NetName[chainId]}</div>
             </div>
           )}
-          {!showLinks && <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => isLNT ? toLntVault(r) : toBVault(r)}>
-            Launch Dapp
+          {showLanuchApp && <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => window.open('https://app.zoofi.io/b-vaults')}>
+            Launch App
           </BBtn>}
-          {showLinks && <ConnectBtn />}
+          {/* {showLinks && <ConnectBtn />} */}
         </div>
       </header>
     </div>

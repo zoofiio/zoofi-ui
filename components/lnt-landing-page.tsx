@@ -27,7 +27,7 @@ function Section1() {
                 Initial Node Offering
             </div>
             <div>
-                <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Start</BtnB>
+                <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Launch App</BtnB>
             </div>
         </div>
         <AnimSvg />

@@ -75,7 +75,7 @@ function MainUI() {
         </div>
         <div className='flex gap-5 mt-8 justify-start flex-wrap'>
           {/* <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => isLNT ? toLntVault(r) : toBVault(r)}>
-            Launch Dapp
+            Launch App
           </BBtn> */}
           {/* <BBtn hiddenBorder className='text-sm h-10 !w-[193px] flex justify-center items-center gap-2' onClick={() => open('https://www.berachain.com', '_blank')}>
             <CoinIcon size={24} symbol='berachain' />
