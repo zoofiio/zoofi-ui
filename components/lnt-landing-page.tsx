@@ -1,9 +1,11 @@
 'use client'
 
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { HTMLAttributes, ReactNode } from "react"
 import { FiChevronUp } from "react-icons/fi"
+import { TbBrandYoutubeFilled } from "react-icons/tb"
 import { useToggle } from "react-use"
 import { AnimSvg, NLUSvg, NLUSvg2 } from "./icons/LntSvgs"
 import { CoinIcon } from "./icons/coinicon"
@@ -26,8 +28,9 @@ function Section1() {
                 All-in-one Liquidity Solution for{'\n'}
                 Initial Node Offering
             </div>
-            <div>
+            <div className="flex items-center gap-5">
                 <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Launch App</BtnB>
+                <Link href={'https://www.youtube.com/watch?v=VleNKloeJtA'} target="_blank" className="flex items-center gap-2 underline underline-offset-2"><TbBrandYoutubeFilled className="text-red-500 text-2xl"/> Learn more about LNT</Link>
             </div>
         </div>
         <AnimSvg />
