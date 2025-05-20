@@ -30,7 +30,7 @@ function Section1() {
             </div>
             <div className="flex items-center gap-5">
                 <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Launch App</BtnB>
-                <Link href={'https://www.youtube.com/watch?v=VleNKloeJtA'} target="_blank" className="flex items-center gap-2 underline underline-offset-2"><TbBrandYoutubeFilled className="text-red-500 text-2xl"/> Learn more about LNT</Link>
+                <Link href={'https://www.youtube.com/watch?v=VleNKloeJtA'} target="_blank" className="flex items-center gap-2 underline underline-offset-2"><TbBrandYoutubeFilled className="text-red-500 text-2xl"/>What is LNT</Link>
             </div>
         </div>
         <AnimSvg />
