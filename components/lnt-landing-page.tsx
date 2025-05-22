@@ -30,7 +30,7 @@ function Section1() {
             </div>
             <div className="flex items-center gap-5">
                 <BtnB onClick={() => r.push('https://app.zoofi.io/lnt')}>Launch App</BtnB>
-                <Link href={'https://www.youtube.com/watch?v=VleNKloeJtA'} target="_blank" className="flex items-center gap-2 underline underline-offset-2"><TbBrandYoutubeFilled className="text-red-500 text-2xl"/>What is LNT</Link>
+                <Link href={'https://www.youtube.com/watch?v=VleNKloeJtA'} target="_blank" className="flex items-center gap-2 underline underline-offset-2"><TbBrandYoutubeFilled className="text-red-500 text-2xl" />What is LNT</Link>
             </div>
         </div>
         <AnimSvg />
@@ -40,9 +40,12 @@ function Section1() {
 
 
 function Section2() {
-    return <section className="w-full py-[5.625em] px-[5.25em] flex flex-col items-center justify-center gap-[2em] z-10">
+    return <section className="w-full py-[5.625em] px-[5.25em] flex flex-col items-center justify-center gap-[2em] z-10 relative">
         <NLUSvg />
-        <NLUSvg2 />
+        <div className="relative">
+            <Link className="absolute underline underline-offset-2 left-0 top-0 text-xs lg:text-base" href={'https://medium.com/@zoofinanceio/introducing-liquid-node-token-lnt-the-lido-for-node-assets-and-initial-node-sale-26ded33cde8b'}>Read More</Link>
+            <NLUSvg2 />
+        </div>
     </section>
 }
 
