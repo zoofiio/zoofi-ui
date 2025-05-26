@@ -11,7 +11,7 @@ export type ThemeModeType = ThemeType | 'system'
 const defTheme: ThemeType = 'dark'
 
 const getSystemTheme = (): ThemeType => (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-const getThemeState = () => {
+const syncThemeState = () => {
   let themeMode: ThemeModeType = defTheme
   let theme: ThemeType = defTheme
   if (typeof window === 'undefined') {
@@ -30,7 +30,7 @@ export const useThemeState = create<{
   setThemeMode: (themeMode: ThemeModeType) => void
   setTheme: (theme: ThemeType) => void
 }>((set) => ({
-  ...getThemeState(),
+  ...syncThemeState(),
   setThemeMode: (themeMode: ThemeModeType) => set(() => ({ themeMode })),
   setTheme: (theme: ThemeType) => set(() => ({ theme })),
 }))
@@ -44,9 +44,10 @@ const Icons = {
 export function ThemeMode() {
   const ts = useThemeState()
   const onChangeTheme = () => {
-    const { theme, themeMode } = getThemeState()
-    ts.setTheme(theme)
-    ts.setThemeMode(themeMode)
+    // const { theme, themeMode } = syncThemeState()
+    // ts.setTheme(theme)
+    // ts.setThemeMode(themeMode)
+    ts.setTheme('dark')
   }
   useEffect(() => {
     onChangeTheme()
