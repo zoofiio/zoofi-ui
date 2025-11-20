@@ -32,7 +32,7 @@ type CardItemType = {
 }
 
 const cards: CardItemType[] = [
-  { icon: BeraLine, tit: 'Interest Bear', sub: 'Stablecoin', hoverTextColor: '#ff8080' },
+  { icon: BeraLine, tit: 'Interest Bear', sub: 'Vesting Token', hoverTextColor: '#ff8080' },
   { icon: BullLine, tit: 'Leverage Bull', sub: 'Margin Token', hoverTextColor: '#53baff' },
   {
     icon: PandaLine,
