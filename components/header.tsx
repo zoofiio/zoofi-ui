@@ -42,7 +42,7 @@ export function Header() {
               )
             })}
           </div>
-          {showLanuchApp && <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => window.open('https://app.zoofi.io/b-vaults')}>
+          {showLanuchApp && <BBtn className='text-sm !w-[150px] !mx-0  mt-0' onClick={() => window.open('https://app.zoofi.io')}>
             Launch App
           </BBtn>}
         </div>
