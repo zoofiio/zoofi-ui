@@ -65,12 +65,12 @@ function CardItem(item: CardItemType) {
 const investors = ['binance', 'ventures', 'certik', 'signum', 'definancex', 'okventures', 'bigbrain', 'pragma', 'cms', 'dorahacks']
 
 function MainUI() {
-  const r = useRouter()
+  // const r = useRouter()
   return <PageWrap>
     <div className='flex flex-col md:flex-row max-w-[1160px] mx-auto px-4 gap-10 md:gap-20 h-[calc(100vh-100px)] pt-[5vh] md:pt-[10vh] pb-8 md:justify-center'>
       <div>
         <div className='flex md:mt-10 text-[5vw] md:text-[min(2.5rem,2.7vw)] !leading-normal font-semibold text-slate-700 dark:text-slate-50'>
-          A Structured Protocol for Better <br />
+          A Protocol for Better <br />
           Liquidity Utilization.
         </div>
         <div className='flex gap-5 mt-8 justify-start flex-wrap'>
