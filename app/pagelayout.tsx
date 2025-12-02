@@ -1,7 +1,7 @@
 'use client'
-;(BigInt.prototype as any).toJSON = function () {
-  return this.toString()
-}
+  ; (BigInt.prototype as any).toJSON = function () {
+    return this.toString()
+  }
 import { Header } from '@/components/header'
 import { isBETA } from '@/constants'
 import { useConfigDomain } from '@/hooks/useConfigDomain'
@@ -10,6 +10,7 @@ import { ReactNode } from 'react'
 import { Toaster } from 'sonner'
 import { Providers } from './providers'
 import { cn } from '@/lib/utils'
+import { CoppyRight } from '@/components/copyright';
 // background: linear-gradient(105.67deg, #02050E 14.41%, #1D2F23 98.84%);
 
 function PageLoading() {

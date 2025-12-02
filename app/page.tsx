@@ -20,6 +20,7 @@ import { toBVault, toLntVault, toLVault } from './routes'
 // import LntPage from './lnt-vaults/page'
 import { LntLandingPage } from '@/components/lnt-landing-page';
 import Link from 'next/link';
+import { CoppyRight } from '@/components/copyright';
 // import { LntLandingPage } from '@/components/lnt-landing-page';
 
 type CardItemType = {
@@ -66,9 +67,9 @@ const investors = ['binance', 'ventures', 'certik', 'signum', 'definancex', 'okv
 
 function MainUI() {
   // const r = useRouter()
-  return <PageWrap>
-    <div className='flex flex-col md:flex-row max-w-[1160px] mx-auto px-4 gap-10 md:gap-20 h-[calc(100vh-100px)] pt-[5vh] md:pt-[10vh] pb-8 md:justify-center'>
-      <div>
+  return <PageWrap className='flex flex-col'>
+    <div className='flex flex-col md:flex-row max-w-[1160px] mx-auto px-4 gap-10 md:gap-20 pt-[5vh] md:pt-[10vh] pb-8 md:justify-center'>
+      <div className='h-fit'>
         <div className='flex md:mt-10 text-[5vw] md:text-[min(2.5rem,2.7vw)] !leading-normal font-semibold text-slate-700 dark:text-slate-50'>
           A Protocol for Better <br />
           Liquidity Utilization.
@@ -92,6 +93,7 @@ function MainUI() {
             <img className={cn('object-contain invert dark:invert-0', item == 'pragma' ? 'w-[4.375rem]' : 'w-20')} src={`/investors/${item}.png`} />
           </div>))}
         </div>
+
       </div>
 
       <div className='flex flex-col gap-6 min-w-[18.75rem]'>
@@ -100,6 +102,7 @@ function MainUI() {
         ))}
       </div>
     </div>
+    <CoppyRight />
   </PageWrap>
 }
 

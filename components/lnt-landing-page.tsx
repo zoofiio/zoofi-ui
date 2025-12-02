@@ -9,6 +9,7 @@ import { TbBrandYoutubeFilled } from "react-icons/tb"
 import { useToggle } from "react-use"
 import { AnimSvg, NLUSvg, NLUSvg2 } from "./icons/LntSvgs"
 import { CoinIcon } from "./icons/coinicon"
+import { CoppyRight } from "./copyright"
 
 function BtnB(p: HTMLAttributes<HTMLButtonElement>) {
     const { children, ...props } = p;
@@ -155,6 +156,7 @@ export function LntLandingPage() {
             <img style={{ width: '31.3125em', height: '61.375em', top: '82.875em' }} src="/bg_lnt_l.svg" className="absolute left-0 opacity-50" />
             <img style={{ width: '40.0625em', height: '50.6875em', top: '160em' }} src="/bg_lnt_r.svg" className="absolute right-0" />
             <img style={{ width: '31.3125em', height: '61.375em', top: '200em' }} src="/bg_lnt_l.svg" className="absolute left-0 opacity-50" />
+            <CoppyRight/>
         </div>
     </div>
 }
